@@ -1,0 +1,48 @@
+name: Weekly iOS Article Generator
+
+on:
+  # Run automatically every Monday at 10:00 UTC.
+  schedule:
+    - cron: "0 10 * * 1"
+  # Also allow manual runs from the GitHub Actions tab.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-article:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate weekly article
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4.1-mini
+          OPENAI_TEMPERATURE: "0.7"
+        run: python main.py
+
+      - name: Commit and push generated content
+        run: |
+          if [ -n "$(git status --porcelain outputs/articles outputs/trends)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add outputs/articles outputs/trends
+            git commit -m "chore: add weekly generated iOS content"
+            git push
+          else
+            echo "No new generated content changes to commit."
+          fi

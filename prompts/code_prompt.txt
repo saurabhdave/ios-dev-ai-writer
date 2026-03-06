@@ -1,0 +1,10 @@
+You are a senior iOS engineer.
+
+Generate practical Swift or SwiftUI code for this article topic:
+"{topic}"
+
+Requirements:
+- Return code only (add comments when required, no explanation, no markdown fences).
+- Prefer Swift 6, SwiftUI + modern Swift concurrency if relevant.
+- Keep code realistic, production-oriented, and readable.
+- Include enough code to be useful in a Medium article section.

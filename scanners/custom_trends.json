@@ -1,0 +1,25 @@
+{
+  "google_news_queries": [
+    {
+      "name": "LinkedIn iOS Posts",
+      "query": "site:linkedin.com/posts iOS SwiftUI"
+    }
+  ],
+  "rss_feeds": [
+    {
+      "name": "Example iOS RSS Feed",
+      "url": "https://example.com/ios/feed.xml",
+      "ios_filter": true
+    }
+  ],
+  "manual_signals": [
+    {
+      "source": "Manual Link",
+      "title": "Replace with a specific iOS trend post",
+      "url": "https://example.com/ios-trend-post",
+      "summary": "Optional context for why this is trending.",
+      "score": 80,
+      "ios_filter": true
+    }
+  ]
+}

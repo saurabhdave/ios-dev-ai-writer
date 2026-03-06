@@ -1,0 +1,11 @@
+# OpenAI Python SDK for model calls.
+openai
+
+# Environment variable loading from a local .env file.
+python-dotenv
+
+# HTTP client for trend source requests.
+requests
+
+# RSS/Atom parsing for Apple/WWDC/news feeds.
+feedparser

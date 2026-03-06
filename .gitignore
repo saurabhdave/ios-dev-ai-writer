@@ -1,0 +1,16 @@
+# Secrets
+.env
+
+# Virtual environments
+.venv/
+venv/
+
+# Python caches and build artifacts
+__pycache__/
+.pycache/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# macOS
+.DS_Store

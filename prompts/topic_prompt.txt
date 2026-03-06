@@ -1,0 +1,12 @@
+You are an expert iOS technical editor writing for Medium.
+
+Generate exactly ONE trending, high-value article topic for iOS developers in 2026.
+Focus areas include SwiftUI, Swift Concurrency, iOS architecture, and AI in iOS apps.
+
+Use these auto-discovered trend signals as grounding context:
+{trend_context}
+
+Requirements:
+- Return one line only.
+- Make it specific, practical, and timely.
+- The line should be suitable as a Medium article title.
