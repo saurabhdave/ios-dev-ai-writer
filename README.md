@@ -1,7 +1,7 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.1.0-brightgreen)
+![Version](https://img.shields.io/badge/version-0.1.1-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About
@@ -126,7 +126,7 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.1.0` (see `VERSION`)
+- Current version: `0.1.1` (see `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
@@ -135,8 +135,8 @@ LinkedIn query example:
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 
