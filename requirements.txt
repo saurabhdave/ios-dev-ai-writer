@@ -1,11 +1,11 @@
 # OpenAI Python SDK for model calls.
-openai
+openai>=2.26.0,<3
 
 # Environment variable loading from a local .env file.
-python-dotenv
+python-dotenv>=1.2.1,<2
 
 # HTTP client for trend source requests.
-requests
+requests>=2.32.5,<3
 
 # RSS/Atom parsing for Apple/WWDC/news feeds.
-feedparser
+feedparser>=6.0.12,<7

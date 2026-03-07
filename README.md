@@ -1,10 +1,14 @@
-# ios-dev-ai-writer
+# ios-dev-ai-writer ✍️📱
 
-`ios-dev-ai-writer` is an open-source Python agent pipeline that generates a weekly Medium-style iOS article.
-It automatically discovers trend signals, creates a topic, builds an outline, writes the article, generates Swift/SwiftUI code, and saves everything as markdown.
+![Python](https://img.shields.io/badge/python-3.11-blue)
+![Version](https://img.shields.io/badge/version-0.1.0-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-## Features
+## 🚀 About
+`ios-dev-ai-writer` is an open-source Python agent pipeline that generates weekly Medium-style iOS articles.
+It discovers trends, creates a topic, builds an outline, writes the article body, generates Swift/SwiftUI code, and saves markdown output automatically.
 
+## ✨ Features
 - Automatic iOS trend discovery from:
   - HackerNews
   - Reddit `r/iOSProgramming`
@@ -16,11 +20,10 @@ It automatically discovers trend signals, creates a topic, builds an outline, wr
 - ~1200-word article generation
 - Practical Swift/SwiftUI code generation
 - Output saved to `outputs/articles/{date}-{slug}.md`
-- Optional trend snapshots saved to `outputs/trends/`
-- Weekly automation via GitHub Actions (Monday 10:00 UTC)
+- Trend snapshots saved to `outputs/trends/`
+- Weekly GitHub Actions automation (Monday 10:00 UTC)
 
-## Project Structure
-
+## 🧱 Project Structure
 ```text
 ios-dev-ai-writer/
 ├── agents/
@@ -42,15 +45,19 @@ ios-dev-ai-writer/
 │   ├── articles/
 │   └── trends/
 ├── .github/workflows/
-│   └── weekly.yml
+│   ├── weekly.yml
+│   └── release.yml
+├── VERSION
+├── CHANGELOG.md
+├── LICENSE
 ├── requirements.txt
+├── pyproject.toml
 ├── config.py
 ├── main.py
 └── README.md
 ```
 
-## Architecture Diagram
-
+## 🧭 Architecture Diagram
 ```mermaid
 flowchart TD
     A[GitHub Actions Weekly Trigger] --> B[main.py]
@@ -72,55 +79,45 @@ flowchart TD
     G --> H
     C --> I[Markdown Composer]
     I --> J[outputs/articles/date-slug.md]
+    C --> K[outputs/trends/timestamp-trend-signals.json]
 ```
 
-## Setup
-
+## ⚙️ Setup
 1. Clone the repository.
 2. Create and activate a Python 3.11 virtual environment.
 3. Install dependencies:
-
 ```bash
 pip install -r requirements.txt
 ```
-
-4. Set environment variables (or place them in `.env`):
-
+4. Configure environment variables (or `.env`):
 ```bash
 export OPENAI_API_KEY="your_api_key"
-export OPENAI_MODEL="gpt-4.1-mini"                          # optional
-export OPENAI_TEMPERATURE="0.7"                             # optional
-export TREND_DISCOVERY_ENABLED="true"                       # optional
-export TREND_MAX_ITEMS_PER_SOURCE="10"                      # optional
-export TREND_HTTP_TIMEOUT_SECONDS="12"                      # optional
-export REDDIT_USER_AGENT="ios-dev-ai-writer/1.0"            # optional
-export TREND_SOURCES="hackernews,reddit,apple,wwdc,viral,custom" # optional
-export CUSTOM_TRENDS_FILE="scanners/custom_trends.json"     # optional
+export OPENAI_MODEL="gpt-4.1-mini"                                # optional
+export OPENAI_TEMPERATURE="0.7"                                   # optional
+export TREND_DISCOVERY_ENABLED="true"                             # optional
+export TREND_MAX_ITEMS_PER_SOURCE="10"                            # optional
+export TREND_HTTP_TIMEOUT_SECONDS="12"                            # optional
+export REDDIT_USER_AGENT="ios-dev-ai-writer/1.0"                  # optional
+export TREND_SOURCES="hackernews,reddit,apple,wwdc,viral,custom"  # optional
+export CUSTOM_TRENDS_FILE="scanners/custom_trends.json"           # optional
 ```
 
-## Run Locally
-
+## ▶️ Run Locally
 ```bash
 python main.py
 ```
 
-Outputs:
-
+Generated outputs:
 - `outputs/articles/YYYY-MM-DD-your-topic-slug.md`
-- `outputs/trends/YYYY-MM-DDTHH-MM-SSZ-trend-signals.json` (when trend discovery is enabled)
+- `outputs/trends/YYYY-MM-DDTHH-MM-SSZ-trend-signals.json`
 
-## Recommended Approach For Adding New Trend Sources
+## 🔌 Add New Trend Sources (Recommended)
+Use a config-first workflow:
+1. Add/edit entries in `scanners/custom_trends.json`.
+2. Keep `TREND_SOURCES` in `.env` to enable/disable source groups.
+3. Only add Python fetcher code when a source needs custom API/auth logic.
 
-Use a **configuration-first plugin approach**:
-
-1. Add or edit entries in `scanners/custom_trends.json` (no Python changes needed).
-2. Keep `TREND_SOURCES` in `.env` to control source order and enable/disable groups.
-3. Add Python fetcher code only when a source needs a custom API integration.
-
-### Quick examples
-
-Add LinkedIn discovery query:
-
+LinkedIn query example:
 ```json
 {
   "name": "LinkedIn iOS Posts",
@@ -128,84 +125,41 @@ Add LinkedIn discovery query:
 }
 ```
 
-Add custom RSS feed:
+## 🏷️ Versioning
+- Current version: `0.1.0` (see `VERSION`)
+- Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
+- Release notes source: `CHANGELOG.md`
 
-```json
-{
-  "name": "iOS Engineering Blog",
-  "url": "https://example.com/ios/feed.xml",
-  "ios_filter": true
-}
+### Release process
+1. Update `VERSION` and `CHANGELOG.md`.
+2. Commit changes.
+3. Create and push a version tag:
+```bash
+git tag v0.1.1
+git push origin v0.1.1
 ```
+4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 
-Add one manual trend link/topic:
-
-```json
-{
-  "source": "Manual Link",
-  "title": "New SwiftUI Navigation Patterns in Production",
-  "url": "https://example.com/article",
-  "summary": "Optional context",
-  "score": 80
-}
-```
-
-### When to add code vs config
-
-- Use `custom_trends.json` when the source has RSS, can be queried through Google News, or you want to inject manual links.
-- Add Python code in `scanners/trend_scanner.py` when a source requires auth, pagination, or custom ranking logic.
-
-## GitHub Automation
-
-The workflow at `.github/workflows/weekly.yml` runs every Monday at 10:00 UTC.
+## 🤖 GitHub Automation
+The workflow `.github/workflows/weekly.yml` runs every Monday at 10:00 UTC.
 
 Workflow steps:
-
 1. Checkout repository
 2. Set up Python 3.11
 3. Install dependencies
 4. Run `python main.py`
-5. Commit and push new article in `outputs/articles/`
+5. Commit and push generated content from:
+   - `outputs/articles/`
+   - `outputs/trends/`
 
 Required repository secret:
-
 - `OPENAI_API_KEY`
 
-## Example Generated Article (excerpt)
+## 🧾 Suggested GitHub Repo About (Manual)
+GitHub “About” is set in the GitHub UI, not from code. Recommended values:
+- Description: `AI agent that auto-generates weekly Medium-style iOS articles from real trend signals.`
+- Website: your project/docs URL (optional)
+- Topics: `ios`, `swiftui`, `openai`, `python`, `ai-agent`, `github-actions`, `content-generation`
 
-````markdown
-# Building Production-Ready AI Features in SwiftUI with Structured Concurrency
-
-## Trend Signals (Auto-Discovered)
-- [HackerNews] Apple opens new Swift build optimization docs - https://...
-- [LinkedIn iOS Posts] Senior iOS Dev shares scalable async architecture pattern - https://...
-
-## Outline
-- Why hybrid on-device + cloud AI patterns matter in 2026
-- Architecture for prompt orchestration and cancellation
-- Concurrency-safe UI state with structured tasks
-
-## Article
-Modern iOS teams are no longer asking whether to integrate AI, but how to do it without latency spikes,
-unbounded token costs, or UI race conditions.
-
-## Code Example
-```swift
-@MainActor
-final class AIWriterViewModel: ObservableObject {
-    @Published var article: String = ""
-    private var task: Task<Void, Never>?
-
-    func generate() {
-        task?.cancel()
-        task = Task {
-            // ...
-        }
-    }
-}
-```
-````
-
-## License
-
-MIT (recommended for open-source use; add a `LICENSE` file if needed).
+## 📄 License
+MIT License. See `LICENSE`.
