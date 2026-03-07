@@ -6,6 +6,7 @@ Outline:
 {outline}
 
 Requirements:
+- Strictly follow medium guidelines at https://medium.com/blog/tips-and-tricks-for-medium-writers-1d79498101c3
 - Target length: about 1000 words (acceptable range 1000-1200).
 - Tone: practical, technical, conversational, engaging, and easy to follow.
 - Audience: junior/intermediate/senior iOS developers (including Apple ecosystem developers).
