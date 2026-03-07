@@ -2,7 +2,7 @@
   "google_news_queries": [
     {
       "name": "LinkedIn iOS Posts",
-      "query": "site:linkedin.com/posts iOS SwiftUI"
+      "query": "site:linkedin.com/posts iOS swift SwiftUI apple xcode ai"
     }
   ],
   "rss_feeds": [
