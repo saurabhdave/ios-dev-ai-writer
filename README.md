@@ -155,11 +155,5 @@ Workflow steps:
 Required repository secret:
 - `OPENAI_API_KEY`
 
-## 🧾 Suggested GitHub Repo About (Manual)
-GitHub “About” is set in the GitHub UI, not from code. Recommended values:
-- Description: `AI agent that auto-generates weekly Medium-style iOS articles from real trend signals.`
-- Website: your project/docs URL (optional)
-- Topics: `ios`, `swiftui`, `openai`, `python`, `ai-agent`, `github-actions`, `content-generation`
-
 ## 📄 License
 MIT License. See `LICENSE`.
