@@ -14,9 +14,9 @@
   ],
   "manual_signals": [
     {
-      "source": "Manual Link",
-      "title": "Replace with a specific iOS trend post",
-      "url": "https://example.com/ios-trend-post",
+      "source": "Medium link",
+      "title": "Medium iOS and other ai trending topics",
+      "url": "https://medium.com/search?q=ai+iOS+swift+SwiftUI+Agentic+Coding",
       "summary": "Optional context for why this is trending.",
       "score": 80,
       "ios_filter": true

@@ -9,8 +9,8 @@ Use these auto-discovered trend signals as grounding context:
 Requirements:
 - Return one line only.
 - Make sure only single random topic of focus is used, don't mix multiple trending topics.
-- Make it specific, practical, and timely.
+- Make it authentic, specific, practical, and timely.
 - The line should be suitable as a Medium article title.
 - Don't make topic repetitive or outdated.
-- Make topic as unique as relevent.
-- Cross-check topics/suggestions against the best practice guidelines.
+- Make topic as unique as relevent and authentic.
+- Cross-check and verify topics/suggestions against the best practice guidelines.
