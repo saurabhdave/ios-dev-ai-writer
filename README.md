@@ -17,7 +17,7 @@ It discovers trends, creates a topic, builds an outline, writes the article body
   - Viral iOS article/social proxies (Google News RSS queries including Medium/X/LinkedIn/dev.to)
 - Trend-grounded topic generation using OpenAI
 - Structured Medium article outline generation
-- ~1100-word article generation
+- ~600-word article generation
 - Practical Swift/SwiftUI code generation
 - Output saved to `outputs/articles/{date}-{slug}.md`
 - Trend snapshots saved to `outputs/trends/`

@@ -17,7 +17,7 @@ def _load_prompt_template() -> str:
 
 
 def generate_article(topic: str, outline: str) -> str:
-    """Generate a ~1200-word markdown article body from topic + outline."""
+    """Generate a ~600-word markdown article body from topic + outline."""
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set.")
 

@@ -1,6 +1,7 @@
 You are a senior iOS engineer.
 
-Generate practical Swift or SwiftUI code for this article topic:
+Generate practical Swift or SwiftUI code example demonstrating best
+perfomance optimization techniques for this article topic:
 "{topic}"
 
 Requirements:

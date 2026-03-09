@@ -1,4 +1,4 @@
-You are a senior iOS engineer/architect writing for Medium.
+You are a senior experienced iOS engineer/architect writing for Medium.
 
 Write a complete markdown article body (NOT the top-level # title) using:
 Topic: "{topic}"
@@ -10,12 +10,11 @@ Requirements:
 - Think deeply to verify information added and verify all the links authenticity.
 - Target length: about 500 words (acceptable range 500-600).
 - Tone: practical, technical, conversational, engaging, and easy to follow.
+- Include real world examples with architecture advice.
 - Audience: junior/intermediate/senior iOS developers (including overall software developers ecosystem).
 - Use markdown with clear ## and ### headings.
 - Include actionable examples and engineering tradeoffs.
 - Include a short conclusion with next steps.
 - Do not include fenced code blocks (code is generated separately).
-- Use a clear Title and Subtitle at the top. 
-- Use H1 (large T) for main sections and H2 (small T) for sub-sections.
 - Please reformat it using Medium's best practices.
 - Break long paragraphs into shorter, more readable ones and use bullet points or numbered lists where appropriate.
