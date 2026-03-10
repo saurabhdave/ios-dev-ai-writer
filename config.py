@@ -41,3 +41,11 @@ TREND_SOURCES = tuple(
     if source.strip()
 )
 CUSTOM_TRENDS_FILE = Path(os.getenv("CUSTOM_TRENDS_FILE", "scanners/custom_trends.json"))
+
+# Content quality controls.
+EDITOR_PASS_ENABLED = os.getenv("EDITOR_PASS_ENABLED", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}

@@ -27,22 +27,21 @@ from config import (
 )
 
 
-IOS_KEYWORDS = {
-    "ios",
-    "swift",
-    "swiftui",
-    "uikit",
-    "xcode",
-    "testflight",
-    "app store",
-    "appstore",
-    "core data",
-    "swiftdata",
-    "async",
-    "concurrency",
-    "visionos",
-    "wwdc",
-}
+IOS_KEYWORD_PATTERNS = [
+    r"\bios\b",
+    r"\bswift\b",
+    r"\bswiftui\b",
+    r"\buikit\b",
+    r"\bxcode\b",
+    r"\btestflight\b",
+    r"\bapp\s?store\b",
+    r"\bcore\sdata\b",
+    r"\bswiftdata\b",
+    r"\basync\b",
+    r"\bconcurrency\b",
+    r"\bvisionos\b",
+    r"\bwwdc\b",
+]
 
 DEFAULT_VIRAL_QUERIES = [
     "iOS SwiftUI Swift Concurrency architecture AI app development",
@@ -50,6 +49,14 @@ DEFAULT_VIRAL_QUERIES = [
     "site:x.com iOS app development SwiftUI",
     "site:linkedin.com/posts iOS SwiftUI",
     "site:dev.to iOS Swift",
+]
+
+LOW_SIGNAL_TITLE_PATTERNS = [
+    r"\bis hiring\b",
+    r"\bjobs?\b",
+    r"\bcareers?\b",
+    r"\bfeedback requested\b",
+    r"#buildinpublic",
 ]
 
 
@@ -68,7 +75,7 @@ class TrendSignal:
 def _is_ios_related(text: str) -> bool:
     """Quick keyword filter to retain iOS-relevant items."""
     normalized = text.lower()
-    return any(keyword in normalized for keyword in IOS_KEYWORDS)
+    return any(re.search(pattern, normalized) for pattern in IOS_KEYWORD_PATTERNS)
 
 
 def _iso_now() -> str:
@@ -82,6 +89,12 @@ def _to_float(value: object, default: float) -> float:
         return float(value)
     except (TypeError, ValueError):
         return default
+
+
+def _is_low_signal_title(title: str) -> bool:
+    """Filter noisy/non-editorial trend items (jobs, generic promos, etc.)."""
+    lowered = title.lower()
+    return any(re.search(pattern, lowered) for pattern in LOW_SIGNAL_TITLE_PATTERNS)
 
 
 def _safe_get_json(url: str, headers: dict[str, str] | None = None) -> dict | list:
@@ -119,6 +132,8 @@ def _parse_feed(
         summary = re.sub(r"\s+", " ", str(getattr(entry, "summary", "") or "")).strip()
 
         if not title:
+            continue
+        if _is_low_signal_title(title):
             continue
 
         combined = f"{title} {summary} {url}"
@@ -204,6 +219,8 @@ def fetch_hackernews_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[Tre
 
         if not title or not _is_ios_related(combined):
             continue
+        if _is_low_signal_title(title):
+            continue
 
         score = float(item.get("score", 0)) + float(item.get("descendants", 0)) * 0.5
         unix_time = int(item.get("time", 0) or 0)
@@ -249,6 +266,8 @@ def fetch_reddit_iosprogramming_trends(
         url = f"https://reddit.com{permalink}" if permalink else ""
 
         if not title:
+            continue
+        if _is_low_signal_title(title):
             continue
 
         score = float(data.get("ups", 0)) + float(data.get("num_comments", 0)) * 0.35

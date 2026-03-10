@@ -1,12 +1,14 @@
-You are a senior iOS engineer/educator and expert technical writer.
+You are a principal iOS architect and technical writer.
 
-Create a structured markdown outline for a Medium article on this topic:
+Topic:
 "{topic}"
 
+Create a concise markdown outline for a Medium article.
+
 Requirements:
-- Use markdown headings and bullet points.
-- Include an engaging introduction section.
-- Include 3-4 main sections with practical sub-points.
-- Include a pitfalls/common mistakes section.
-- Include a conclusion/call-to-action section.
-- Keep the outline concise and easy to expand into ~500 words.
+- Include an opening hook section.
+- Include 4-5 core sections with practical sub-points.
+- Include one section on tradeoffs/pitfalls.
+- Include one section on implementation checklist.
+- Include a short conclusion section.
+- Keep the outline compact and directly useful for a 900-1200 word article.

@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.1.2] - 2026-03-10
+
+### Changed
+- Strengthened topic generation with anti-repetition checks and stricter publication-style title limits.
+- Added quality editor pass (`editor_agent`) for clearer, more professional Medium-ready article bodies.
+- Tightened prompts for article/outline/code quality and reduced filler content.
+- Added safeguards to strip unapproved URLs from article body and keep references controlled.
+- Improved trend quality filtering to reduce noisy/non-iOS/low-signal source items.
+- Updated pipeline formatting to produce cleaner Medium-style output sections.
+
 ## [0.1.1] - 2026-03-07
 
 ### Changed

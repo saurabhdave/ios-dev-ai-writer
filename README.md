@@ -1,7 +1,7 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.1.1-brightgreen)
+![Version](https://img.shields.io/badge/version-0.1.2-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About
@@ -17,7 +17,10 @@ It discovers trends, creates a topic, builds an outline, writes the article body
   - Viral iOS article/social proxies (Google News RSS queries including Medium/X/LinkedIn/dev.to)
 - Trend-grounded topic generation using OpenAI
 - Structured Medium article outline generation
-- ~600-word article generation
+- Professional Medium-style article generation (~900-1200 words)
+- Built-in editor pass for quality, tone, and readability
+- URL-safety guardrails (body text strips unverified links)
+- Anti-repetition topic selection using recent article history
 - Practical Swift/SwiftUI code generation
 - Output saved to `outputs/articles/{date}-{slug}.md`
 - Trend snapshots saved to `outputs/trends/`
@@ -30,6 +33,7 @@ ios-dev-ai-writer/
 │   ├── topic_agent.py
 │   ├── outline_agent.py
 │   ├── article_agent.py
+│   ├── editor_agent.py
 │   └── code_agent.py
 ├── scanners/
 │   ├── trend_scanner.py
@@ -40,6 +44,7 @@ ios-dev-ai-writer/
 │   ├── topic_prompt.txt
 │   ├── outline_prompt.txt
 │   ├── article_prompt.txt
+│   ├── editor_prompt.txt
 │   └── code_prompt.txt
 ├── outputs/
 │   ├── articles/
@@ -72,11 +77,13 @@ flowchart TD
     C --> D[topic_agent.generate_topic]
     C --> E[outline_agent.generate_outline]
     C --> F[article_agent.generate_article]
-    C --> G[code_agent.generate_code]
-    D --> H[OpenAI API]
-    E --> H
-    F --> H
-    G --> H
+    C --> G[editor_agent.polish_article]
+    C --> H[code_agent.generate_code]
+    D --> API[OpenAI API]
+    E --> API
+    F --> API
+    G --> API
+    H --> API
     C --> I[Markdown Composer]
     I --> J[outputs/articles/date-slug.md]
     C --> K[outputs/trends/timestamp-trend-signals.json]
@@ -100,6 +107,7 @@ export TREND_HTTP_TIMEOUT_SECONDS="12"                            # optional
 export REDDIT_USER_AGENT="ios-dev-ai-writer/1.0"                  # optional
 export TREND_SOURCES="hackernews,reddit,apple,wwdc,viral,custom"  # optional
 export CUSTOM_TRENDS_FILE="scanners/custom_trends.json"           # optional
+export EDITOR_PASS_ENABLED="true"                                  # optional
 ```
 
 ## ▶️ Run Locally
@@ -126,7 +134,7 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.1.1` (see `VERSION`)
+- Current version: `0.1.2` (see `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
@@ -135,8 +143,8 @@ LinkedIn query example:
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.1.2
-git push origin v0.1.2
+git tag v0.1.3
+git push origin v0.1.3
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 

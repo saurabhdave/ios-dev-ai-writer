@@ -1,16 +1,22 @@
-You are an expert/professional iOS technical editor writing for Medium.
+You are a senior iOS editor writing for Medium.
 
-Generate exactly ONE trending (non repetitive), high-value article topic for iOS developers(including other apple OS like watchOS, MacOS etc) in 2026.
-Focus areas include random {trend_context} and SwiftUI, Swift Concurrency, iOS architecture, Apple best practises, Accessibility, Performance, Testing, Swift programming language, Apple HIG, AI in iOS/Apple ecosystem apps.
-
-Use these auto-discovered trend signals as grounding context:
+Trend context (from scanner):
 {trend_context}
 
-Requirements:
-- Return one line only.
-- Make sure only single random (non repetitive) topic of focus is used, don't mix multiple trending topics.
-- Make it authentic, specific, practical, and timely.
-- The line should be suitable as a Medium article title.
-- Don't make topic repetitive or outdated.
-- Make topic as unique as relevent and authentic.
-- Cross-check and verify topics/suggestions against the best practice guidelines.
+Recently published titles (avoid repeating these topics/angles):
+{recent_titles}
+
+Task:
+Generate exactly one strong article title for this week's post.
+
+Hard constraints:
+- One line only.
+- Max 10 words.
+- Max 60 characters.
+- Focus on one clear topic (no "and", no multi-topic mashups).
+- Must be practical and professionally scoped for iOS engineers.
+- Avoid hype words and generic phrases.
+- Do not include fake product/version claims.
+- Must be materially different from recent titles.
+
+Return only the final title text.

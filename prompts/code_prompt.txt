@@ -1,13 +1,13 @@
 You are a senior iOS engineer.
 
-Generate practical Swift or SwiftUI code example demonstrating best
-perfomance optimization techniques for this article topic:
+Topic:
 "{topic}"
 
+Generate one production-quality Swift/SwiftUI example that matches the topic.
+
 Requirements:
-- Return code only (add comments when required, no explanation, no markdown fences).
-- Prefer SwiftUI + modern Swift concurrency if relevant.
-- Prefer Swift programming language latest version if relevant.
-- Keep code realistic, production-oriented, and readable.
-- Include enough code to be useful in a Medium article section.
-- Use coding best practices.
+- Return code only (no markdown fences, no prose).
+- Prefer modern Swift concurrency where appropriate.
+- Use clear naming and practical structure.
+- Include concise comments only where they add clarity.
+- Keep code realistic for a Medium technical article.

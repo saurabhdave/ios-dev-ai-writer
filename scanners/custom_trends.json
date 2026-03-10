@@ -2,24 +2,9 @@
   "google_news_queries": [
     {
       "name": "LinkedIn iOS Posts",
-      "query": "site:linkedin.com/posts iOS swift SwiftUI apple xcode ai"
+      "query": "site:linkedin.com/posts iOS SwiftUI"
     }
   ],
-  "rss_feeds": [
-    {
-      "name": "Example iOS RSS Feed",
-      "url": "https://example.com/ios/feed.xml",
-      "ios_filter": true
-    }
-  ],
-  "manual_signals": [
-    {
-      "source": "Medium link",
-      "title": "Medium iOS and other ai trending topics",
-      "url": "https://medium.com/search?q=ai+iOS+swift+SwiftUI+Agentic+Coding",
-      "summary": "Optional context for why this is trending.",
-      "score": 80,
-      "ios_filter": true
-    }
-  ]
+  "rss_feeds": [],
+  "manual_signals": []
 }
