@@ -36,7 +36,7 @@ TREND_SOURCES = tuple(
     source.strip().lower()
     for source in os.getenv(
         "TREND_SOURCES",
-        "hackernews,reddit,apple,wwdc,viral,custom",
+        "hackernews,reddit,apple,wwdc,viral,social,platforms,custom",
     ).split(",")
     if source.strip()
 )
@@ -49,3 +49,19 @@ EDITOR_PASS_ENABLED = os.getenv("EDITOR_PASS_ENABLED", "true").lower() in {
     "yes",
     "on",
 }
+
+TOPIC_INTERESTS = [
+    item.strip()
+    for item in os.getenv(
+        "TOPIC_INTERESTS",
+        "AI,AI Agents,AI Automation,Agentic AI,Agentic workflows,Generative AI",
+    ).split(",")
+    if item.strip()
+]
+
+# Topic composition policy:
+# - balanced: alternate across iOS-only, AI-only, and hybrid based on recent history
+# - ios_only: keep topics focused on Apple platform engineering without AI requirement
+# - ai_only: keep topics focused on AI/agentic/generative themes (can still be app-dev relevant)
+# - hybrid: combine Apple platform + AI themes in one topic
+TOPIC_MODE = os.getenv("TOPIC_MODE", "balanced").strip().lower()

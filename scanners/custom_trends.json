@@ -3,8 +3,31 @@
     {
       "name": "LinkedIn iOS Posts",
       "query": "site:linkedin.com/posts iOS SwiftUI"
+    },
+    {
+      "name": "X.com iOS + Agentic AI",
+      "query": "site:x.com iOS SwiftUI Agentic AI"
+    },
+    {
+      "name": "dev.to iOS + Generative AI",
+      "query": "site:dev.to iOS SwiftUI Generative AI"
+    },
+    {
+      "name": "Medium iOS + AI Agents",
+      "query": "site:medium.com iOS SwiftUI AI Agents"
     }
   ],
-  "rss_feeds": [],
+  "rss_feeds": [
+    {
+      "name": "dev.to iOS Tag",
+      "url": "https://dev.to/feed/tag/ios",
+      "topic_filter": true
+    },
+    {
+      "name": "Medium iOS Tag",
+      "url": "https://medium.com/feed/tag/ios",
+      "topic_filter": true
+    }
+  ],
   "manual_signals": []
 }

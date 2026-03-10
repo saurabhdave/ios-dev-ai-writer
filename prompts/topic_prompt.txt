@@ -3,6 +3,12 @@ You are a senior iOS editor writing for Medium.
 Trend context (from scanner):
 {trend_context}
 
+Priority interest themes for upcoming versions:
+{topic_interests}
+
+Focus mode for this run:
+{focus_mode}
+
 Recently published titles (avoid repeating these topics/angles):
 {recent_titles}
 
@@ -15,6 +21,9 @@ Hard constraints:
 - Max 60 characters.
 - Focus on one clear topic (no "and", no multi-topic mashups).
 - Must be practical and professionally scoped for iOS engineers.
+- If focus mode is `ios_only`: produce an Apple platform engineering topic without requiring AI terms.
+- If focus mode is `ai_only`: produce an AI/agentic/generative topic relevant to app engineering (iOS mention optional).
+- If focus mode is `hybrid`: combine one Apple platform angle with one AI/agentic angle.
 - Avoid hype words and generic phrases.
 - Do not include fake product/version claims.
 - Must be materially different from recent titles.

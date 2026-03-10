@@ -11,7 +11,12 @@ from agents.code_agent import generate_code
 from agents.editor_agent import polish_article
 from agents.outline_agent import generate_outline
 from agents.topic_agent import generate_topic
-from config import EDITOR_PASS_ENABLED, OUTPUT_ARTICLES_DIR, TREND_DISCOVERY_ENABLED
+from config import (
+    EDITOR_PASS_ENABLED,
+    OUTPUT_ARTICLES_DIR,
+    TOPIC_INTERESTS,
+    TREND_DISCOVERY_ENABLED,
+)
 from scanners.trend_scanner import TrendSignal, discover_ios_trends, save_trend_snapshot
 
 
@@ -101,11 +106,28 @@ def _reference_items(trends: list[TrendSignal], max_items: int = 8) -> list[tupl
 
 
 def _references_for_prompt(trends: list[TrendSignal], max_items: int = 8) -> str:
-    """Create source list for prompt grounding."""
-    items = _reference_items(trends, max_items=max_items)
-    if not items:
+    """Create broader source list for prompt grounding (less strict than publish refs)."""
+    seen_urls: set[str] = set()
+    lines: list[str] = []
+
+    for trend in trends:
+        title = trend.title.strip()
+        url = trend.url.strip()
+        source = trend.source.strip()
+
+        if not title or not url or not url.startswith("http"):
+            continue
+        if url in seen_urls:
+            continue
+
+        seen_urls.add(url)
+        lines.append(f"- [{source}] {title} | {url}")
+        if len(lines) >= max_items:
+            break
+
+    if not lines:
         return "- None"
-    return "\n".join(f"- [{source}] {title} | {url}" for source, title, url in items)
+    return "\n".join(lines)
 
 
 def _compose_markdown(title: str, article: str, code: str, trends: list[TrendSignal]) -> str:
@@ -159,7 +181,11 @@ def run_weekly_pipeline() -> Path:
         save_trend_snapshot(trends)
 
     trend_context = _references_for_prompt(trends, max_items=14)
-    topic = generate_topic(trend_context=trend_context, recent_titles=recent_titles)
+    topic = generate_topic(
+        trend_context=trend_context,
+        recent_titles=recent_titles,
+        topic_interests=TOPIC_INTERESTS,
+    )
     outline = generate_outline(topic)
     reference_context = _references_for_prompt(trends, max_items=10)
 

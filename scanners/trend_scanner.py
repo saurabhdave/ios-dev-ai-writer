@@ -43,12 +43,38 @@ IOS_KEYWORD_PATTERNS = [
     r"\bwwdc\b",
 ]
 
+AI_TOPIC_PATTERNS = [
+    r"\bai\b",
+    r"\bagentic\b",
+    r"\bagent(s)?\b",
+    r"\bgenerative ai\b",
+    r"\bautomation\b",
+    r"\bllm(s)?\b",
+    r"\bprompt(s)?\b",
+    r"\bon-device model(s)?\b",
+]
+
 DEFAULT_VIRAL_QUERIES = [
     "iOS SwiftUI Swift Concurrency architecture AI app development",
-    "site:medium.com iOS SwiftUI",
-    "site:x.com iOS app development SwiftUI",
-    "site:linkedin.com/posts iOS SwiftUI",
-    "site:dev.to iOS Swift",
+    "Agentic AI workflows in iOS apps SwiftUI",
+    "Generative AI integration patterns in Apple platform apps",
+    "AI automation for iOS developer workflows",
+    "site:linkedin.com/posts iOS SwiftUI AI",
+]
+
+SOCIAL_WEB_QUERY_SOURCES = [
+    ("X.com iOS + AI", "site:x.com iOS SwiftUI AI OR agentic"),
+    ("dev.to iOS + AI", "site:dev.to iOS SwiftUI AI OR agent"),
+    ("Medium iOS + AI", "site:medium.com iOS SwiftUI AI OR generative"),
+]
+
+PLATFORM_RSS_FEEDS = [
+    ("dev.to", "https://dev.to/feed/tag/ios"),
+    ("dev.to", "https://dev.to/feed/tag/swiftui"),
+    ("dev.to", "https://dev.to/feed/tag/artificial-intelligence"),
+    ("Medium", "https://medium.com/feed/tag/ios"),
+    ("Medium", "https://medium.com/feed/tag/swiftui"),
+    ("Medium", "https://medium.com/feed/tag/artificial-intelligence"),
 ]
 
 LOW_SIGNAL_TITLE_PATTERNS = [
@@ -72,10 +98,12 @@ class TrendSignal:
     summary: str = ""
 
 
-def _is_ios_related(text: str) -> bool:
-    """Quick keyword filter to retain iOS-relevant items."""
+def _is_topic_related(text: str) -> bool:
+    """Keyword filter to retain iOS/agentic AI relevant items."""
     normalized = text.lower()
-    return any(re.search(pattern, normalized) for pattern in IOS_KEYWORD_PATTERNS)
+    return any(re.search(pattern, normalized) for pattern in IOS_KEYWORD_PATTERNS) or any(
+        re.search(pattern, normalized) for pattern in AI_TOPIC_PATTERNS
+    )
 
 
 def _iso_now() -> str:
@@ -120,7 +148,7 @@ def _parse_feed(
     feed_url: str,
     source_name: str,
     limit: int,
-    ios_filter: bool = True,
+    topic_filter: bool = True,
 ) -> list[TrendSignal]:
     """Parse an RSS/Atom feed and normalize entries."""
     parsed = feedparser.parse(feed_url)
@@ -137,7 +165,7 @@ def _parse_feed(
             continue
 
         combined = f"{title} {summary} {url}"
-        if ios_filter and not _is_ios_related(combined):
+        if topic_filter and not _is_topic_related(combined):
             continue
 
         published_at = _iso_now()
@@ -167,7 +195,7 @@ def _fetch_google_news_query(query: str, source_name: str, limit: int) -> list[T
     """Fetch a Google News RSS query and normalize the result."""
     encoded = quote_plus(query)
     url = f"https://news.google.com/rss/search?q={encoded}&hl=en-US&gl=US&ceid=US:en"
-    return _parse_feed(feed_url=url, source_name=source_name, limit=limit, ios_filter=True)
+    return _parse_feed(feed_url=url, source_name=source_name, limit=limit, topic_filter=True)
 
 
 def _load_custom_trend_config(path: Path = CUSTOM_TRENDS_FILE) -> dict[str, list[dict[str, object]]]:
@@ -175,7 +203,7 @@ def _load_custom_trend_config(path: Path = CUSTOM_TRENDS_FILE) -> dict[str, list
 
     Expected keys:
     - google_news_queries: [{"name": "LinkedIn iOS", "query": "site:linkedin.com/posts iOS SwiftUI"}]
-    - rss_feeds: [{"name": "Some Feed", "url": "https://example.com/feed.xml", "ios_filter": true}]
+    - rss_feeds: [{"name": "Some Feed", "url": "https://example.com/feed.xml", "topic_filter": true}]
     - manual_signals: [{"source": "Manual", "title": "...", "url": "...", "score": 60}]
     """
     default_payload: dict[str, list[dict[str, object]]] = {
@@ -217,7 +245,7 @@ def fetch_hackernews_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[Tre
         url = str(item.get("url", f"https://news.ycombinator.com/item?id={story_id}")).strip()
         combined = f"{title} {url}"
 
-        if not title or not _is_ios_related(combined):
+        if not title or not _is_topic_related(combined):
             continue
         if _is_low_signal_title(title):
             continue
@@ -312,7 +340,7 @@ def fetch_apple_docs_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[Tre
                 feed_url=feed_url,
                 source_name="Apple Docs/Developer",
                 limit=per_feed_limit,
-                ios_filter=True,
+                topic_filter=True,
             )
         )
 
@@ -325,7 +353,7 @@ def fetch_wwdc_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSign
         feed_url="https://developer.apple.com/videos/rss/videos.rss",
         source_name="WWDC",
         limit=limit,
-        ios_filter=True,
+        topic_filter=True,
     )
 
 
@@ -340,6 +368,41 @@ def fetch_viral_ios_web_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[
                 query=query,
                 source_name="Viral iOS Web",
                 limit=per_query_limit,
+            )
+        )
+
+    return signals[:limit]
+
+
+def fetch_social_web_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
+    """Discover trends from source-scoped web/social queries (X.com, dev.to, Medium)."""
+    per_query_limit = max(limit // max(len(SOCIAL_WEB_QUERY_SOURCES), 1), 1)
+    signals: list[TrendSignal] = []
+
+    for source_name, query in SOCIAL_WEB_QUERY_SOURCES:
+        signals.extend(
+            _fetch_google_news_query(
+                query=query,
+                source_name=source_name,
+                limit=per_query_limit,
+            )
+        )
+
+    return signals[:limit]
+
+
+def fetch_platform_rss_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
+    """Fetch direct RSS feeds from Medium and dev.to tags for broader coverage."""
+    per_feed_limit = max(limit // max(len(PLATFORM_RSS_FEEDS), 1), 1)
+    signals: list[TrendSignal] = []
+
+    for source_name, feed_url in PLATFORM_RSS_FEEDS:
+        signals.extend(
+            _parse_feed(
+                feed_url=feed_url,
+                source_name=source_name,
+                limit=per_feed_limit,
+                topic_filter=True,
             )
         )
 
@@ -373,7 +436,7 @@ def fetch_custom_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSi
         for entry in rss_sources:
             feed_url = str(entry.get("url", "") or "").strip()
             source_name = str(entry.get("name", "Custom RSS") or "Custom RSS").strip()
-            ios_filter = bool(entry.get("ios_filter", True))
+            topic_filter = bool(entry.get("topic_filter", entry.get("ios_filter", True)))
             if not feed_url:
                 continue
             signals.extend(
@@ -381,7 +444,7 @@ def fetch_custom_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSi
                     feed_url=feed_url,
                     source_name=source_name,
                     limit=per_feed_limit,
-                    ios_filter=ios_filter,
+                    topic_filter=topic_filter,
                 )
             )
 
@@ -395,7 +458,9 @@ def fetch_custom_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSi
         if not title or not url:
             continue
 
-        if bool(entry.get("ios_filter", True)) and not _is_ios_related(f"{title} {summary} {url}"):
+        if bool(entry.get("topic_filter", entry.get("ios_filter", True))) and not _is_topic_related(
+            f"{title} {summary} {url}"
+        ):
             continue
 
         signals.append(
@@ -419,6 +484,8 @@ SOURCE_FETCHERS: dict[str, Callable[[int], list[TrendSignal]]] = {
     "apple": fetch_apple_docs_trends,
     "wwdc": fetch_wwdc_trends,
     "viral": fetch_viral_ios_web_trends,
+    "social": fetch_social_web_trends,
+    "platforms": fetch_platform_rss_trends,
     "custom": fetch_custom_trends,
 }
 

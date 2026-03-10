@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.1.3] - 2026-03-10
+
+### Changed
+- Added explicit priority topic interests for AI, AI agents, AI automation, agentic AI/workflows, and generative AI.
+- Added configurable topic composition mode (`TOPIC_MODE`) to avoid always combining iOS + AI in one title.
+- Broadened trend scanning with dedicated source coverage for `x.com`, `dev.to`, and `medium.com`.
+- Added direct RSS ingestion for `dev.to` and `medium.com` tags, alongside scoped web/social queries.
+- Updated default trend source set to include `social` and `platforms` scanners.
+
 ## [0.1.2] - 2026-03-10
 
 ### Changed

@@ -1,7 +1,7 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.1.2-brightgreen)
+![Version](https://img.shields.io/badge/version-0.1.3-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About
@@ -14,7 +14,12 @@ It discovers trends, creates a topic, builds an outline, writes the article body
   - Reddit `r/iOSProgramming`
   - Apple Developer docs/news release feeds
   - WWDC videos feed
-  - Viral iOS article/social proxies (Google News RSS queries including Medium/X/LinkedIn/dev.to)
+  - Broader web/social sources including `x.com`, `dev.to`, and `medium.com` (query + RSS coverage)
+- Priority topic interests for upcoming posts:
+  - AI, AI Agents, AI Automation
+  - Agentic AI and agentic workflows
+  - Generative AI in Apple platform apps
+- Flexible topic composition modes: iOS-only, AI-only, or hybrid
 - Trend-grounded topic generation using OpenAI
 - Structured Medium article outline generation
 - Professional Medium-style article generation (~900-1200 words)
@@ -105,9 +110,11 @@ export TREND_DISCOVERY_ENABLED="true"                             # optional
 export TREND_MAX_ITEMS_PER_SOURCE="10"                            # optional
 export TREND_HTTP_TIMEOUT_SECONDS="12"                            # optional
 export REDDIT_USER_AGENT="ios-dev-ai-writer/1.0"                  # optional
-export TREND_SOURCES="hackernews,reddit,apple,wwdc,viral,custom"  # optional
+export TREND_SOURCES="hackernews,reddit,apple,wwdc,viral,social,platforms,custom"  # optional
 export CUSTOM_TRENDS_FILE="scanners/custom_trends.json"           # optional
 export EDITOR_PASS_ENABLED="true"                                  # optional
+export TOPIC_INTERESTS="AI,AI Agents,AI Automation,Agentic AI,Agentic workflows,Generative AI"  # optional
+export TOPIC_MODE="balanced"                                       # optional: balanced|ios_only|ai_only|hybrid
 ```
 
 ## ▶️ Run Locally
@@ -134,7 +141,7 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.1.2` (see `VERSION`)
+- Current version: `0.1.3` (see `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
@@ -143,8 +150,8 @@ LinkedIn query example:
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.1.3
-git push origin v0.1.3
+git tag v0.1.4
+git push origin v0.1.4
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 
