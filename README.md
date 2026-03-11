@@ -1,7 +1,7 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.1.5-brightgreen)
+![Version](https://img.shields.io/badge/version-0.1.6-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About
@@ -24,11 +24,14 @@ It discovers trends, creates a topic, builds an outline, writes the article body
 - Structured Medium article outline generation
 - Professional Medium-style article generation (~900-1200 words)
 - Built-in editor pass for quality, tone, and readability
+- Reinforcement-style layout repair loop for Medium formatting consistency
 - URL-safety guardrails (body text strips unverified links)
 - Anti-repetition topic selection using recent article history
 - Practical Swift/SwiftUI code generation
+- Swift version targeting for generated snippets (default: Swift 6.2.4, compiler mode 6)
 - Professional LinkedIn post generation (emojis + hashtag optimization)
 - Code generation observability metadata (`direct|repaired|omitted` path + repair attempts)
+- Snippet-safe code validation mode with Swift-book-guided typo/unknown-symbol repairs
 - Output saved to:
   - `outputs/articles/{date}-{slug}.md`
   - `outputs/trends/{timestamp}-trend-signals.json`
@@ -125,11 +128,19 @@ export REDDIT_USER_AGENT="ios-dev-ai-writer/1.0"                  # optional
 export TREND_SOURCES="hackernews,reddit,apple,wwdc,viral,social,platforms,custom"  # optional
 export CUSTOM_TRENDS_FILE="scanners/custom_trends.json"           # optional
 export EDITOR_PASS_ENABLED="true"                                  # optional
+export MEDIUM_LAYOUT_REINFORCEMENT_ENABLED="true"                  # optional
+export MEDIUM_LAYOUT_MAX_REPAIR_PASSES="2"                         # optional
+export MEDIUM_LAYOUT_MIN_SCORE="8"                                 # optional
+export FACT_GROUNDING_ENABLED="true"                               # optional
+export FACT_GROUNDING_MAX_PASSES="1"                               # optional
 export TOPIC_INTERESTS="AI,AI Agents,AI Automation,Agentic AI,Agentic workflows,Generative AI"  # optional
 export TOPIC_MODE="balanced"                                       # optional: balanced|ios_only|ai_only|hybrid
 export LINKEDIN_POST_ENABLED="true"                                # optional
 export LINKEDIN_CODE_SNIPPET_MODE="auto"                           # optional: auto|always|never
+export SWIFT_LANGUAGE_VERSION="6.2.4"                              # optional
+export SWIFT_COMPILER_LANGUAGE_MODE="6"                            # optional; maps to swiftc -swift-version
 export CODEGEN_FAILURE_MODE="omit"                                 # optional: omit|error
+export CODEGEN_VALIDATION_MODE="snippet"                           # optional: snippet|compile|none
 ```
 
 ## ▶️ Run Locally
@@ -158,7 +169,7 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.1.5` (see `VERSION`)
+- Current version: `0.1.6` (see `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
@@ -167,8 +178,8 @@ LinkedIn query example:
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.1.5
-git push origin v0.1.5
+git tag v0.1.6
+git push origin v0.1.6
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 

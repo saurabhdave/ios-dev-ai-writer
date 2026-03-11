@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.1.6] - 2026-03-11
+
+### Added
+- Added `SwiftLee` (`https://www.avanderlee.com/feed/`) to custom trend RSS sources.
+- Added factual grounding passes for article and LinkedIn generation to rewrite unsupported/hypothetical claims conservatively.
+- Added Swift targeting controls via `SWIFT_LANGUAGE_VERSION` and `SWIFT_COMPILER_LANGUAGE_MODE`.
+- Added Swift target metadata fields (`swift_language_version`, `swift_language_mode`) in codegen artifacts.
+
+### Changed
+- Elevated `avanderlee.com` into high-quality reference scoring for citation selection.
+- Enforced topic mode compliance (`ios_only`, `ai_only`, `hybrid`) with balanced selection and mode-safe fallbacks.
+- Strengthened Medium layout constraints and rubric checks (intro hook requirement, scannable lists, pull-quote, and heading hierarchy discipline).
+- Updated code/LinkedIn prompts and validators to target Swift `6.2.4` semantics while gracefully falling back on older local `swiftc` toolchains.
+- Updated README env configuration and version/release examples.
+
 ## [0.1.5] - 2026-03-11
 
 ### Added
@@ -13,6 +28,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Changed
 - Updated LinkedIn post generation to make code snippets optional by policy, and to keep snippets only when they are validated and comment-annotated.
 - Removed generic fallback code snippets from article generation to avoid publishing irrelevant examples.
+- Switched code snippet validation defaults to snippet-safe parsing (`CODEGEN_VALIDATION_MODE=snippet`) so article examples are not over-rejected by strict compile-only checks.
+- Added Swift-book-guided repair constraints plus advisory unknown-symbol diagnostics to reduce typo/unknown API usage in published snippets.
 - Strengthened article reference filtering with topic/domain quality scoring to reduce low-signal sources.
 - Updated automation and docs to include new LinkedIn/codegen controls and generated artifact folders.
 
