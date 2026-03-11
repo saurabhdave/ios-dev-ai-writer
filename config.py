@@ -10,6 +10,17 @@ from dotenv import load_dotenv
 # Load environment variables from a local .env file (if present).
 load_dotenv()
 
+
+def _normalize_swift_language_mode(value: str) -> str:
+    """Normalize `swiftc -swift-version` values to supported major modes."""
+    cleaned = value.strip()
+    if cleaned in {"4", "4.2", "5", "6"}:
+        return cleaned
+    major = cleaned.split(".", 1)[0].strip()
+    if major in {"4", "5", "6"}:
+        return major
+    return "6"
+
 # OpenAI credentials and model settings.
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
@@ -51,6 +62,25 @@ EDITOR_PASS_ENABLED = os.getenv("EDITOR_PASS_ENABLED", "true").lower() in {
     "yes",
     "on",
 }
+MEDIUM_LAYOUT_REINFORCEMENT_ENABLED = os.getenv(
+    "MEDIUM_LAYOUT_REINFORCEMENT_ENABLED", "true"
+).lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+MEDIUM_LAYOUT_MAX_REPAIR_PASSES = max(
+    0, int(os.getenv("MEDIUM_LAYOUT_MAX_REPAIR_PASSES", "2"))
+)
+MEDIUM_LAYOUT_MIN_SCORE = max(1, int(os.getenv("MEDIUM_LAYOUT_MIN_SCORE", "8")))
+FACT_GROUNDING_ENABLED = os.getenv("FACT_GROUNDING_ENABLED", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+FACT_GROUNDING_MAX_PASSES = max(0, int(os.getenv("FACT_GROUNDING_MAX_PASSES", "1")))
 
 TOPIC_INTERESTS = [
     item.strip()
@@ -77,7 +107,21 @@ LINKEDIN_POST_ENABLED = os.getenv("LINKEDIN_POST_ENABLED", "true").lower() in {
 }
 LINKEDIN_CODE_SNIPPET_MODE = os.getenv("LINKEDIN_CODE_SNIPPET_MODE", "auto").strip().lower()
 
+# Swift language targeting policy for generated snippets.
+# - SWIFT_LANGUAGE_VERSION documents the target stable release.
+# - SWIFT_COMPILER_LANGUAGE_MODE maps to `swiftc -swift-version` (e.g. 5 or 6).
+SWIFT_LANGUAGE_VERSION = os.getenv("SWIFT_LANGUAGE_VERSION", "6.2.4").strip()
+SWIFT_COMPILER_LANGUAGE_MODE = _normalize_swift_language_mode(
+    os.getenv("SWIFT_COMPILER_LANGUAGE_MODE", SWIFT_LANGUAGE_VERSION)
+)
+
 # Code generation failure handling:
 # - omit: publish article without code block if no validated snippet is available
 # - error: fail the pipeline run when no validated snippet is available
 CODEGEN_FAILURE_MODE = os.getenv("CODEGEN_FAILURE_MODE", "omit").strip().lower()
+
+# Code snippet validation mode:
+# - snippet: validate syntax/placeholder quality only (best for article snippets)
+# - compile: strict Swift typecheck against available iOS SDK
+# - none: skip validation completely
+CODEGEN_VALIDATION_MODE = os.getenv("CODEGEN_VALIDATION_MODE", "snippet").strip().lower()

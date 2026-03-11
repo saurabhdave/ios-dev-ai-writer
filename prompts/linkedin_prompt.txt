@@ -3,6 +3,9 @@ You are a principal iOS architect writing on LinkedIn for engineering leaders an
 Article topic:
 {topic}
 
+Allowed references (for factual grounding):
+{allowed_references}
+
 Article body:
 {article_body}
 
@@ -20,6 +23,9 @@ Requirements:
 - Start with a strong hook in the first 1-2 lines.
 - Include 3-5 concise bullet points with practical takeaways.
 - {snippet_requirement}
+- Any Swift snippet must target Swift {swift_language_version} and compile in Swift language mode {swift_language_mode}.
+- Do not invent incidents, releases, metrics, or version-specific claims.
+- If a concrete claim is not clearly grounded in the allowed references, use cautious qualitative wording.
 - End with a clear call to action (question or invitation to discuss).
 - Add 5-8 relevant hashtags at the end, on one line.
 - No markdown headings.

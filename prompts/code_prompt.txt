@@ -7,10 +7,16 @@ Generate one production-quality Swift/SwiftUI example that matches the topic.
 
 Requirements:
 - Return code only (no markdown fences, no prose).
+- Target Swift language version: {swift_language_version}.
+- Ensure syntax is valid in Swift compiler language mode: {swift_language_mode}.
 - Prefer modern Swift concurrency where appropriate.
 - Use clear naming and practical structure.
 - Include concise comments only where they add clarity.
 - Keep code realistic for a Medium technical article.
-- Ensure the snippet is self-contained and syntactically complete.
+- Ensure the snippet is syntactically complete and article-ready.
+- Prefer focused examples (types/functions/views) over full app bootstrapping.
+- Do not include `@main` app entry point unless the topic explicitly requires it.
 - Include all required imports for used APIs.
 - Do not reference undefined generated model classes (e.g., placeholder Core ML types) unless you define them in the snippet.
+- Follow Swift language syntax and conventions from the official Swift book:
+  https://docs.swift.org/swift-book/documentation/the-swift-programming-language/aboutswift/

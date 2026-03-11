@@ -16,9 +16,12 @@ from config import (
     OPENAI_API_KEY,
     OPENAI_MODEL,
     OPENAI_TEMPERATURE,
+    SWIFT_COMPILER_LANGUAGE_MODE,
+    SWIFT_LANGUAGE_VERSION,
 )
 
 PROMPT_PATH = Path("prompts/linkedin_prompt.txt")
+FACTUALITY_PROMPT_PATH = Path("prompts/linkedin_factuality_prompt.txt")
 VALID_SNIPPET_MODES = {"auto", "always", "never"}
 SNIPPET_REQUIREMENT_BY_MODE = {
     "auto": (
@@ -33,6 +36,7 @@ SNIPPET_REQUIREMENT_BY_MODE = {
 }
 SWIFT_IMPORT_RE = re.compile(r"^\s*import\s+([A-Za-z_][A-Za-z0-9_]*)\s*$")
 IOS_SIMULATOR_TARGET = "arm64-apple-ios16.0-simulator"
+UNSUPPORTED_SWIFT_VERSION_PATTERN = re.compile(r"invalid value '[^']+' in '-swift-version")
 
 
 DEFAULT_HASHTAGS = [
@@ -50,6 +54,11 @@ DEFAULT_HASHTAGS = [
 def _load_prompt_template() -> str:
     """Load the LinkedIn post generation prompt template."""
     return PROMPT_PATH.read_text(encoding="utf-8")
+
+
+def _load_factuality_template() -> str:
+    """Load LinkedIn factuality prompt template."""
+    return FACTUALITY_PROMPT_PATH.read_text(encoding="utf-8")
 
 
 def _normalize_snippet_mode(snippet_mode: str) -> str:
@@ -198,12 +207,27 @@ def _swift_parse_only(swiftc_bin: str, source: str) -> bool:
         source_path = Path(temp_dir) / "LinkedInSnippet.swift"
         source_path.write_text(source, encoding="utf-8")
         result = subprocess.run(
-            [swiftc_bin, "-frontend", "-parse", str(source_path)],
+            [
+                swiftc_bin,
+                "-frontend",
+                "-swift-version",
+                SWIFT_COMPILER_LANGUAGE_MODE,
+                "-parse",
+                str(source_path),
+            ],
             capture_output=True,
             text=True,
             timeout=12,
             check=False,
         )
+        if result.returncode != 0 and UNSUPPORTED_SWIFT_VERSION_PATTERN.search(result.stderr):
+            result = subprocess.run(
+                [swiftc_bin, "-frontend", "-parse", str(source_path)],
+                capture_output=True,
+                text=True,
+                timeout=12,
+                check=False,
+            )
     return result.returncode == 0
 
 
@@ -232,6 +256,8 @@ def _swift_ios_typechecks(swiftc_bin: str, source: str) -> bool:
         result = subprocess.run(
             [
                 swiftc_bin,
+                "-swift-version",
+                SWIFT_COMPILER_LANGUAGE_MODE,
                 "-typecheck",
                 "-target",
                 IOS_SIMULATOR_TARGET,
@@ -246,6 +272,24 @@ def _swift_ios_typechecks(swiftc_bin: str, source: str) -> bool:
             timeout=18,
             check=False,
         )
+        if result.returncode != 0 and UNSUPPORTED_SWIFT_VERSION_PATTERN.search(result.stderr):
+            result = subprocess.run(
+                [
+                    swiftc_bin,
+                    "-typecheck",
+                    "-target",
+                    IOS_SIMULATOR_TARGET,
+                    "-sdk",
+                    sdk_path,
+                    "-module-cache-path",
+                    str(module_cache_path),
+                    str(source_path),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=18,
+                check=False,
+            )
     return result.returncode == 0
 
 
@@ -377,17 +421,65 @@ def _ensure_post_constraints(post: str, code_example: str, snippet_mode: str) ->
     return "\n\n".join(part for part in parts if part.strip()).strip()
 
 
-def _build_prompt(topic: str, article_body: str, code_example: str, snippet_mode: str) -> str:
+def _build_prompt(
+    topic: str,
+    article_body: str,
+    code_example: str,
+    snippet_mode: str,
+    allowed_references: str,
+) -> str:
     """Build prompt with optional code context."""
     return _load_prompt_template().format(
         topic=topic,
+        allowed_references=allowed_references.strip() or "- None",
         article_body=article_body,
         code_example=code_example.strip() or "No code example provided.",
         snippet_requirement=_snippet_requirement_for_mode(snippet_mode),
+        swift_language_version=SWIFT_LANGUAGE_VERSION,
+        swift_language_mode=SWIFT_COMPILER_LANGUAGE_MODE,
     )
 
 
-def generate_linkedin_post(topic: str, article_body: str, code_example: str = "") -> str:
+def _enforce_factual_grounding_post(
+    client: OpenAI,
+    topic: str,
+    post: str,
+    allowed_references: str,
+    max_passes: int,
+) -> str:
+    """Rewrite LinkedIn post to suppress unsupported concrete claims."""
+    if max_passes <= 0:
+        return post.strip()
+
+    current = post.strip()
+    template = _load_factuality_template()
+    for _ in range(max_passes):
+        prompt = template.format(
+            topic=topic,
+            allowed_references=allowed_references.strip() or "- None",
+            post=current,
+        )
+        response = client.responses.create(
+            model=OPENAI_MODEL,
+            temperature=min(OPENAI_TEMPERATURE, 0.3),
+            max_output_tokens=700,
+            input=prompt,
+        )
+        revised = response.output_text.strip()
+        if not revised:
+            break
+        current = revised
+
+    return current.strip()
+
+
+def generate_linkedin_post(
+    topic: str,
+    article_body: str,
+    code_example: str = "",
+    allowed_references: str = "",
+    factual_passes: int = 0,
+) -> str:
     """Generate a polished LinkedIn post with emojis and hashtags."""
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set.")
@@ -399,6 +491,7 @@ def generate_linkedin_post(topic: str, article_body: str, code_example: str = ""
         article_body=article_body,
         code_example=code_example,
         snippet_mode=snippet_mode,
+        allowed_references=allowed_references,
     )
 
     response = client.responses.create(
@@ -415,4 +508,12 @@ def generate_linkedin_post(topic: str, article_body: str, code_example: str = ""
     # Remove accidental markdown title formatting only.
     post = re.sub(r"^#\s+", "", post)
 
-    return _ensure_post_constraints(post, code_example=code_example, snippet_mode=snippet_mode)
+    constrained = _ensure_post_constraints(post, code_example=code_example, snippet_mode=snippet_mode)
+    grounded = _enforce_factual_grounding_post(
+        client=client,
+        topic=topic,
+        post=constrained,
+        allowed_references=allowed_references,
+        max_passes=max(0, factual_passes),
+    )
+    return _ensure_post_constraints(grounded, code_example=code_example, snippet_mode=snippet_mode)

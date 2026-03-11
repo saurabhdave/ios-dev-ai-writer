@@ -10,16 +10,23 @@ from urllib.parse import urlparse
 
 from agents.article_agent import generate_article
 from agents.code_agent import generate_code_with_metadata
-from agents.editor_agent import polish_article
+from agents.editor_agent import enforce_factual_grounding, polish_article, reinforce_medium_layout
 from agents.linkedin_agent import generate_linkedin_post
 from agents.outline_agent import generate_outline
 from agents.topic_agent import generate_topic
 from config import (
     EDITOR_PASS_ENABLED,
+    FACT_GROUNDING_ENABLED,
+    FACT_GROUNDING_MAX_PASSES,
+    MEDIUM_LAYOUT_MAX_REPAIR_PASSES,
+    MEDIUM_LAYOUT_MIN_SCORE,
+    MEDIUM_LAYOUT_REINFORCEMENT_ENABLED,
     OUTPUT_ARTICLES_DIR,
     OUTPUT_CODEGEN_DIR,
     OUTPUT_LINKEDIN_DIR,
     LINKEDIN_POST_ENABLED,
+    SWIFT_COMPILER_LANGUAGE_MODE,
+    SWIFT_LANGUAGE_VERSION,
     TOPIC_INTERESTS,
     TREND_DISCOVERY_ENABLED,
 )
@@ -70,6 +77,7 @@ HIGH_QUALITY_REFERENCE_DOMAINS = {
     "news.ycombinator.com",
     "reddit.com",
     "forums.swift.org",
+    "avanderlee.com",
 }
 
 LOW_SIGNAL_REFERENCE_DOMAINS = {
@@ -412,6 +420,21 @@ def run_weekly_pipeline() -> Path:
         if EDITOR_PASS_ENABLED
         else article
     )
+    if FACT_GROUNDING_ENABLED:
+        polished_article = enforce_factual_grounding(
+            topic=topic,
+            article=polished_article,
+            allowed_references=reference_context,
+            max_passes=FACT_GROUNDING_MAX_PASSES,
+        )
+    if MEDIUM_LAYOUT_REINFORCEMENT_ENABLED:
+        polished_article = reinforce_medium_layout(
+            topic=topic,
+            article=polished_article,
+            allowed_references=reference_context,
+            max_passes=MEDIUM_LAYOUT_MAX_REPAIR_PASSES,
+            min_score=MEDIUM_LAYOUT_MIN_SCORE,
+        )
     polished_article = _sanitize_body_urls(polished_article)
 
     code_result = generate_code_with_metadata(topic)
@@ -423,6 +446,8 @@ def run_weekly_pipeline() -> Path:
             "generated_at_utc": datetime.now(timezone.utc).isoformat(),
             "path": code_result.path,
             "repair_attempts": code_result.repair_attempts,
+            "swift_language_version": SWIFT_LANGUAGE_VERSION,
+            "swift_language_mode": SWIFT_COMPILER_LANGUAGE_MODE,
             "diagnostics_excerpt": code_result.diagnostics,
         },
     )
@@ -434,6 +459,8 @@ def run_weekly_pipeline() -> Path:
             topic=topic,
             article_body=polished_article,
             code_example=code,
+            allowed_references=reference_context,
+            factual_passes=FACT_GROUNDING_MAX_PASSES if FACT_GROUNDING_ENABLED else 0,
         )
         _save_linkedin_post(topic, linkedin_post)
 
