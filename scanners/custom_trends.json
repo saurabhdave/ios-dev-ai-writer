@@ -27,6 +27,11 @@
       "name": "Medium iOS Tag",
       "url": "https://medium.com/feed/tag/ios",
       "topic_filter": true
+    },
+    {
+      "name": "SwiftLee",
+      "url": "https://www.avanderlee.com/feed/",
+      "topic_filter": true
     }
   ],
   "manual_signals": []

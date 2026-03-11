@@ -16,10 +16,20 @@ Hard requirements:
 - Target length: 900-1200 words.
 - Audience: intermediate to senior iOS developers.
 - Tone: professional, practical, and precise.
-- Use clear ## and ### headings.
-- Keep paragraphs short and readable.
+- Use clear ## and ### headings, following the outline order.
+- Format core sections as numbered `##` headings (for example: `## 1. ...`, `## 2. ...`).
+- Keep paragraphs short and readable (prefer 2-4 sentences each).
+- Start with a concise hook intro before the first `##` heading.
+- Add one context-setting section early ("why this matters" or equivalent).
+- Keep 4-5 core sections as scannable chunks with practical subheadings.
+- Include at least one `###` subheading inside each core section.
+- Include at least one concise markdown list (`-` or `1.`) where it improves scannability.
+- Include one short pull-quote style insight using markdown blockquote (`> ...`).
+- Keep heading hierarchy clean (`##` and `###` only; no deeper heading levels).
+- Include one section explicitly focused on tradeoffs/pitfalls.
 - Include engineering tradeoffs and concrete implementation advice.
 - Include one practical checklist section.
+- End with a short closing takeaway section.
 - Do not add code fences (code is generated separately).
 - Do not include URLs or markdown links in the body.
 - Do not invent facts, products, APIs, or version claims.

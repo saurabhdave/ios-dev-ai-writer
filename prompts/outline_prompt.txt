@@ -6,9 +6,15 @@ Topic:
 Create a concise markdown outline for a Medium article.
 
 Requirements:
-- Include an opening hook section.
-- Include 4-5 core sections with practical sub-points.
-- Include one section on tradeoffs/pitfalls.
-- Include one section on implementation checklist.
-- Include a short conclusion section.
+- Keep a clear Medium-style reading flow with short, scannable sections.
+- Use this section order exactly:
+  1) opening hook,
+  2) why this topic matters for iOS teams right now,
+  3) 4-5 core sections,
+  4) tradeoffs/pitfalls,
+  5) implementation checklist,
+  6) closing takeaway.
+- Use `##` for major sections and `###` for sub-points.
+- Format core sections as numbered headings: `## 1. ...`, `## 2. ...`.
+- For each core section, add 2-3 practical sub-points (implementation angle + caution).
 - Keep the outline compact and directly useful for a 900-1200 word article.

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import random
 import re
 from pathlib import Path
 from typing import Iterable
@@ -92,17 +93,98 @@ def _select_focus_mode(recent_titles: list[str], requested_mode: str) -> str:
     ios_count = sum(1 for title in window if _classify_title_mode(title) == "ios_only")
     ai_count = sum(1 for title in window if _classify_title_mode(title) == "ai_only")
     hybrid_count = sum(1 for title in window if _classify_title_mode(title) == "hybrid")
+    counts = {
+        "ios_only": ios_count,
+        "ai_only": ai_count,
+        "hybrid": hybrid_count,
+    }
 
-    if hybrid_count >= max(ai_count, ios_count) + 1:
-        return "ios_only" if ios_count <= ai_count else "ai_only"
-    if ai_count >= ios_count + 1:
-        return "ios_only"
-    if ios_count >= ai_count + 1:
-        return "ai_only"
+    min_count = min(counts.values())
+    candidates = [mode_name for mode_name, count in counts.items() if count == min_count]
 
-    # If history is balanced, rotate deterministically.
-    rotation = ["ios_only", "ai_only", "hybrid"]
-    return rotation[len(window) % len(rotation)]
+    # Avoid repeating the immediately previous mode when we have alternatives.
+    if len(candidates) > 1 and window:
+        previous_mode = _classify_title_mode(window[0])
+        if previous_mode in candidates:
+            non_repeating = [mode_name for mode_name in candidates if mode_name != previous_mode]
+            if non_repeating:
+                candidates = non_repeating
+
+    return random.choice(candidates or ["ios_only", "ai_only", "hybrid"])
+
+
+def _matches_focus_mode(title: str, focus_mode: str) -> bool:
+    """Validate that generated title follows the requested topic focus mode."""
+    if focus_mode not in {"ios_only", "ai_only", "hybrid"}:
+        return True
+    return _classify_title_mode(title) == focus_mode
+
+
+def _filtered_interests(topic_interests: list[str], focus_mode: str) -> list[str]:
+    """Filter/default interests so prompts align with selected focus mode."""
+    cleaned = [item.strip() for item in topic_interests if item and item.strip()]
+    has_ai_interest = any(_contains_pattern(item, AI_WORD_PATTERNS) for item in cleaned)
+    has_ios_interest = any(_contains_pattern(item, IOS_WORD_PATTERNS) for item in cleaned)
+
+    if focus_mode == "ios_only":
+        ios_interests = [item for item in cleaned if not _contains_pattern(item, AI_WORD_PATTERNS)]
+        if ios_interests:
+            return ios_interests
+        return [
+            "SwiftUI architecture",
+            "iOS performance",
+            "macOS app workflows",
+            "watchOS app design",
+            "visionOS interaction patterns",
+        ]
+
+    if focus_mode == "ai_only":
+        ai_interests = [item for item in cleaned if _contains_pattern(item, AI_WORD_PATTERNS)]
+        if ai_interests:
+            return ai_interests
+        return [
+            "Agentic workflows",
+            "LLM orchestration",
+            "Prompt routing",
+            "Model evaluation",
+            "AI automation",
+        ]
+
+    # hybrid mode: make sure both Apple-platform and AI anchors are present.
+    hybrid_interests = list(cleaned)
+    if not has_ios_interest:
+        hybrid_interests.extend(["iOS engineering", "SwiftUI apps"])
+    if not has_ai_interest:
+        hybrid_interests.extend(["Agentic AI", "Generative AI"])
+    return hybrid_interests
+
+
+def _fallback_topic_title(focus_mode: str, recent_titles: Iterable[str]) -> str:
+    """Use mode-safe fallback titles when model responses keep violating constraints."""
+    fallback_by_mode = {
+        "ios_only": [
+            "SwiftUI State Architecture Across iOS macOS watchOS",
+            "Reliable Background Tasks on iOS macOS watchOS",
+            "Testing Shared SwiftUI Features Across Apple Platforms",
+        ],
+        "ai_only": [
+            "Designing Reliable Agent Memory for Mobile Apps",
+            "Evaluating LLM Tool Calls for App Automation",
+            "Prompt Routing Strategies for Autonomous App Workflows",
+        ],
+        "hybrid": [
+            "On-Device AI Inference Pipelines in SwiftUI Apps",
+            "Building Agentic Features with SwiftUI Background Tasks",
+            "Secure AI Assistants for iOS Enterprise Workflows",
+        ],
+    }
+
+    candidates = fallback_by_mode.get(focus_mode, fallback_by_mode["hybrid"])
+    for candidate in candidates:
+        normalized = _constrain_title_length(candidate)
+        if normalized and not _is_repetitive(normalized, recent_titles):
+            return normalized
+    return _constrain_title_length(candidates[0])
 
 
 def _is_repetitive(candidate: str, recent_titles: Iterable[str], threshold: float = 0.6) -> bool:
@@ -165,12 +247,13 @@ def generate_topic(
     recent_titles = recent_titles or []
     topic_interests = topic_interests or TOPIC_INTERESTS
     focus_mode = _select_focus_mode(recent_titles, topic_mode or TOPIC_MODE)
+    filtered_interests = _filtered_interests(topic_interests, focus_mode)
     recent_titles_context = "\n".join(f"- {title}" for title in recent_titles[:15]) or "- None"
-    topic_interests_context = "\n".join(f"- {item}" for item in topic_interests) or "- AI"
+    topic_interests_context = "\n".join(f"- {item}" for item in filtered_interests) or "- AI"
     prompt_template = _load_prompt_template()
 
     candidate = ""
-    for _attempt in range(3):
+    for _attempt in range(5):
         prompt = prompt_template.format(
             trend_context=trend_context.strip()
             or "No external trend signals were available this run.",
@@ -188,9 +271,11 @@ def generate_topic(
         candidate = response.output_text.strip().splitlines()[0].strip().strip('"')
         candidate = re.sub(r"^\s*\d+[\.)]\s*", "", candidate).strip()
         candidate = _constrain_title_length(candidate)
-        if candidate and not _is_repetitive(candidate, recent_titles):
+        if (
+            candidate
+            and _matches_focus_mode(candidate, focus_mode)
+            and not _is_repetitive(candidate, recent_titles)
+        ):
             return candidate
 
-    if not candidate:
-        raise RuntimeError("Topic generation returned empty output.")
-    return candidate
+    return _fallback_topic_title(focus_mode, recent_titles)

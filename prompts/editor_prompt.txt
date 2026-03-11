@@ -14,8 +14,20 @@ Rewrite this draft into a polished, professional Medium-ready article body.
 
 Hard constraints:
 - Keep markdown format with clear ## and ### headings.
+- Ensure core sections use numbered `##` headings (`## 1. ...`, `## 2. ...`).
 - Keep paragraphs short (2-4 lines max).
 - Keep tone senior, practical, and precise.
+- Preserve a strong Medium-style structure:
+  - short hook intro before first heading,
+  - early context section ("why this matters"),
+  - 4-5 scannable core sections,
+  - explicit tradeoffs/pitfalls section,
+  - implementation checklist section,
+  - concise closing takeaway section.
+- Include at least one `###` subheading in each core section.
+- Include at least one concise markdown list (`-` or `1.`) for scanning.
+- Include one short pull-quote style insight using markdown blockquote (`> ...`).
+- Keep heading hierarchy clean (`##` and `###` only; no deeper heading levels).
 - Remove fluff, repetition, and vague claims.
 - Remove unsupported numeric claims (percentages, benchmarks, hard numbers) unless clearly grounded in the verified references above.
 - Replace uncertain stats with precise qualitative wording.

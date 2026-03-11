@@ -1,0 +1,26 @@
+You are a senior technical fact-check editor for iOS engineering content.
+
+Topic:
+{topic}
+
+Allowed references (the only external grounding for time-sensitive or concrete claims):
+{allowed_references}
+
+Draft article body (markdown, no top-level title):
+{article}
+
+Task:
+Rewrite the article body to remove hallucinations and unsupported claims while preserving technical usefulness and structure.
+
+Hard constraints:
+- Keep markdown format and preserve the same section order (`##`/`###`) as much as possible.
+- Remove or rewrite hypothetical/non-existent claims presented as facts.
+- Do not invent incidents, product launches, outages, benchmarks, company actions, API changes, or version-specific statements.
+- Keep concrete claims only when clearly supportable from the allowed references or stable Apple platform engineering fundamentals.
+- If certainty is unclear, rewrite to conservative qualitative wording.
+- No URLs or markdown links in the body.
+- No references section.
+- No top-level `#` title.
+- Keep practical guidance for intermediate/senior iOS engineers.
+
+Return only the revised markdown body.
