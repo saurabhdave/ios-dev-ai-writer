@@ -1,12 +1,12 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.1.3-brightgreen)
+![Version](https://img.shields.io/badge/version-0.1.5-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About
 `ios-dev-ai-writer` is an open-source Python agent pipeline that generates weekly Medium-style iOS articles.
-It discovers trends, creates a topic, builds an outline, writes the article body, generates Swift/SwiftUI code, and saves markdown output automatically.
+It discovers trends, creates a topic, builds an outline, writes the article body, generates Swift/SwiftUI code, creates a LinkedIn promo post, and saves output automatically.
 
 ## ✨ Features
 - Automatic iOS trend discovery from:
@@ -27,8 +27,13 @@ It discovers trends, creates a topic, builds an outline, writes the article body
 - URL-safety guardrails (body text strips unverified links)
 - Anti-repetition topic selection using recent article history
 - Practical Swift/SwiftUI code generation
-- Output saved to `outputs/articles/{date}-{slug}.md`
-- Trend snapshots saved to `outputs/trends/`
+- Professional LinkedIn post generation (emojis + hashtag optimization)
+- Code generation observability metadata (`direct|repaired|omitted` path + repair attempts)
+- Output saved to:
+  - `outputs/articles/{date}-{slug}.md`
+  - `outputs/trends/{timestamp}-trend-signals.json`
+  - `outputs/linkedin/{date}-{slug}-linkedin.md`
+  - `outputs/codegen/{date}-{slug}-codegen.json`
 - Weekly GitHub Actions automation (Monday 10:00 UTC)
 
 ## 🧱 Project Structure
@@ -39,7 +44,8 @@ ios-dev-ai-writer/
 │   ├── outline_agent.py
 │   ├── article_agent.py
 │   ├── editor_agent.py
-│   └── code_agent.py
+│   ├── code_agent.py
+│   └── linkedin_agent.py
 ├── scanners/
 │   ├── trend_scanner.py
 │   └── custom_trends.json
@@ -50,10 +56,13 @@ ios-dev-ai-writer/
 │   ├── outline_prompt.txt
 │   ├── article_prompt.txt
 │   ├── editor_prompt.txt
-│   └── code_prompt.txt
+│   ├── code_prompt.txt
+│   └── linkedin_prompt.txt
 ├── outputs/
 │   ├── articles/
-│   └── trends/
+│   ├── trends/
+│   ├── linkedin/
+│   └── codegen/
 ├── .github/workflows/
 │   ├── weekly.yml
 │   └── release.yml
@@ -84,14 +93,17 @@ flowchart TD
     C --> F[article_agent.generate_article]
     C --> G[editor_agent.polish_article]
     C --> H[code_agent.generate_code]
+    C --> L[linkedin_agent.generate_linkedin_post]
     D --> API[OpenAI API]
     E --> API
     F --> API
     G --> API
     H --> API
+    L --> API
     C --> I[Markdown Composer]
     I --> J[outputs/articles/date-slug.md]
     C --> K[outputs/trends/timestamp-trend-signals.json]
+    C --> M[outputs/linkedin/date-slug-linkedin.md]
 ```
 
 ## ⚙️ Setup
@@ -115,6 +127,9 @@ export CUSTOM_TRENDS_FILE="scanners/custom_trends.json"           # optional
 export EDITOR_PASS_ENABLED="true"                                  # optional
 export TOPIC_INTERESTS="AI,AI Agents,AI Automation,Agentic AI,Agentic workflows,Generative AI"  # optional
 export TOPIC_MODE="balanced"                                       # optional: balanced|ios_only|ai_only|hybrid
+export LINKEDIN_POST_ENABLED="true"                                # optional
+export LINKEDIN_CODE_SNIPPET_MODE="auto"                           # optional: auto|always|never
+export CODEGEN_FAILURE_MODE="omit"                                 # optional: omit|error
 ```
 
 ## ▶️ Run Locally
@@ -125,6 +140,8 @@ python main.py
 Generated outputs:
 - `outputs/articles/YYYY-MM-DD-your-topic-slug.md`
 - `outputs/trends/YYYY-MM-DDTHH-MM-SSZ-trend-signals.json`
+- `outputs/linkedin/YYYY-MM-DD-your-topic-slug-linkedin.md`
+- `outputs/codegen/YYYY-MM-DD-your-topic-slug-codegen.json`
 
 ## 🔌 Add New Trend Sources (Recommended)
 Use a config-first workflow:
@@ -141,7 +158,7 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.1.3` (see `VERSION`)
+- Current version: `0.1.5` (see `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
@@ -150,8 +167,8 @@ LinkedIn query example:
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.1.4
-git push origin v0.1.4
+git tag v0.1.5
+git push origin v0.1.5
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 
@@ -166,6 +183,8 @@ Workflow steps:
 5. Commit and push generated content from:
    - `outputs/articles/`
    - `outputs/trends/`
+   - `outputs/linkedin/`
+   - `outputs/codegen/`
 
 Required repository secret:
 - `OPENAI_API_KEY`

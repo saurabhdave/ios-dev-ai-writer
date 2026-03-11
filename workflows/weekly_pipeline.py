@@ -2,22 +2,88 @@
 
 from __future__ import annotations
 
+import json
 import re
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 from agents.article_agent import generate_article
-from agents.code_agent import generate_code
+from agents.code_agent import generate_code_with_metadata
 from agents.editor_agent import polish_article
+from agents.linkedin_agent import generate_linkedin_post
 from agents.outline_agent import generate_outline
 from agents.topic_agent import generate_topic
 from config import (
     EDITOR_PASS_ENABLED,
     OUTPUT_ARTICLES_DIR,
+    OUTPUT_CODEGEN_DIR,
+    OUTPUT_LINKEDIN_DIR,
+    LINKEDIN_POST_ENABLED,
     TOPIC_INTERESTS,
     TREND_DISCOVERY_ENABLED,
 )
 from scanners.trend_scanner import TrendSignal, discover_ios_trends, save_trend_snapshot
+
+REFERENCE_TOKEN_STOPWORDS = {
+    "about",
+    "across",
+    "agentic",
+    "and",
+    "app",
+    "apps",
+    "architecture",
+    "building",
+    "for",
+    "from",
+    "guide",
+    "how",
+    "in",
+    "ios",
+    "mobile",
+    "on",
+    "platform",
+    "smarter",
+    "the",
+    "to",
+    "with",
+}
+
+IOS_ANCHOR_TERMS = {
+    "apple",
+    "app store",
+    "ios",
+    "ipad",
+    "iphone",
+    "swift",
+    "swiftui",
+    "uikit",
+    "visionos",
+    "watchos",
+    "xcode",
+}
+
+HIGH_QUALITY_REFERENCE_DOMAINS = {
+    "developer.apple.com",
+    "swift.org",
+    "github.com",
+    "news.ycombinator.com",
+    "reddit.com",
+    "forums.swift.org",
+}
+
+LOW_SIGNAL_REFERENCE_DOMAINS = {
+    "dev.to",
+    "medium.com",
+}
+
+LOW_SIGNAL_TITLE_PATTERNS = [
+    r"\bevery .* should know\b",
+    r"\bthe impact of\b",
+    r"\bwhere is the\b",
+    r"\btop \d+\b",
+    r"\bultimate guide\b",
+]
 
 
 def _slugify(text: str) -> str:
@@ -66,10 +132,94 @@ def _sanitize_body_urls(markdown: str) -> str:
     return re.sub(r"[ \t]+", " ", compact).strip()
 
 
-def _reference_items(trends: list[TrendSignal], max_items: int = 8) -> list[tuple[str, str, str]]:
+def _topic_terms(topic: str) -> set[str]:
+    """Extract lightweight relevance terms from the selected topic."""
+    normalized = re.sub(r"[^a-z0-9\s]", " ", topic.lower())
+    raw_terms = [token for token in normalized.split() if token]
+    terms = {
+        token
+        for token in raw_terms
+        if (len(token) >= 4 or token in {"ai", "ios"}) and token not in REFERENCE_TOKEN_STOPWORDS
+    }
+    if "agentic" in raw_terms:
+        terms.add("agentic")
+    if "automation" in raw_terms:
+        terms.add("automation")
+    return terms
+
+
+def _is_reference_relevant(source: str, title: str, topic_terms: set[str]) -> bool:
+    """Keep references aligned with article topic instead of broad trend noise."""
+    if not topic_terms:
+        return True
+
+    text = f"{source} {title}".lower()
+    has_ios_anchor = any(anchor in text for anchor in IOS_ANCHOR_TERMS)
+
+    matched_terms = {
+        term
+        for term in topic_terms
+        if re.search(rf"\b{re.escape(term)}\b", text)
+    }
+    non_generic_matches = matched_terms - {"ai", "ios"}
+
+    if has_ios_anchor:
+        return True
+    if "ios" in matched_terms:
+        return True
+    if len(non_generic_matches) >= 2:
+        return True
+    if {"agentic", "automation"}.issubset(matched_terms):
+        return True
+    return False
+
+
+def _domain_from_url(url: str) -> str:
+    """Extract normalized domain for quality filtering."""
+    netloc = urlparse(url).netloc.strip().lower()
+    if netloc.startswith("www."):
+        netloc = netloc[4:]
+    return netloc
+
+
+def _domain_in(domain: str, candidates: set[str]) -> bool:
+    """Support exact and subdomain membership checks."""
+    return any(domain == candidate or domain.endswith(f".{candidate}") for candidate in candidates)
+
+
+def _reference_quality_score(source: str, title: str, url: str, topic_terms: set[str]) -> int:
+    """Score references to prefer stronger sources and suppress listicle noise."""
+    text = f"{source} {title}".lower()
+    domain = _domain_from_url(url)
+    matched_terms = {
+        term
+        for term in topic_terms
+        if re.search(rf"\b{re.escape(term)}\b", text)
+    }
+    non_generic_matches = matched_terms - {"ai", "ios"}
+
+    score = 0
+    if _domain_in(domain, HIGH_QUALITY_REFERENCE_DOMAINS):
+        score += 3
+    if _domain_in(domain, LOW_SIGNAL_REFERENCE_DOMAINS):
+        score -= 2
+    if any(re.search(pattern, title.lower()) for pattern in LOW_SIGNAL_TITLE_PATTERNS):
+        score -= 2
+    if "ios" in text or any(anchor in text for anchor in IOS_ANCHOR_TERMS):
+        score += 1
+    score += min(2, len(non_generic_matches))
+    return score
+
+
+def _reference_items(
+    trends: list[TrendSignal], topic: str, max_items: int = 8
+) -> list[tuple[str, str, str]]:
     """Build validated reference list as (source, title, url)."""
-    items: list[tuple[str, str, str]] = []
     seen_urls: set[str] = set()
+    topic_terms = _topic_terms(topic)
+    strict_candidates: list[tuple[int, float, tuple[str, str, str]]] = []
+    relaxed_candidates: list[tuple[int, float, tuple[str, str, str]]] = []
+    relevant_candidates: list[tuple[int, float, tuple[str, str, str]]] = []
     blocked_url_substrings = {
         "news.google.com/rss/articles/",
     }
@@ -90,6 +240,9 @@ def _reference_items(trends: list[TrendSignal], max_items: int = 8) -> list[tupl
             continue
         if len(title) > 140:
             continue
+        if not _is_reference_relevant(source, title, topic_terms):
+            continue
+        quality_score = _reference_quality_score(source, title, url, topic_terms)
         if any(term in lowered_title for term in blocked_title_terms):
             continue
         if any(fragment in url for fragment in blocked_url_substrings):
@@ -98,33 +251,53 @@ def _reference_items(trends: list[TrendSignal], max_items: int = 8) -> list[tupl
             continue
 
         seen_urls.add(url)
-        items.append((source, title, url))
-        if len(items) >= max_items:
-            break
+        payload = (source, title, url)
+        relevant_candidates.append((quality_score, trend.score, payload))
+        if quality_score >= 1:
+            strict_candidates.append((quality_score, trend.score, payload))
+        if quality_score >= 0:
+            relaxed_candidates.append((quality_score, trend.score, payload))
 
-    return items
+    selected = strict_candidates or relaxed_candidates or relevant_candidates
+    selected.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    return [payload for _, _, payload in selected[:max_items]]
 
 
-def _references_for_prompt(trends: list[TrendSignal], max_items: int = 8) -> str:
+def _references_for_prompt(
+    trends: list[TrendSignal], max_items: int = 8, topic: str | None = None
+) -> str:
     """Create broader source list for prompt grounding (less strict than publish refs)."""
-    seen_urls: set[str] = set()
-    lines: list[str] = []
+    def _collect(apply_topic_filter: bool) -> list[str]:
+        seen_urls: set[str] = set()
+        lines: list[str] = []
+        topic_terms = _topic_terms(topic or "") if apply_topic_filter and topic else set()
 
-    for trend in trends:
-        title = trend.title.strip()
-        url = trend.url.strip()
-        source = trend.source.strip()
+        for trend in trends:
+            title = trend.title.strip()
+            url = trend.url.strip()
+            source = trend.source.strip()
 
-        if not title or not url or not url.startswith("http"):
-            continue
-        if url in seen_urls:
-            continue
+            if not title or not url or not url.startswith("http"):
+                continue
+            if apply_topic_filter and topic_terms and not _is_reference_relevant(source, title, topic_terms):
+                continue
+            if apply_topic_filter and topic_terms:
+                quality_score = _reference_quality_score(source, title, url, topic_terms)
+                if quality_score < 0:
+                    continue
+            if url in seen_urls:
+                continue
 
-        seen_urls.add(url)
-        lines.append(f"- [{source}] {title} | {url}")
-        if len(lines) >= max_items:
-            break
+            seen_urls.add(url)
+            lines.append(f"- [{source}] {title} | {url}")
+            if len(lines) >= max_items:
+                break
+        return lines
 
+    lines = _collect(apply_topic_filter=bool(topic))
+    if not lines and topic:
+        # Fallback so generation never has empty context when strict matching yields no hits.
+        lines = _collect(apply_topic_filter=False)
     if not lines:
         return "- None"
     return "\n".join(lines)
@@ -132,11 +305,33 @@ def _references_for_prompt(trends: list[TrendSignal], max_items: int = 8) -> str
 
 def _compose_markdown(title: str, article: str, code: str, trends: list[TrendSignal]) -> str:
     """Compose final Medium-ready markdown output."""
-    references = _reference_items(trends, max_items=10)
+    references = _reference_items(trends, topic=title, max_items=10)
     references_block = (
         "\n".join(f"- [{ref_title}]({ref_url})" for _, ref_title, ref_url in references)
         if references
         else "- No verified external references were available this run."
+    )
+    code = code.strip()
+    code_section = (
+        "\n".join(
+            [
+                "## Swift/SwiftUI Code Example",
+                "",
+                "```swift",
+                code,
+                "```",
+                "",
+            ]
+        )
+        if code
+        else "\n".join(
+            [
+                "## Swift/SwiftUI Code Example",
+                "",
+                "_No validated code snippet was generated this run._",
+                "",
+            ]
+        )
     )
 
     return "\n".join(
@@ -145,12 +340,7 @@ def _compose_markdown(title: str, article: str, code: str, trends: list[TrendSig
             "",
             article.strip(),
             "",
-            "## Swift/SwiftUI Code Example",
-            "",
-            "```swift",
-            code.strip(),
-            "```",
-            "",
+            code_section,
             "## References",
             "",
             references_block,
@@ -171,6 +361,29 @@ def _save_markdown(title: str, markdown: str) -> Path:
     return output_path
 
 
+def _save_linkedin_post(title: str, post_text: str) -> Path:
+    """Persist LinkedIn post to outputs/linkedin/{date}-{slug}-linkedin.md."""
+    OUTPUT_LINKEDIN_DIR.mkdir(parents=True, exist_ok=True)
+
+    date_prefix = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    slug = _slugify(title)
+    output_path = OUTPUT_LINKEDIN_DIR / f"{date_prefix}-{slug}-linkedin.md"
+    output_path.write_text(post_text.strip() + "\n", encoding="utf-8")
+
+    return output_path
+
+
+def _save_codegen_metadata(title: str, metadata: dict[str, str | int]) -> Path:
+    """Persist code generation metadata for observability."""
+    OUTPUT_CODEGEN_DIR.mkdir(parents=True, exist_ok=True)
+
+    date_prefix = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    slug = _slugify(title)
+    output_path = OUTPUT_CODEGEN_DIR / f"{date_prefix}-{slug}-codegen.json"
+    output_path.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    return output_path
+
+
 def run_weekly_pipeline() -> Path:
     """Execute the end-to-end weekly content generation workflow."""
     trends: list[TrendSignal] = []
@@ -187,7 +400,7 @@ def run_weekly_pipeline() -> Path:
         topic_interests=TOPIC_INTERESTS,
     )
     outline = generate_outline(topic)
-    reference_context = _references_for_prompt(trends, max_items=10)
+    reference_context = _references_for_prompt(trends, max_items=10, topic=topic)
 
     article = generate_article(
         topic=topic,
@@ -201,6 +414,27 @@ def run_weekly_pipeline() -> Path:
     )
     polished_article = _sanitize_body_urls(polished_article)
 
-    code = generate_code(topic)
+    code_result = generate_code_with_metadata(topic)
+    code = code_result.code
+    _save_codegen_metadata(
+        topic,
+        {
+            "topic": topic,
+            "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+            "path": code_result.path,
+            "repair_attempts": code_result.repair_attempts,
+            "diagnostics_excerpt": code_result.diagnostics,
+        },
+    )
     markdown = _compose_markdown(topic, polished_article, code, trends)
-    return _save_markdown(topic, markdown)
+    article_path = _save_markdown(topic, markdown)
+
+    if LINKEDIN_POST_ENABLED:
+        linkedin_post = generate_linkedin_post(
+            topic=topic,
+            article_body=polished_article,
+            code_example=code,
+        )
+        _save_linkedin_post(topic, linkedin_post)
+
+    return article_path

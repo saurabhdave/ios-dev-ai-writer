@@ -1,0 +1,7 @@
+{
+  "topic": "Leveraging Agentic AI for Adaptive iOS App User Experiences",
+  "generated_at_utc": "2026-03-10T19:02:39.554420+00:00",
+  "path": "fallback",
+  "repair_attempts": 2,
+  "diagnostics_excerpt": "/var/folders/fr/j0_tl1h90f7cv4jytj_6yzy00000gp/T/tmp_u8wyna0/GeneratedArticleCode.swift:100:1: error: 'main' attribute cannot be used in a module that contains top-level code\n@main\n^\n/var/folders/fr/j0_tl1h90f7cv4jytj_6yzy00000gp/T/tmp_u8wyna0/GeneratedArticleCode.swift:1:1: note: top-level code defined in this source file\nimport SwiftUI\n^"
+}

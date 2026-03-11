@@ -18,6 +18,8 @@ OPENAI_TEMPERATURE = float(os.getenv("OPENAI_TEMPERATURE", "0.7"))
 # Output directory for generated markdown articles.
 OUTPUT_ARTICLES_DIR = Path("outputs/articles")
 OUTPUT_TRENDS_DIR = Path("outputs/trends")
+OUTPUT_LINKEDIN_DIR = Path("outputs/linkedin")
+OUTPUT_CODEGEN_DIR = Path("outputs/codegen")
 
 # Trend discovery configuration.
 TREND_DISCOVERY_ENABLED = os.getenv("TREND_DISCOVERY_ENABLED", "true").lower() in {
@@ -65,3 +67,17 @@ TOPIC_INTERESTS = [
 # - ai_only: keep topics focused on AI/agentic/generative themes (can still be app-dev relevant)
 # - hybrid: combine Apple platform + AI themes in one topic
 TOPIC_MODE = os.getenv("TOPIC_MODE", "balanced").strip().lower()
+
+# LinkedIn post generation.
+LINKEDIN_POST_ENABLED = os.getenv("LINKEDIN_POST_ENABLED", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+LINKEDIN_CODE_SNIPPET_MODE = os.getenv("LINKEDIN_CODE_SNIPPET_MODE", "auto").strip().lower()
+
+# Code generation failure handling:
+# - omit: publish article without code block if no validated snippet is available
+# - error: fail the pipeline run when no validated snippet is available
+CODEGEN_FAILURE_MODE = os.getenv("CODEGEN_FAILURE_MODE", "omit").strip().lower()

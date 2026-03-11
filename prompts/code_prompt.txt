@@ -11,3 +11,6 @@ Requirements:
 - Use clear naming and practical structure.
 - Include concise comments only where they add clarity.
 - Keep code realistic for a Medium technical article.
+- Ensure the snippet is self-contained and syntactically complete.
+- Include all required imports for used APIs.
+- Do not reference undefined generated model classes (e.g., placeholder Core ML types) unless you define them in the snippet.
