@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
+from uuid import uuid4
 
 from agents.article_agent import generate_article
 from agents.code_agent import generate_code_with_metadata
@@ -31,6 +33,7 @@ from config import (
     TREND_DISCOVERY_ENABLED,
 )
 from scanners.trend_scanner import TrendSignal, discover_ios_trends, save_trend_snapshot
+from utils.observability import get_logger, log_event, reset_run_context, set_run_context, timed_step
 
 REFERENCE_TOKEN_STOPWORDS = {
     "about",
@@ -99,6 +102,8 @@ LOW_SIGNAL_TITLE_PATTERNS = [
     r"\btop \d+\b",
     r"\bultimate guide\b",
 ]
+
+LOGGER = get_logger("pipeline.workflow")
 
 REFERENCE_EXCLUSION_PATTERNS = [
     r"\bai\b",
@@ -444,74 +449,157 @@ def _save_codegen_metadata(title: str, metadata: dict[str, str | int]) -> Path:
 
 def run_weekly_pipeline() -> Path:
     """Execute the end-to-end weekly content generation workflow."""
-    trends: list[TrendSignal] = []
-    recent_titles = _load_recent_titles(max_items=24)
+    run_id = f"weekly-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{uuid4().hex[:8]}"
+    context_tokens = set_run_context(run_id=run_id, workflow="weekly_pipeline")
+    log_event(LOGGER, "pipeline_run_started", trend_discovery_enabled=TREND_DISCOVERY_ENABLED)
 
-    if TREND_DISCOVERY_ENABLED:
-        trends = discover_ios_trends()
-        save_trend_snapshot(trends)
+    try:
+        trends: list[TrendSignal] = []
+        recent_titles = _load_recent_titles(max_items=24)
 
-    trend_context = _references_for_prompt(trends, max_items=14)
-    topic = generate_topic(
-        trend_context=trend_context,
-        recent_titles=recent_titles,
-        topic_interests=TOPIC_INTERESTS,
-    )
-    outline = generate_outline(topic)
-    reference_context = _references_for_prompt(trends, max_items=10, topic=topic)
+        if TREND_DISCOVERY_ENABLED:
+            with timed_step(LOGGER, "discover_trends") as step:
+                trends = discover_ios_trends()
+                save_trend_snapshot(trends)
+                step["trend_count"] = len(trends)
+        else:
+            log_event(LOGGER, "trend_discovery_skipped", reason="TREND_DISCOVERY_ENABLED=false")
 
-    article = generate_article(
-        topic=topic,
-        outline=outline,
-        allowed_references=reference_context,
-    )
-    polished_article = (
-        polish_article(topic=topic, article=article, allowed_references=reference_context)
-        if EDITOR_PASS_ENABLED
-        else article
-    )
-    if FACT_GROUNDING_ENABLED:
-        polished_article = enforce_factual_grounding(
+        with timed_step(LOGGER, "build_topic_context") as step:
+            trend_context = _references_for_prompt(trends, max_items=14)
+            step["reference_count"] = trend_context.count("\n") + (0 if trend_context == "- None" else 1)
+
+        with timed_step(LOGGER, "generate_topic") as step:
+            topic = generate_topic(
+                trend_context=trend_context,
+                recent_titles=recent_titles,
+                topic_interests=TOPIC_INTERESTS,
+            )
+            step["topic"] = topic
+
+        with timed_step(LOGGER, "generate_outline", topic=topic):
+            outline = generate_outline(topic)
+
+        with timed_step(LOGGER, "build_reference_context", topic=topic) as step:
+            reference_context = _references_for_prompt(trends, max_items=10, topic=topic)
+            step["reference_count"] = reference_context.count("\n") + (
+                0 if reference_context == "- None" else 1
+            )
+
+        with timed_step(LOGGER, "generate_article", topic=topic):
+            article = generate_article(
+                topic=topic,
+                outline=outline,
+                allowed_references=reference_context,
+            )
+
+        with timed_step(
+            LOGGER,
+            "editor_pass",
             topic=topic,
-            article=polished_article,
-            allowed_references=reference_context,
+            enabled=EDITOR_PASS_ENABLED,
+        ):
+            polished_article = (
+                polish_article(topic=topic, article=article, allowed_references=reference_context)
+                if EDITOR_PASS_ENABLED
+                else article
+            )
+
+        with timed_step(
+            LOGGER,
+            "factual_grounding",
+            topic=topic,
+            enabled=FACT_GROUNDING_ENABLED,
             max_passes=FACT_GROUNDING_MAX_PASSES,
-        )
-    if MEDIUM_LAYOUT_REINFORCEMENT_ENABLED:
-        polished_article = reinforce_medium_layout(
+        ):
+            if FACT_GROUNDING_ENABLED:
+                polished_article = enforce_factual_grounding(
+                    topic=topic,
+                    article=polished_article,
+                    allowed_references=reference_context,
+                    max_passes=FACT_GROUNDING_MAX_PASSES,
+                )
+
+        with timed_step(
+            LOGGER,
+            "medium_layout_reinforcement",
             topic=topic,
-            article=polished_article,
-            allowed_references=reference_context,
+            enabled=MEDIUM_LAYOUT_REINFORCEMENT_ENABLED,
             max_passes=MEDIUM_LAYOUT_MAX_REPAIR_PASSES,
             min_score=MEDIUM_LAYOUT_MIN_SCORE,
-        )
-    polished_article = _sanitize_body_urls(polished_article)
+        ):
+            if MEDIUM_LAYOUT_REINFORCEMENT_ENABLED:
+                polished_article = reinforce_medium_layout(
+                    topic=topic,
+                    article=polished_article,
+                    allowed_references=reference_context,
+                    max_passes=MEDIUM_LAYOUT_MAX_REPAIR_PASSES,
+                    min_score=MEDIUM_LAYOUT_MIN_SCORE,
+                )
 
-    code_result = generate_code_with_metadata(topic)
-    code = code_result.code
-    _save_codegen_metadata(
-        topic,
-        {
-            "topic": topic,
-            "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-            "path": code_result.path,
-            "repair_attempts": code_result.repair_attempts,
-            "swift_language_version": SWIFT_LANGUAGE_VERSION,
-            "swift_language_mode": SWIFT_COMPILER_LANGUAGE_MODE,
-            "diagnostics_excerpt": code_result.diagnostics,
-        },
-    )
-    markdown = _compose_markdown(topic, polished_article, code, trends)
-    article_path = _save_markdown(topic, markdown)
+        with timed_step(LOGGER, "sanitize_article", topic=topic):
+            polished_article = _sanitize_body_urls(polished_article)
 
-    if LINKEDIN_POST_ENABLED:
-        linkedin_post = generate_linkedin_post(
+        with timed_step(LOGGER, "generate_code", topic=topic) as step:
+            code_result = generate_code_with_metadata(topic)
+            code = code_result.code
+            step["code_path"] = code_result.path
+            step["repair_attempts"] = code_result.repair_attempts
+
+        with timed_step(LOGGER, "save_codegen_metadata", topic=topic):
+            _save_codegen_metadata(
+                topic,
+                {
+                    "topic": topic,
+                    "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+                    "path": code_result.path,
+                    "repair_attempts": code_result.repair_attempts,
+                    "swift_language_version": SWIFT_LANGUAGE_VERSION,
+                    "swift_language_mode": SWIFT_COMPILER_LANGUAGE_MODE,
+                    "diagnostics_excerpt": code_result.diagnostics,
+                },
+            )
+
+        with timed_step(LOGGER, "compose_markdown", topic=topic):
+            markdown = _compose_markdown(topic, polished_article, code, trends)
+
+        with timed_step(LOGGER, "save_article", topic=topic) as step:
+            article_path = _save_markdown(topic, markdown)
+            step["output_path"] = str(article_path)
+
+        if LINKEDIN_POST_ENABLED:
+            with timed_step(LOGGER, "generate_linkedin_post", topic=topic):
+                linkedin_post = generate_linkedin_post(
+                    topic=topic,
+                    article_body=polished_article,
+                    code_example=code,
+                    allowed_references=reference_context,
+                    factual_passes=FACT_GROUNDING_MAX_PASSES if FACT_GROUNDING_ENABLED else 0,
+                )
+
+            with timed_step(LOGGER, "save_linkedin_post", topic=topic):
+                _save_linkedin_post(topic, linkedin_post)
+        else:
+            log_event(LOGGER, "linkedin_post_skipped", topic=topic, reason="LINKEDIN_POST_ENABLED=false")
+
+        log_event(
+            LOGGER,
+            "pipeline_run_completed",
             topic=topic,
-            article_body=polished_article,
-            code_example=code,
-            allowed_references=reference_context,
-            factual_passes=FACT_GROUNDING_MAX_PASSES if FACT_GROUNDING_ENABLED else 0,
+            article_path=str(article_path),
+            trend_count=len(trends),
+            code_path=code_result.path,
+            code_repair_attempts=code_result.repair_attempts,
         )
-        _save_linkedin_post(topic, linkedin_post)
-
-    return article_path
+        return article_path
+    except Exception as exc:
+        log_event(
+            LOGGER,
+            "pipeline_run_failed",
+            level=logging.ERROR,
+            error_type=type(exc).__name__,
+            error=str(exc),
+        )
+        raise
+    finally:
+        reset_run_context(context_tokens)

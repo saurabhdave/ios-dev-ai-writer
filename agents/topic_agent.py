@@ -6,9 +6,8 @@ import re
 from pathlib import Path
 from typing import Iterable
 
-from openai import OpenAI
-
 from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, TOPIC_INTERESTS, openai_generation_kwargs
+from utils.openai_logging import create_openai_client, responses_create_logged
 
 PROMPT_PATH = Path("prompts/topic_prompt.txt")
 
@@ -228,7 +227,7 @@ def generate_topic(
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set.")
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    client = create_openai_client()
     recent_titles = recent_titles or []
     topic_interests = topic_interests or TOPIC_INTERESTS
     _ = topic_mode  # Deprecated. Topic generation is Apple-platform only.
@@ -245,10 +244,14 @@ def generate_topic(
             recent_titles=recent_titles_context,
             topic_interests=topic_interests_context,
         )
-        response = client.responses.create(
+        response = responses_create_logged(
+            client,
+            agent_name="topic_agent",
+            operation="generate_topic",
             model=OPENAI_MODEL,
             max_output_tokens=220,
             input=prompt,
+            log_fields={"attempt": _attempt + 1},
             **openai_generation_kwargs(OPENAI_TEMPERATURE),
         )
 

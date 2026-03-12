@@ -9,6 +9,7 @@ from pathlib import Path
 from openai import OpenAI
 
 from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
+from utils.openai_logging import create_openai_client, responses_create_logged
 
 PROMPT_PATH = Path("prompts/editor_prompt.txt")
 LAYOUT_REPAIR_PROMPT_PATH = Path("prompts/layout_repair_prompt.txt")
@@ -35,9 +36,18 @@ def _load_factuality_template() -> str:
     return FACTUALITY_PROMPT_PATH.read_text(encoding="utf-8")
 
 
-def _render_model_response(client: OpenAI, prompt: str, temperature: float = 0.45) -> str:
+def _render_model_response(
+    client: OpenAI,
+    prompt: str,
+    *,
+    operation: str,
+    temperature: float = 0.45,
+) -> str:
     """Generate markdown text from a provided prompt."""
-    response = client.responses.create(
+    response = responses_create_logged(
+        client,
+        agent_name="editor_agent",
+        operation=operation,
         model=OPENAI_MODEL,
         max_output_tokens=2600,
         input=prompt,
@@ -230,7 +240,7 @@ def polish_article(topic: str, article: str, allowed_references: str) -> str:
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set.")
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    client = create_openai_client()
     prompt = _load_prompt_template().format(
         topic=topic,
         article=article,
@@ -240,6 +250,7 @@ def polish_article(topic: str, article: str, allowed_references: str) -> str:
     polished = _render_model_response(
         client=client,
         prompt=prompt,
+        operation="polish_article",
         temperature=min(OPENAI_TEMPERATURE, 0.5),
     )
 
@@ -263,7 +274,7 @@ def reinforce_medium_layout(
     if not OPENAI_API_KEY:
         return article.strip()
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    client = create_openai_client()
     current = article.strip()
     assessment = assess_medium_layout(current, min_score=min_score)
 
@@ -284,6 +295,7 @@ def reinforce_medium_layout(
         repaired = _render_model_response(
             client=client,
             prompt=prompt,
+            operation="reinforce_medium_layout",
             temperature=min(OPENAI_TEMPERATURE, 0.45),
         )
         if repaired:
@@ -305,7 +317,7 @@ def enforce_factual_grounding(
     if not OPENAI_API_KEY:
         return article.strip()
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    client = create_openai_client()
     current = article.strip()
     template = _load_factuality_template()
 
@@ -318,6 +330,7 @@ def enforce_factual_grounding(
         revised = _render_model_response(
             client=client,
             prompt=prompt,
+            operation="enforce_factual_grounding",
             temperature=min(OPENAI_TEMPERATURE, 0.3),
         )
         if not revised:

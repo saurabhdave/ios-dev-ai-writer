@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from pathlib import Path
 
-from openai import OpenAI
-
 from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
+from utils.observability import get_logger, log_event
+from utils.openai_logging import create_openai_client, responses_create_logged
 
 PROMPT_PATH = Path("prompts/article_prompt.txt")
+LOGGER = get_logger("pipeline.article")
 APPLE_SPECIFIC_SIGNALS = (
     "swiftui",
     "uikit",
@@ -99,7 +101,7 @@ def generate_article(topic: str, outline: str, allowed_references: str) -> str:
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set.")
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    client = create_openai_client()
     prompt = _load_prompt_template().format(
         topic=topic,
         outline=outline,
@@ -107,7 +109,10 @@ def generate_article(topic: str, outline: str, allowed_references: str) -> str:
     )
 
     # Generate a long-form post with practical details and production advice.
-    response = client.responses.create(
+    response = responses_create_logged(
+        client,
+        agent_name="article_agent",
+        operation="generate_article",
         model=OPENAI_MODEL,
         max_output_tokens=2600,
         input=prompt,
@@ -116,6 +121,13 @@ def generate_article(topic: str, outline: str, allowed_references: str) -> str:
 
     article = _normalize_article(response.output_text)
     if article and not _looks_practical_and_apple_specific(article):
+        log_event(
+            LOGGER,
+            "article_quality_retry_requested",
+            level=logging.WARNING,
+            topic=topic,
+            output_chars=len(article),
+        )
         retry_prompt = (
             f"{prompt}\n\n"
             "Quality retry requirements:\n"
@@ -125,7 +137,10 @@ def generate_article(topic: str, outline: str, allowed_references: str) -> str:
             "- Include testing + observability + rollout considerations.\n"
             "- Keep structure and constraints unchanged.\n"
         )
-        retry_response = client.responses.create(
+        retry_response = responses_create_logged(
+            client,
+            agent_name="article_agent",
+            operation="generate_article_quality_retry",
             model=OPENAI_MODEL,
             max_output_tokens=2600,
             input=retry_prompt,

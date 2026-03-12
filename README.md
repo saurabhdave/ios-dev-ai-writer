@@ -34,6 +34,7 @@ It discovers trends, creates a topic, builds an outline, writes the article body
 - Trust-first reference publication from vetted technical domains
 - Code generation observability metadata (`direct|repaired|omitted` path + repair attempts)
 - Snippet-safe code validation mode with Swift-book-guided typo/unknown-symbol repairs
+- Structured JSON logging for local runs and GitHub Actions (`agent_name`, token usage, timing, step status)
 - Output saved to:
   - `outputs/articles/{date}-{slug}.md`
   - `outputs/trends/{timestamp}-trend-signals.json`
@@ -143,12 +144,15 @@ export SWIFT_LANGUAGE_VERSION="6.2.4"                              # optional
 export SWIFT_COMPILER_LANGUAGE_MODE="6"                            # optional; maps to swiftc -swift-version
 export CODEGEN_FAILURE_MODE="omit"                                 # optional: omit|error
 export CODEGEN_VALIDATION_MODE="snippet"                           # optional: snippet|compile|none
+export PIPELINE_LOG_LEVEL="INFO"                                   # optional: DEBUG|INFO|WARNING|ERROR
 ```
 
 ## ▶️ Run Locally
 ```bash
 python main.py
 ```
+
+The CLI now emits structured JSON log lines to stdout so GitHub Actions logs show pipeline steps, agent calls, token usage, and elapsed time.
 
 Generated outputs:
 - `outputs/articles/YYYY-MM-DD-your-topic-slug.md`

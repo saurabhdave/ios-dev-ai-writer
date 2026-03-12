@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 import re
 import shutil
 import subprocess
@@ -21,8 +22,11 @@ from config import (
     SWIFT_LANGUAGE_VERSION,
     openai_generation_kwargs,
 )
+from utils.observability import get_logger, log_event
+from utils.openai_logging import create_openai_client, responses_create_logged
 
 PROMPT_PATH = Path("prompts/code_prompt.txt")
+LOGGER = get_logger("pipeline.code")
 IOS_SIMULATOR_TARGET = "arm64-apple-ios16.0-simulator"
 SWIFT_BOOK_ABOUT_URL = (
     "https://docs.swift.org/swift-book/documentation/the-swift-programming-language/aboutswift/"
@@ -365,7 +369,10 @@ def _repair_code(
         "- Prefer focused snippets instead of full app entry points.\n"
     )
 
-    response = client.responses.create(
+    response = responses_create_logged(
+        client,
+        agent_name="code_agent",
+        operation="repair_code",
         model=OPENAI_MODEL,
         max_output_tokens=1400,
         input=prompt,
@@ -379,14 +386,17 @@ def generate_code_with_metadata(topic: str) -> CodeGenerationResult:
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set.")
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    client = create_openai_client()
     prompt = _load_prompt_template().format(
         topic=topic,
         swift_language_version=SWIFT_LANGUAGE_VERSION,
         swift_language_mode=SWIFT_COMPILER_LANGUAGE_MODE,
     )
 
-    response = client.responses.create(
+    response = responses_create_logged(
+        client,
+        agent_name="code_agent",
+        operation="generate_code",
         model=OPENAI_MODEL,
         max_output_tokens=1200,
         input=prompt,
@@ -403,6 +413,16 @@ def generate_code_with_metadata(topic: str) -> CodeGenerationResult:
     attempts = 0
     path = "direct"
     while (not is_valid or style_diagnostics) and attempts < MAX_REPAIR_ATTEMPTS:
+        log_event(
+            LOGGER,
+            "code_repair_requested",
+            level=logging.WARNING,
+            topic=topic,
+            attempt=attempts + 1,
+            validation_mode=validation_mode,
+            diagnostics_excerpt=(diagnostics or style_diagnostics)[-500:],
+            has_style_diagnostics=bool(style_diagnostics),
+        )
         combined_diagnostics = diagnostics
         if style_diagnostics:
             combined_diagnostics = (
@@ -427,6 +447,14 @@ def generate_code_with_metadata(topic: str) -> CodeGenerationResult:
     if is_valid and validation_mode != "none":
         unknown_api_diag = _unknown_api_diagnostics(code)
         if unknown_api_diag and attempts < MAX_REPAIR_ATTEMPTS:
+            log_event(
+                LOGGER,
+                "code_unknown_api_repair_requested",
+                level=logging.WARNING,
+                topic=topic,
+                attempt=attempts + 1,
+                diagnostics_excerpt=unknown_api_diag[-500:],
+            )
             repaired_code = _repair_code(
                 client=client,
                 topic=topic,
@@ -467,6 +495,15 @@ def generate_code_with_metadata(topic: str) -> CodeGenerationResult:
         ).strip()
 
     if failure_mode == "omit":
+        log_event(
+            LOGGER,
+            "code_generation_omitted",
+            level=logging.WARNING,
+            topic=topic,
+            validation_mode=validation_mode,
+            repair_attempts=attempts,
+            diagnostics_excerpt=diagnostics_excerpt[-500:],
+        )
         return CodeGenerationResult(
             code="",
             path="omitted",

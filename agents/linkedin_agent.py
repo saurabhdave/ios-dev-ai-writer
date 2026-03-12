@@ -20,6 +20,7 @@ from config import (
     SWIFT_LANGUAGE_VERSION,
     openai_generation_kwargs,
 )
+from utils.openai_logging import create_openai_client, responses_create_logged
 
 PROMPT_PATH = Path("prompts/linkedin_prompt.txt")
 FACTUALITY_PROMPT_PATH = Path("prompts/linkedin_factuality_prompt.txt")
@@ -488,16 +489,20 @@ def _enforce_factual_grounding_post(
 
     current = post.strip()
     template = _load_factuality_template()
-    for _ in range(max_passes):
+    for pass_index in range(max_passes):
         prompt = template.format(
             topic=topic,
             allowed_references=allowed_references.strip() or "- None",
             post=current,
         )
-        response = client.responses.create(
+        response = responses_create_logged(
+            client,
+            agent_name="linkedin_agent",
+            operation="enforce_factual_grounding_post",
             model=OPENAI_MODEL,
             max_output_tokens=700,
             input=prompt,
+            log_fields={"pass_index": pass_index + 1},
             **openai_generation_kwargs(min(OPENAI_TEMPERATURE, 0.3)),
         )
         revised = response.output_text.strip()
@@ -519,7 +524,7 @@ def generate_linkedin_post(
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set.")
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    client = create_openai_client()
     snippet_mode = _normalize_snippet_mode(LINKEDIN_CODE_SNIPPET_MODE)
     prompt = _build_prompt(
         topic=topic,
@@ -529,7 +534,10 @@ def generate_linkedin_post(
         allowed_references=allowed_references,
     )
 
-    response = client.responses.create(
+    response = responses_create_logged(
+        client,
+        agent_name="linkedin_agent",
+        operation="generate_linkedin_post",
         model=OPENAI_MODEL,
         max_output_tokens=700,
         input=prompt,

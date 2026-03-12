@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from openai import OpenAI
-
 from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
+from utils.openai_logging import create_openai_client, responses_create_logged
 
 PROMPT_PATH = Path("prompts/outline_prompt.txt")
 
@@ -21,11 +20,14 @@ def generate_outline(topic: str) -> str:
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set.")
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    client = create_openai_client()
     prompt = _load_prompt_template().format(topic=topic)
 
     # The outline should include sections and key talking points.
-    response = client.responses.create(
+    response = responses_create_logged(
+        client,
+        agent_name="outline_agent",
+        operation="generate_outline",
         model=OPENAI_MODEL,
         max_output_tokens=700,
         input=prompt,
