@@ -1,0 +1,462 @@
+{
+  "generated_at_utc": "2026-03-11T18:34:59.679764+00:00",
+  "count": 57,
+  "signals": [
+    {
+      "source": "HackerNews",
+      "title": "Create value for others and don\u2019t worry about the returns",
+      "url": "https://geohot.github.io//blog/jekyll/update/2026/03/11/running-69-agents.html",
+      "score": 815.0,
+      "published_at": "2026-03-11T05:45:49+00:00",
+      "summary": ""
+    },
+    {
+      "source": "HackerNews",
+      "title": "Yann LeCun raises $1B to build AI that understands the physical world",
+      "url": "https://www.wired.com/story/yann-lecun-raises-dollar1-billion-to-build-ai-that-understands-the-physical-world/",
+      "score": 814.5,
+      "published_at": "2026-03-10T08:46:53+00:00",
+      "summary": ""
+    },
+    {
+      "source": "HackerNews",
+      "title": "Agents that run while I sleep",
+      "url": "https://www.claudecodecamp.com/p/i-m-building-agents-that-run-while-i-sleep",
+      "score": 633.0,
+      "published_at": "2026-03-10T19:09:46+00:00",
+      "summary": ""
+    },
+    {
+      "source": "HackerNews",
+      "title": "Debian decides not to decide on AI-generated contributions",
+      "url": "https://lwn.net/SubscriberLink/1061544/125f911834966dd0/",
+      "score": 503.5,
+      "published_at": "2026-03-10T14:53:13+00:00",
+      "summary": ""
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "Cannot install app, Unable to Verify App",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rq4uxl/cannot_install_app_unable_to_verify_app/",
+      "score": 326.1,
+      "published_at": "2026-03-10T18:22:23+00:00",
+      "summary": "What a cluster, was working on an app all morning, and boom now unable to verify app. This is insane, a paying developer license. You would think local dev would be fine without cert checking on some server everytime. Says I have no interne"
+    },
+    {
+      "source": "HackerNews",
+      "title": "Levels of Agentic Engineering",
+      "url": "https://www.bassimeledath.com/blog/levels-of-agentic-engineering",
+      "score": 321.5,
+      "published_at": "2026-03-10T08:48:40+00:00",
+      "summary": ""
+    },
+    {
+      "source": "HackerNews",
+      "title": "AI Agent Hacks McKinsey",
+      "url": "https://codewall.ai/blog/how-we-hacked-mckinseys-ai-platform",
+      "score": 290.5,
+      "published_at": "2026-03-11T09:59:03+00:00",
+      "summary": ""
+    },
+    {
+      "source": "HackerNews",
+      "title": "TADA: Speech generation through text-acoustic synchronization",
+      "url": "https://www.hume.ai/blog/opensource-tada",
+      "score": 99.5,
+      "published_at": "2026-03-11T05:42:55+00:00",
+      "summary": ""
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "does anyone know how to fix this error?",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rq6hv0/does_anyone_know_how_to_fix_this_error/",
+      "score": 66.2,
+      "published_at": "2026-03-10T19:19:49+00:00",
+      "summary": ""
+    },
+    {
+      "source": "HackerNews",
+      "title": "Show HN: Open-source browser for AI agents",
+      "url": "https://github.com/theredsix/agent-browser-protocol",
+      "score": 53.0,
+      "published_at": "2026-03-11T14:39:30+00:00",
+      "summary": ""
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "In-App-Purchase Zombies?",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rqmh9a/inapppurchase_zombies/",
+      "score": 20.55,
+      "published_at": "2026-03-11T06:45:07+00:00",
+      "summary": "I had a game, Dash Race, in the store since the early days (2009). It was written in Objective-C, the only option at that time. While I constantly added features, due to day job, kids and stuff I missed the whole Swift transition, and at so"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "We open-sourced a faster alternative to Maestro for iOS UI testing \u2014 real device support included",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rqs6w0/we_opensourced_a_faster_alternative_to_maestro/",
+      "score": 19.9,
+      "published_at": "2026-03-11T12:18:41+00:00",
+      "summary": "Hey everyone,\n\nWe've been using Maestro for mobile UI testing but kept hitting the same walls \u2014 slow JVM startup, heavy memory usage, and real iOS device support that's been unreliable for a while. Eventually we just built our own runner in"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "App Store Connect is down",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rqapa5/app_store_connect_is_down/",
+      "score": 19.45,
+      "published_at": "2026-03-10T21:50:41+00:00",
+      "summary": "To everybody who is saying they cannot download/verify an app: App Store Connect is down, and has been for quite some time now. Just figured I\u2019d let everyone know. "
+    },
+    {
+      "source": "Medium",
+      "title": "The Pentagon Labeled Anthropic a \u201cSupply Chain Risk.\u201d Claude Still Runs Its Classified AI Operations",
+      "url": "https://pub.towardsai.net/the-pentagon-labeled-anthropic-a-supply-chain-risk-claude-still-runs-its-classified-ai-operations-b39bd30ca922?source=rss------artificial_intelligence-5",
+      "score": 14.98,
+      "published_at": "2026-03-11T18:31:01+00:00",
+      "summary": "<div class=\"medium-feed-item\"><p class=\"medium-feed-image\"><a href=\"https://pub.towardsai.net/the-pentagon-labeled-anthropic-a-supply-chain-risk-claude-still-runs-its-classified-ai-operations-b39bd30ca922?source=rss------artificial_intellig"
+    },
+    {
+      "source": "Medium",
+      "title": "SwiftUI vs UIKit: Choosing the Right Approach for Modern iOS Apps",
+      "url": "https://medium.com/@mike.salari.dev/swiftui-vs-uikit-choosing-the-right-approach-for-modern-ios-apps-a5bdf1722222?source=rss------ios-5",
+      "score": 14.831,
+      "published_at": "2026-03-11T18:02:06+00:00",
+      "summary": "<div class=\"medium-feed-item\"><p class=\"medium-feed-image\"><a href=\"https://medium.com/@mike.salari.dev/swiftui-vs-uikit-choosing-the-right-approach-for-modern-ios-apps-a5bdf1722222?source=rss------ios-5\"><img src=\"https://cdn-images-1.medi"
+    },
+    {
+      "source": "Medium iOS Tag",
+      "title": "The silicon valley fog didn\u2019t roll over the hills anymore; it seemed to hum.",
+      "url": "https://medium.com/@ayushmanhas420/the-silicon-valley-fog-didnt-roll-over-the-hills-anymore-it-seemed-to-hum-457c17394b43?source=rss------ios-5",
+      "score": 14.678,
+      "published_at": "2026-03-11T17:31:45+00:00",
+      "summary": "<div class=\"medium-feed-item\"><p class=\"medium-feed-link\"><a href=\"https://medium.com/@ayushmanhas420/the-silicon-valley-fog-didnt-roll-over-the-hills-anymore-it-seemed-to-hum-457c17394b43?source=rss------ios-5\">Continue reading on Medium \u00bb"
+    },
+    {
+      "source": "Medium iOS Tag",
+      "title": "The Three-Body Problem \u2014 How I built a social health app with zero server costs",
+      "url": "https://medium.com/@juancolilla_66813/the-three-body-problem-how-i-built-a-social-health-app-with-zero-server-costs-1fe071e9d96e?source=rss------ios-5",
+      "score": 14.556,
+      "published_at": "2026-03-11T17:07:02+00:00",
+      "summary": "<div class=\"medium-feed-item\"><p class=\"medium-feed-image\"><a href=\"https://medium.com/@juancolilla_66813/the-three-body-problem-how-i-built-a-social-health-app-with-zero-server-costs-1fe071e9d96e?source=rss------ios-5\"><img src=\"https://cd"
+    },
+    {
+      "source": "HackerNews",
+      "title": "Searching for the Agentic IDE",
+      "url": "https://twitter.com/karpathy/status/2031616709560610993",
+      "score": 14.5,
+      "published_at": "2026-03-11T15:48:11+00:00",
+      "summary": ""
+    },
+    {
+      "source": "dev.to",
+      "title": "[SC] Diferencia entre tareas con y sin estructura",
+      "url": "https://dev.to/david_goyes_a488f58a17a53/sc-diferencia-entre-tareas-con-y-sin-estructura-10f",
+      "score": 14.285,
+      "published_at": "2026-03-11T16:10:43+00:00",
+      "summary": "<h2> Tareas con estructura (\"Structured tasks\") </h2> <p>Una tarea estructurada hace parte de la jerarqu\u00eda de un contexto (<code>Task</code>, <code>actor</code> o <code>TaskGroup</code>) y hereda su ciclo de vida.</p> <p>Algunas caracter\u00edst"
+    },
+    {
+      "source": "dev.to",
+      "title": "How I Build SwiftUI Apps 2x Faster in 2026",
+      "url": "https://dev.to/__be2942592/how-i-build-swiftui-apps-2x-faster-in-2026-24ad",
+      "score": 14.208,
+      "published_at": "2026-03-11T15:54:18+00:00",
+      "summary": "<p>After 3 years of building iOS apps, I've developed a workflow that lets me ship features twice as fast. Here's exactly what changed.</p> <h2> 1. Component Library First </h2> <p>Before starting any project, I build (or reuse) a component"
+    },
+    {
+      "source": "Medium",
+      "title": "SwiftUI Diffing Explained: What Actually Happens When Your State Changes",
+      "url": "https://medium.com/@anand.mishra.mca/swiftui-diffing-explained-what-actually-happens-when-your-state-changes-5a03e0c63ae4?source=rss------swiftui-5",
+      "score": 14.113,
+      "published_at": "2026-03-11T15:33:55+00:00",
+      "summary": "<div class=\"medium-feed-item\"><p class=\"medium-feed-image\"><a href=\"https://medium.com/@anand.mishra.mca/swiftui-diffing-explained-what-actually-happens-when-your-state-changes-5a03e0c63ae4?source=rss------swiftui-5\"><img src=\"https://cdn-i"
+    },
+    {
+      "source": "dev.to iOS Tag",
+      "title": "Improve React Native App Security: 10 Practices to Evaluate Your Project",
+      "url": "https://dev.to/iamsaadmehmood/improve-react-native-app-security-10-practices-to-evaluate-your-project-2a89",
+      "score": 14.104,
+      "published_at": "2026-03-11T15:31:58+00:00",
+      "summary": "<p>After working with React Native for several years, I've put together key security practices you can use to evaluate your project. Apps can't be 100% secure, but you can make hacking difficult and expensive. Here's a checklist that covers"
+    },
+    {
+      "source": "HackerNews",
+      "title": "Launch HN: Sentrial (YC W26) \u2013 Catch AI Agent Failures Before Your Users Do",
+      "url": "https://www.sentrial.com/",
+      "score": 11.5,
+      "published_at": "2026-03-11T16:24:17+00:00",
+      "summary": ""
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "TestFlight Update",
+      "url": "https://developer.apple.com/news/releases/?id=03102026c",
+      "score": 11.149,
+      "published_at": "2026-03-11T02:00:00+00:00",
+      "summary": "View release notes"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "Finally stopped PROCRASTINATING",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rqhp1t/finally_stopped_procrastinating/",
+      "score": 11.05,
+      "published_at": "2026-03-11T02:36:07+00:00",
+      "summary": "6+ years ago I made a SPM package called Sliders. SwiftUI was brand new and I had never made a package before so I thought hey why not. I was still learning a lot and had tons of free time, energy and motivation to just code all the time. A"
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "App Store Connect API 4.3",
+      "url": "https://developer.apple.com/news/releases/?id=03102026b",
+      "score": 10.348,
+      "published_at": "2026-03-10T21:00:00+00:00",
+      "summary": "Download fileView release notes"
+    },
+    {
+      "source": "LinkedIn iOS Posts",
+      "title": "Why VIPER and MVVM in SwiftUI are actually the same pattern: A lesson in architectural thinking - linkedin.com",
+      "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxPUXlNSjZBNFdVbmRENmFxUDdaZF9vUmEtVTJZUHFMZjZsV21WeVc4UjY4UllfNGpUcWVQLVYxV0lPS2U1QXpmYmlnUG9uM0pmZW1xMzluSXRGTU9Md01OQzZnZnBwUHRtYlREWkliaktlU1d1Vk5PcHdyaF9SYTI1QXRTbHc3bE1fUkFnQXo4NmpIeWx5VERlc1N5YnA3TTE0eFYxdkFQdWtmTkp1a2pkeV9oOVpQeWgzRDUtWEFMQWN4dw?oc=5",
+      "score": 10.058,
+      "published_at": "2026-03-10T19:00:01+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwgFBVV95cUxPUXlNSjZBNFdVbmRENmFxUDdaZF9vUmEtVTJZUHFMZjZsV21WeVc4UjY4UllfNGpUcWVQLVYxV0lPS2U1QXpmYmlnUG9uM0pmZW1xMzluSXRGTU9Md01OQzZnZnBwUHRtYlREWkliaktlU1d1Vk5PcHdyaF9SYTI1QXRTbHc3bE1fUkFnQX"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "Looks like the \u201cUnable to verify app\u201d issue has been resolved.",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rqatte/looks_like_the_unable_to_verify_app_issue_has/",
+      "score": 8.05,
+      "published_at": "2026-03-10T21:55:22+00:00",
+      "summary": ""
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "Xcode 26.4 beta 3 (17E5179g)",
+      "url": "https://developer.apple.com/news/releases/?id=03092026g",
+      "score": 7.436,
+      "published_at": "2026-03-09T17:45:00+00:00",
+      "summary": "View downloadsView release notes"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "RealityKit vs SceneKit",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rqv7ws/realitykit_vs_scenekit/",
+      "score": 7.05,
+      "published_at": "2026-03-11T14:26:02+00:00",
+      "summary": "I am making a gamified app and going to have mascot, currently i am sturgling with realitykit everything seems to be much slower and harder to achieve than in scenekit, what is your suggestion? I plan on making a duolingo style mascot, whic"
+    },
+    {
+      "source": "SwiftLee",
+      "title": "A 9-Step Framework for Choosing the Right Agent Skill",
+      "url": "https://www.avanderlee.com/ai-development/a-9-step-framework-for-choosing-the-right-agent-skill/",
+      "score": 6.815,
+      "published_at": "2026-03-09T08:55:45+00:00",
+      "summary": "<p>Developers are increasingly faced with multiple options for the same task, which makes it harder to choose the right agent skill. More and more Agent Skills pop up, and they all have a great story on why you should use them. And honestly"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "For anyone using Revenue cat did you define in your appstore connect privacy no data collected?",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rqu2h4/for_anyone_using_revenue_cat_did_you_define_in/",
+      "score": 4.1,
+      "published_at": "2026-03-11T13:41:11+00:00",
+      "summary": ""
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "Digital.ai Brings Enterprise-Grade Post-Build Mobile App Protection into the CI/CD Pipeline with LLM-enhanced Quick Protect Agent v2 - Business Wire",
+      "url": "https://news.google.com/rss/articles/CBMilwJBVV95cUxPaUZlVlJHdEVkSDJwZmlwSFUxU1ZIWW5YT1NoWlpCWTB3SVFXZkcxSlBRNWNYVnN3Zmt0OVVIUnhSSFVKUGlNYWdhTkMyN1N0cDJTaDVpU0p5UmprNjJscXFncWpRcG1vVWs4dU8wSHRJZTUxUzBTV3F6UFpWbmNIRHdHblZXMnJhSVVWNDlQVzhDT01wRklzSklBcDJNYjBENk5aMURlZHpuOGRrUVVGWW5abTBfUzRrdmhhVm5DS1NCRmMzVE5lR1Fvcy1oaDhoMlRFMlkzcjVJSjFvNjhWanlwdkpBcVlObW1VdGZoNVBETUZEWWZjNllWYjNGUnJTd0RjODNGTlQ5R1lsNHhRTi05SHdHaUU?oc=5",
+      "score": 3.249,
+      "published_at": "2026-03-04T13:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMilwJBVV95cUxPaUZlVlJHdEVkSDJwZmlwSFUxU1ZIWW5YT1NoWlpCWTB3SVFXZkcxSlBRNWNYVnN3Zmt0OVVIUnhSSFVKUGlNYWdhTkMyN1N0cDJTaDVpU0p5UmprNjJscXFncWpRcG1vVWs4dU8wSHRJZTUxUzBTV3F6UFpWbmNIRHdHblZXMnJhSVVWND"
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "Hello Developer: March 2026",
+      "url": "https://developer.apple.com/news/?id=zmqipz05",
+      "score": 2.944,
+      "published_at": "2026-03-03T14:00:16+00:00",
+      "summary": "<div class=\"inline-article-image\"><img alt=\"A series of light-blue icons against a darker blue background. The icons include a large game controller, surrounded by a smaller iPhone, iMac, Apple TV, Apple Vision Pro, and iPad.\" src=\"https://"
+    },
+    {
+      "source": "SwiftLee",
+      "title": "Using an MCP to perform product optimizations",
+      "url": "https://www.avanderlee.com/ai-development/using-an-mcp-to-perform-product-optimizations/",
+      "score": 2.68,
+      "published_at": "2026-03-02T13:56:03+00:00",
+      "summary": "<p>A Model Context Protocol (MCP) can be invaluable when used properly, especially when talking about product optimizations. I&#8217;ve personally been playing around with it for a while now, and feel like I need to share my learnings due t"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "\ud83d\ude80 Big AI upgrades in Xcode: Apple just leveled up the developer experience! Apple has quietly rolled out some powerful AI-driven enhancements in the latest versions of Xcode, and they signal a major shift in how we build software for the Apple ecosystem. He - linkedin.com",
+      "url": "https://news.google.com/rss/articles/CBMikgFBVV95cUxPSW12Nks0Q1FMX0NrQXFkb2NkR0NHU0ZvLXB0enJRZjk1NUh1RnlzamdwbHBrYXROSF90YnR3S3VYWVBydDhXZUJPVFFmTlUzNjliNHc2TVU1MUdVWGlzLTNXb3hzenp0T1hocFVkRnI0WDRMZDBuVzVQaG1BbnNzdXRUc2g1R3ZONVJmOGJUZi1aQQ?oc=5",
+      "score": 2.622,
+      "published_at": "2026-03-02T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMikgFBVV95cUxPSW12Nks0Q1FMX0NrQXFkb2NkR0NHU0ZvLXB0enJRZjk1NUh1RnlzamdwbHBrYXROSF90YnR3S3VYWVBydDhXZUJPVFFmTlUzNjliNHc2TVU1MUdVWGlzLTNXb3hzenp0T1hocFVkRnI0WDRMZDBuVzVQaG1BbnNzdXRUc2g1R3ZONVJmOG"
+    },
+    {
+      "source": "Medium iOS + AI",
+      "title": "Building an iOS AI Keyboard with SwiftUI \u2014My Experience So Far | by Jonathan Raney | Feb, 2026 - Medium",
+      "url": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPMU9EdHZ2VXF1SDkxOW1tSTN5aFpmZkE0M2VHMURZajZsMzFJWHdFZDNodS11djIxMFV1cUJxRFJFZ0I3T2FlOU1FUHpzdW84TGtDZ2VZaFhhNWhoamVsQnVLUmpDdHNDSFNUZWtNcEJ3NnZkbktyMHZPQTNvN1pZeG1feVBxSHl2am4yRUItNmxzSVEtZnl2SUUzQzh1S0FWQjhDV192ZVdJeEhpSXc?oc=5",
+      "score": 2.232,
+      "published_at": "2026-02-28T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMirgFBVV95cUxPMU9EdHZ2VXF1SDkxOW1tSTN5aFpmZkE0M2VHMURZajZsMzFJWHdFZDNodS11djIxMFV1cUJxRFJFZ0I3T2FlOU1FUHpzdW84TGtDZ2VZaFhhNWhoamVsQnVLUmpDdHNDSFNUZWtNcEJ3NnZkbktyMHZPQTNvN1pZeG1feVBxSHl2am4yRU"
+    },
+    {
+      "source": "X.com iOS + Agentic AI",
+      "title": "Xcode 26.3 is out! Transform your workflow with Agentic Coding. Native Claude and Codex integration lets AI agents write, build, and test your apps for you. #Xcode26 #AgenticCoding #AppleIntelligence #ClaudeAI #OpenAICodex #SwiftUI #MCP #iOSDev - x.com",
+      "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE1xVzhZaEpfZGlNQWVEckxyekYwS2U1QzF6VjZYdnpSTE9LRXVIWHJtQmVpTWY4RDNwUFJmNnBUQXVkaU0tYmpBWHlXclY1QTJtRkFfUGdESUhxT1J5RVNrbzdpX1RoSGs?oc=5",
+      "score": 2.081,
+      "published_at": "2026-02-27T08:32:11+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiZ0FVX3lxTE1xVzhZaEpfZGlNQWVEckxyekYwS2U1QzF6VjZYdnpSTE9LRXVIWHJtQmVpTWY4RDNwUFJmNnBUQXVkaU0tYmpBWHlXclY1QTJtRkFfUGdESUhxT1J5RVNrbzdpX1RoSGs?oc=5\" target=\"_blank\">Xcode 26.3 is out! Transform"
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "Age requirements for apps distributed in Brazil, Australia, Singapore, Utah, and Louisiana",
+      "url": "https://developer.apple.com/news/?id=f5zj08ey",
+      "score": 1.762,
+      "published_at": "2026-02-24T18:00:48+00:00",
+      "summary": "<p>Today we\u2019re providing an update on the tools available for developers to meet their age assurance obligations under upcoming U.S. and regional laws, including in Brazil, Australia, Singapore, Utah, and Louisiana. Updates to the Declared "
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "Glean Highlights AI Agents to Automate Developer Workflows - TipRanks",
+      "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOdVR2NHVmMm9TUGZranBnbHB5TU9ELVJTOGJSYVNwTHhkc3JJVk5qdXJwZTYtZ3RGbnVCSVQycUhibTk0TFpyb0JaTS1Vd2ZJOVpUR0QwWVhGVnhLekVpM3IyV3pRRW5rQUQ1YTNFTFF0d05zYURucTB3eFhDWkh1Q2FWNWpJUXJiM05vNHNpUDB4aFdrYUdUVm1oVTVJYnRWekVtNnp6YU5tQQ?oc=5",
+      "score": 1.399,
+      "published_at": "2026-02-20T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqgFBVV95cUxOdVR2NHVmMm9TUGZranBnbHB5TU9ELVJTOGJSYVNwTHhkc3JJVk5qdXJwZTYtZ3RGbnVCSVQycUhibTk0TFpyb0JaTS1Vd2ZJOVpUR0QwWVhGVnhLekVpM3IyV3pRRW5rQUQ1YTNFTFF0d05zYURucTB3eFhDWkh1Q2FWNWpJUXJiM05vNH"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "What you should know before Migrating from GCD to Swift Concurrency",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rqx7v5/what_you_should_know_before_migrating_from_gcd_to/",
+      "score": 1.35,
+      "published_at": "2026-03-11T15:40:43+00:00",
+      "summary": "Started updating our old GCD-heavy codebase to Swift Concurrency. Created post on some of my findings that are not clear in migration guides.\n\nCurious to hear your findings with migration?"
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "Get ready with the latest beta releases",
+      "url": "https://developer.apple.com/news/?id=xgkk9w83",
+      "score": 1.193,
+      "published_at": "2026-02-16T15:00:14+00:00",
+      "summary": "<p>The beta versions of iOS 26.4, iPadOS 26.4, macOS 26.4, tvOS 26.4, visionOS 26.4, and watchOS 26.4 are now available. Get your apps ready by confirming they work as expected on these releases. And make sure to build and test with Xcode 2"
+    },
+    {
+      "source": "dev.to iOS + AI",
+      "title": "Xcode 26.3 : Use AI Agents from Cursor, Claude Code & Beyond - DEV Community",
+      "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOeGRaUV9XcFNpaXhXS3JxR29CRzFfQkdBQXJubmxaZjJva3c1T3JZeXNIQkx0UEpQcVdNTXExUGpmNHRveF9BaW9yVy1GaVd1NFY2cks5OHA5LS1CSXZqUTRNbV9zS0dmNU5OcC1fN1NuZW5CdWh3b1BFV1BRaV9BSlRYN3hHcmVXbGpSZmdGdw?oc=5",
+      "score": 0.954,
+      "published_at": "2026-02-10T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijwFBVV95cUxOeGRaUV9XcFNpaXhXS3JxR29CRzFfQkdBQXJubmxaZjJva3c1T3JZeXNIQkx0UEpQcVdNTXExUGpmNHRveF9BaW9yVy1GaVd1NFY2cks5OHA5LS1CSXZqUTRNbV9zS0dmNU5OcC1fN1NuZW5CdWh3b1BFV1BRaV9BSlRYN3hHcmVXbGpSZm"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "\ud83d\udcf1 Great iOS Apps Don\u2019t Come From Great Tools Alone \u2014 They Come From Great Team Design With Xcode 26.3 introducing agentic coding using Claude and GPT-5.3-Codex, iOS developers are getting unprecedented power directly inside their daily workflo - linkedin.com",
+      "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOY2I4dTlyS19LUDVYXzFIbkpFU3ZFa2N6ZzgwRzlxaGl6TzE1cjczZE9MLVJKOUc4a05pTS1kRjB1REVNandTOU1aT3ZxVzBmWUYwdEdHUjRST1VwbVJwYm9aS2RzbEhxLURiV00zMEM5eFFtUlQwdlBpbEhORmJtaXdzZUF5MHkwQzFZdGREYW5oY19RSmNoTzRDZXdQWlBhOFktV2VJSWlEdXEteWd4b0l0Ums?oc=5",
+      "score": 0.925,
+      "published_at": "2026-02-09T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMitAFBVV95cUxOY2I4dTlyS19LUDVYXzFIbkpFU3ZFa2N6ZzgwRzlxaGl6TzE1cjczZE9MLVJKOUc4a05pTS1kRjB1REVNandTOU1aT3ZxVzBmWUYwdEdHUjRST1VwbVJwYm9aS2RzbEhxLURiV00zMEM5eFFtUlQwdlBpbEhORmJtaXdzZUF5MHkwQzFZdG"
+    },
+    {
+      "source": "Medium iOS + AI",
+      "title": "From Prompting to SKILL.md Packaging: How AI Skills Make iOS Development in Xcode Actually Reliable - Medium",
+      "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOY0Vvb1E1bWdxVFZnaFI0NmNqVy14M180aDl5eDFHejljVEdJcTdZT2I4TUo3Q1R4MEZqekJ1bkd5ODhzTFppVHF2bkExYjlQNU5qckwxSDAxTFlmUUlGR0J6VFhXbVJvdDNmdHRVM1YxZE1yUkk3NFQ3cndUVUdpbWZsRklLWmQ4eTJVRmZPWnkxWDR4N3M3NFQ3QkJsV25WdUxzemUybDgwNjlEUGlfeThDY29YbHZFMTFJNU93?oc=5",
+      "score": 0.925,
+      "published_at": "2026-02-09T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMivgFBVV95cUxOY0Vvb1E1bWdxVFZnaFI0NmNqVy14M180aDl5eDFHejljVEdJcTdZT2I4TUo3Q1R4MEZqekJ1bkd5ODhzTFppVHF2bkExYjlQNU5qckwxSDAxTFlmUUlGR0J6VFhXbVJvdDNmdHRVM1YxZE1yUkk3NFQ3cndUVUdpbWZsRklLWmQ4eTJVRm"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "Apple brings agentic coding to Xcode with Claude, Codex - IT Brief Asia",
+      "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxNQzBKaGYyN0lMRHF5c2E5RjBHM1B5azZjejg4YnNja0ZaRE5yNjhGUm1lUmdnMllrS1NoTnVISzZHSGp4aGJYRFZ0TXdoRjd6OEFmeEE4aERkXzAtOGN4T01HQks1UmVSRy1oME5WU0hWZ3VrUmVXbjJpTF83QWFtRHc5TkpmTHRR?oc=5",
+      "score": 0.801,
+      "published_at": "2026-02-04T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiAFBVV95cUxNQzBKaGYyN0lMRHF5c2E5RjBHM1B5azZjejg4YnNja0ZaRE5yNjhGUm1lUmdnMllrS1NoTnVISzZHSGp4aGJYRFZ0TXdoRjd6OEFmeEE4aERkXzAtOGN4T01HQks1UmVSRy1oME5WU0hWZ3VrUmVXbjJpTF83QWFtRHc5TkpmTHRR?oc=5\""
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "Xcode 26.3 unlocks the power of agentic coding - Apple",
+      "url": "https://news.google.com/rss/articles/CBMilwFBVV95cUxNcjcxcmVrb2Z5Ykt2dlMtZVk0dlVtWHltOV82X0xYWTdodUcwUGxVT0hPc1RNamx5TVJUVmw4TnIxRUxxUzBrTGUxS1diSU9SemlhVWtaeGxreGNsWHozclFxODZvYk5ZdXZHV1BMb01KclZjelhzZG5sRFNXYUNxQXBVM2Y5T05obWM0UC1teHVlbmFuOHpv?oc=5",
+      "score": 0.78,
+      "published_at": "2026-02-03T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMilwFBVV95cUxNcjcxcmVrb2Z5Ykt2dlMtZVk0dlVtWHltOV82X0xYWTdodUcwUGxVT0hPc1RNamx5TVJUVmw4TnIxRUxxUzBrTGUxS1diSU9SemlhVWtaeGxreGNsWHozclFxODZvYk5ZdXZHV1BMb01KclZjelhzZG5sRFNXYUNxQXBVM2Y5T05obWM0UC"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "48 Top AI Apps to Know in [2026 - Built In",
+      "url": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE5jYWNaWmszMlVfYy1RVENtRjN6TnZMM01BeE1SRkVCSGhSVnkzU3lhVkY2eE1xMEpkV055SGxrQU1vZzlubk40QU03VDhWVk1TU1UwS1J2NU84SlFXZkdWcQ?oc=5",
+      "score": 0.513,
+      "published_at": "2026-01-14T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiYEFVX3lxTE5jYWNaWmszMlVfYy1RVENtRjN6TnZMM01BeE1SRkVCSGhSVnkzU3lhVkY2eE1xMEpkV055SGxrQU1vZzlubk40QU03VDhWVk1TU1UwS1J2NU84SlFXZkdWcQ?oc=5\" target=\"_blank\">48 Top AI Apps to Know in [2026</a>&n"
+    },
+    {
+      "source": "Medium iOS + AI",
+      "title": "The State of Agentic iOS Engineering in 2026 - Medium",
+      "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxPMlVESnBvcS1FaDYxd0JTYmo5YmFjenZfTTlWdHgzYzRTTElpVVBoOUJRMm12NHNQLTNROHN1NUVGemZRSFJaS3BEcjRzSTh1SUtDcVZ2b0pvTWR3QVoxNF9EMm9PdnFISURkdGlqRVpOT2N0YVdfaldQdUJXa2VLNUlwOW9yN19Fb2xHQkhTcw?oc=5",
+      "score": 0.42,
+      "published_at": "2026-01-01T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijwFBVV95cUxPMlVESnBvcS1FaDYxd0JTYmo5YmFjenZfTTlWdHgzYzRTTElpVVBoOUJRMm12NHNQLTNROHN1NUVGemZRSFJaS3BEcjRzSTh1SUtDcVZ2b0pvTWR3QVoxNF9EMm9PdnFISURkdGlqRVpOT2N0YVdfaldQdUJXa2VLNUlwOW9yN19Fb2xHQk"
+    },
+    {
+      "source": "X.com iOS + AI",
+      "title": "\"#ios\" - Results on X | Live Posts & Updates - x.com",
+      "url": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE5VVHVSZzMyX0NnbFlsTG1sc0tsSXYwb2RKTmJmSTZDcEdGbjk4aVlfa0p5NXk0Qkc4LVF5TVZmQ0VfN1RlTTVhUUxhdjlmV0k?oc=5",
+      "score": 0.329,
+      "published_at": "2025-12-12T13:34:37+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiT0FVX3lxTE5VVHVSZzMyX0NnbFlsTG1sc0tsSXYwb2RKTmJmSTZDcEdGbjk4aVlfa0p5NXk0Qkc4LVF5TVZmQ0VfN1RlTTVhUUxhdjlmV0k?oc=5\" target=\"_blank\">\"#ios\" - Results on X | Live Posts & Updates</a>&nbsp;&nbsp;"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "I tried 70+ best AI tools in 2026 - TechRadar",
+      "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE8wOGtjenBGNVdiOW1DbVFrUWl6TnlOREl0R2xuMnNXLU9KX0w5RUlob1BvS1JHeEpLX1RxSy1CcURHRjNHTW1wWG1sSVc1YmhfTlMyRFZTVQ?oc=5",
+      "score": 0.318,
+      "published_at": "2025-12-09T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiV0FVX3lxTE8wOGtjenBGNVdiOW1DbVFrUWl6TnlOREl0R2xuMnNXLU9KX0w5RUlob1BvS1JHeEpLX1RxSy1CcURHRjNHTW1wWG1sSVc1YmhfTlMyRFZTVQ?oc=5\" target=\"_blank\">I tried 70+ best AI tools in 2026</a>&nbsp;&nbsp;"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "How To Build An iOS Application That Works Flawlessly With iOS 26 - ilounge.com",
+      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxPX3FtZ2NHdzVCUFhYenVNNUFTME1IREJ4TlRIMG55U19WZmxWSWxSRTNPTFRMRGJ0ZENiM3JYcEJVdElvellTOWdaMjVQdzA4OGd0NHY5Ny1fcTNDWDRwblZ6YksyMHc3VnFTdHFSd1dhTHlQUjloYk1ucHJXQmJmTFN6UEhGOWlyaFE1M1N6Q3k2Y2xrRDRUdG83WENzRW8?oc=5",
+      "score": 0.215,
+      "published_at": "2025-10-25T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMinwFBVV95cUxPX3FtZ2NHdzVCUFhYenVNNUFTME1IREJ4TlRIMG55U19WZmxWSWxSRTNPTFRMRGJ0ZENiM3JYcEJVdElvellTOWdaMjVQdzA4OGd0NHY5Ny1fcTNDWDRwblZ6YksyMHc3VnFTdHFSd1dhTHlQUjloYk1ucHJXQmJmTFN6UEhGOWlyaFE1M1"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "The iOS Developer\u2019s Ultimate 2025 Curriculum - HackerNoon",
+      "url": "https://news.google.com/rss/articles/CBMidEFVX3lxTE5pdUZjZ1N3YllBVE1nSjN3V1gyajVjX0hoWHFsdnRES01PV1dpbm5kSmJvUEtIYjk0cUhoUTRXX2h0ZDNPV18xQkhiTk4xcVBUdE9VTnp2MWpLOXp2aEdsOGZCeGY1azhlb0YyNjdRV2ZhUnQz?oc=5",
+      "score": 0.143,
+      "published_at": "2025-08-15T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMidEFVX3lxTE5pdUZjZ1N3YllBVE1nSjN3V1gyajVjX0hoWHFsdnRES01PV1dpbm5kSmJvUEtIYjk0cUhoUTRXX2h0ZDNPV18xQkhiTk4xcVBUdE9VTnp2MWpLOXp2aEdsOGZCeGY1azhlb0YyNjdRV2ZhUnQz?oc=5\" target=\"_blank\">The iOS Dev"
+    },
+    {
+      "source": "X.com iOS + AI",
+      "title": "At WWDC 2025, Apple made one of its most significant software announcements in recent memory, unveiling Xcode 26, the latest version of its flagship development environment, now infused with powerful on-device AI and native ChatGPT support. The move - x.com",
+      "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE9mSm41SGIxUTdWeTNvdks5TUFJUUNVMm90a0RpXzdfcldIWC0zUmxfbG9pNWhDNkxHdWlnbzJ5M3dScDYxa2FjWDdtcnVyUk1YQlBQWl9aejNlTmJRbUNMRnQtaVF0UQ?oc=5",
+      "score": 0.109,
+      "published_at": "2025-06-10T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiZkFVX3lxTE9mSm41SGIxUTdWeTNvdks5TUFJUUNVMm90a0RpXzdfcldIWC0zUmxfbG9pNWhDNkxHdWlnbzJ5M3dScDYxa2FjWDdtcnVyUk1YQlBQWl9aejNlTmJRbUNMRnQtaVF0UQ?oc=5\" target=\"_blank\">At WWDC 2025, Apple made one "
+    },
+    {
+      "source": "X.com iOS + AI",
+      "title": "iOS Developer Zone (@iOSDevZone) - x.com",
+      "url": "https://news.google.com/rss/articles/CBMiPEFVX3lxTFBmSl9PVXlXdmxaaUlUTHM5TmtyWC11eTJGTUwxUjN0ak8wTmRlM2JrNnl6QjZHWUNldHJhRg?oc=5",
+      "score": 0.048,
+      "published_at": "2024-06-22T05:30:48+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiPEFVX3lxTFBmSl9PVXlXdmxaaUlUTHM5TmtyWC11eTJGTUwxUjN0ak8wTmRlM2JrNnl6QjZHWUNldHJhRg?oc=5\" target=\"_blank\">iOS Developer Zone (@iOSDevZone)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">x.com</font>"
+    },
+    {
+      "source": "dev.to iOS + AI",
+      "title": "A curated list of Open Source example iOS apps developed in Swift - DEV Community",
+      "url": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPMWgwZkpXS3doRFRuMlg5Q2xGZl9LaGxSTEttU1NaeTRjVEZsbnV1U2k1ak41X1pCaTdyQXdEUkhPVXRVQ3kzRU9lcTc2UlFwU25VUWRNMW4yT1pQOTExRHEyZFFCYk8yYWZqMUQ1bUE0NUVEMFQ1a29hRjVOU0FIWHBuRWtFQlpZMk9hQ1VLUTNyOGVTMGRZ?oc=5",
+      "score": 0.019,
+      "published_at": "2021-12-06T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMilwFBVV95cUxPMWgwZkpXS3doRFRuMlg5Q2xGZl9LaGxSTEttU1NaeTRjVEZsbnV1U2k1ak41X1pCaTdyQXdEUkhPVXRVQ3kzRU9lcTc2UlFwU25VUWRNMW4yT1pQOTExRHEyZFFCYk8yYWZqMUQ1bUE0NUVEMFQ1a29hRjVOU0FIWHBuRWtFQlpZMk9hQ1"
+    },
+    {
+      "source": "dev.to iOS + AI",
+      "title": "How to play a video with VideoPlayer in SwiftUI - DEV Community",
+      "url": "https://news.google.com/rss/articles/CBMigwFBVV95cUxQNXlPeUs2aVhNMXdHM1JWdUpUa2tYaTQ1T21oSllXcHNCc1BUb1hCdnM3NTRhZEhtUjZBV0RhMnNudFAyVFNIU19FT2ZRV192WG42ZmdWODdad3pTUHpQNzNyZlR4Vlkya25jRVUyVGw0RzJQZmhMeXV2ZVMyWm5IREZISQ?oc=5",
+      "score": 0.019,
+      "published_at": "2021-10-04T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMigwFBVV95cUxQNXlPeUs2aVhNMXdHM1JWdUpUa2tYaTQ1T21oSllXcHNCc1BUb1hCdnM3NTRhZEhtUjZBV0RhMnNudFAyVFNIU19FT2ZRV192WG42ZmdWODdad3pTUHpQNzNyZlR4Vlkya25jRVUyVGw0RzJQZmhMeXV2ZVMyWm5IREZISQ?oc=5\" targe"
+    }
+  ]
+}
