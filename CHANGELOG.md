@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [Unreleased]
+
+## [0.1.8] - 2026-03-12
+
+### Changed
+- Simplified topic generation to Apple-platform programming only (Swift/SwiftUI/UIKit/Xcode scope) and removed AI-only/hybrid title routing.
+- Updated topic prompt constraints and fallback titles to explicitly block AI-first framing in generated topics.
+- Replaced AI-centric default topic interests and trend queries with Apple ecosystem engineering interests.
+- Tightened trend filtering and custom trend sources to prioritize Apple-platform development signals.
+- Added stronger migration/deprecation topic bias (legacy/deprecated Apple patterns to modern Swift 6+ approaches) across topic interests and trend queries.
+- Expanded topic preferences to include async/await, Structured Concurrency, performance tuning, App Intents/Apple Intelligence APIs, Xcode tips, and verified SwiftUI modifier guidance.
+- Added new prioritized topic themes for `Swift 6.3 Macros` and `Reducing Boilerplate in Real Projects`.
+- Strengthened prompt quality for senior, practical, architecture-level article and LinkedIn outputs.
+- Enforced Swift 6 Observation-first code examples (`@Observable`) and added style validation to prevent legacy `ObservableObject`/`@Published` patterns in generated snippets.
+- Strengthened trustworthiness by prioritizing trusted technical domains for published references and tightening verifiability language in article/LinkedIn prompts.
+
 ## [0.1.7] - 2026-03-12
 
 ### Changed

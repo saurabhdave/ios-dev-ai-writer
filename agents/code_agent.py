@@ -38,6 +38,14 @@ UNKNOWN_SYMBOL_PATTERNS = (
     r"error: type '[^']+' has no member '[^']+'",
 )
 UNSUPPORTED_SWIFT_VERSION_PATTERN = r"invalid value '[^']+' in '-swift-version"
+LEGACY_OBSERVATION_PATTERNS = (
+    r"\bObservableObject\b",
+    r"@Published\b",
+    r"@StateObject\b",
+    r"@ObservedObject\b",
+    r"@EnvironmentObject\b",
+)
+OBSERVABLE_BINDABLE_MISUSE_PATTERN = r"@Observable[\s\S]*?@Bindable\s+var\b"
 
 
 @dataclass
@@ -283,6 +291,29 @@ def _extract_unknown_symbol_diagnostics(diagnostics: str) -> str:
     return "\n".join(unique[:12])
 
 
+def _observation_style_diagnostics(code: str) -> str:
+    """Detect Swift 6 observation patterns we want to avoid in generated snippets."""
+    if not code.strip():
+        return ""
+
+    issues: list[str] = []
+    for pattern in LEGACY_OBSERVATION_PATTERNS:
+        if re.search(pattern, code):
+            issues.append(
+                "Avoid legacy observation wrappers (`ObservableObject`, `@Published`, "
+                "`@StateObject`, `@ObservedObject`, `@EnvironmentObject`) in Swift 6 snippets."
+            )
+            break
+
+    if re.search(OBSERVABLE_BINDABLE_MISUSE_PATTERN, code):
+        issues.append(
+            "Do not use `@Bindable` on properties inside an `@Observable` type; "
+            "use plain stored properties in models."
+        )
+
+    return "\n".join(dict.fromkeys(issues))
+
+
 def _unknown_api_diagnostics(code: str) -> str:
     """Advisory typecheck pass focused on typos and unknown API usage."""
     is_valid, diagnostics = _swift_compile_validate(code)
@@ -321,6 +352,12 @@ def _repair_code(
         f"- Ensure code is valid for swiftc `-swift-version {SWIFT_COMPILER_LANGUAGE_MODE}`.\n"
         f"- Use Swift language rules from: {SWIFT_BOOK_ABOUT_URL}\n"
         "- Include required imports.\n"
+        "- Prefer Swift Observation in Swift 6+ (`@Observable` + `import Observation`).\n"
+        "- Avoid `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`, and "
+        "`@EnvironmentObject` unless this snippet is explicitly about legacy migration.\n"
+        "- For owned observable instances in SwiftUI views, prefer `@State`.\n"
+        "- Use `@Bindable` only where `$` bindings are needed.\n"
+        "- Do not annotate properties inside an `@Observable` type with `@Bindable`.\n"
         "- Keep comments concise and useful.\n"
         "- Keep it practical for a Medium article.\n"
         "- Avoid undefined placeholder model types unless you define them.\n"
@@ -362,20 +399,27 @@ def generate_code_with_metadata(topic: str) -> CodeGenerationResult:
 
     validation_mode = _normalize_validation_mode()
     is_valid, diagnostics = _validate_generated_code(code, validation_mode)
+    style_diagnostics = _observation_style_diagnostics(code)
     attempts = 0
     path = "direct"
-    while not is_valid and attempts < MAX_REPAIR_ATTEMPTS:
+    while (not is_valid or style_diagnostics) and attempts < MAX_REPAIR_ATTEMPTS:
+        combined_diagnostics = diagnostics
+        if style_diagnostics:
+            combined_diagnostics = (
+                f"{combined_diagnostics}\n\nObservation style diagnostics:\n{style_diagnostics}"
+            ).strip()
         repaired_code = _repair_code(
             client=client,
             topic=topic,
             code=code,
-            diagnostics=diagnostics,
+            diagnostics=combined_diagnostics,
             validation_mode=validation_mode,
         )
         if not repaired_code:
             break
         code = repaired_code
         is_valid, diagnostics = _validate_generated_code(code, validation_mode)
+        style_diagnostics = _observation_style_diagnostics(code)
         attempts += 1
         path = "repaired"
 
@@ -401,7 +445,7 @@ def generate_code_with_metadata(topic: str) -> CodeGenerationResult:
                 if is_valid:
                     unknown_api_diag = _unknown_api_diagnostics(code)
 
-    if is_valid:
+    if is_valid and not style_diagnostics:
         advisory_suffix = (
             f" | advisory_unknown_symbols={unknown_api_diag[:420]}"
             if unknown_api_diag
@@ -417,6 +461,10 @@ def generate_code_with_metadata(topic: str) -> CodeGenerationResult:
         )
     failure_mode = CODEGEN_FAILURE_MODE if CODEGEN_FAILURE_MODE in VALID_FAILURE_MODES else "omit"
     diagnostics_excerpt = f"[validation:{validation_mode}] {diagnostics.strip()[-760:]}".strip()
+    if style_diagnostics:
+        diagnostics_excerpt = (
+            f"{diagnostics_excerpt} | observation_style={style_diagnostics[:360]}"
+        ).strip()
 
     if failure_mode == "omit":
         return CodeGenerationResult(

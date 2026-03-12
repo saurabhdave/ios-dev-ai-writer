@@ -1,0 +1,9 @@
+{
+  "topic": "Structured Concurrency Patterns for SwiftUI Apps",
+  "generated_at_utc": "2026-03-12T20:33:44.015802+00:00",
+  "path": "omitted",
+  "repair_attempts": 2,
+  "swift_language_version": "6.2.4",
+  "swift_language_mode": "6",
+  "diagnostics_excerpt": "[validation:snippet] error: expected '}' at end of brace statement\n                                if let data\n                                           ^\n/var/folders/fr/j0_tl1h90f7cv4jytj_6yzy00000gp/T/tmpb4dc57ni/GeneratedArticleCode.swift:157:30: note: to match this opening '{'\n    func load(from url: URL) {\n                             ^\n/var/folders/fr/j0_tl1h90f7cv4jytj_6yzy00000gp/T/tmpb4dc57ni/GeneratedArticleCode.swift:176:44: error: expected '}' in class\n                                if let data\n                                           ^\n/var/folders/fr/j0_tl1h90f7cv4jytj_6yzy00000gp/T/tmpb4dc57ni/GeneratedArticleCode.swift:121:46: note: to match this opening '{'\nfinal class ItemsViewModel: ObservableObject {\n                                             ^"
+}

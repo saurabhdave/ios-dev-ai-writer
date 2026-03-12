@@ -1,0 +1,366 @@
+{
+  "generated_at_utc": "2026-03-12T20:41:58.860887+00:00",
+  "count": 45,
+  "signals": [
+    {
+      "source": "HackerNews",
+      "title": "Apple's MacBook Neo makes repairs easier and cheaper than other MacBooks",
+      "url": "https://arstechnica.com/gadgets/2026/03/more-modular-design-makes-macbook-neo-easier-to-fix-than-other-apple-laptops/",
+      "score": 159.5,
+      "published_at": "2026-03-12T17:07:16+00:00",
+      "summary": ""
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "We open-sourced a faster alternative to Maestro for iOS UI testing \u2014 real device support included",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rqs6w0/we_opensourced_a_faster_alternative_to_maestro/",
+      "score": 40.45,
+      "published_at": "2026-03-11T12:18:41+00:00",
+      "summary": "Hey everyone,\n\nWe've been using Maestro for mobile UI testing but kept hitting the same walls \u2014 slow JVM startup, heavy memory usage, and real iOS device support that's been unreliable for a while. Eventually we just built our own runner in"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "Those of you using AI to assist with development, what is your current setup?",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rrvq9k/those_of_you_using_ai_to_assist_with_development/",
+      "score": 26.6,
+      "published_at": "2026-03-12T16:37:26+00:00",
+      "summary": "Hi All,\n\nJust looking what others are currently doing in terms of utilising AI for development.\n\nI\u2019ve just canceled my cursor plan as I\u2019m hitting the limits quite quickly and my initial thinking was to jump across to OpenAI to utilise codex"
+    },
+    {
+      "source": "Medium",
+      "title": "Turn Your Lock Screen Into a Live Weather Dashboard",
+      "url": "https://medium.com/@Onecooltip/turn-your-lock-screen-into-a-live-weather-dashboard-582bcf2baf40?source=rss------ios-5",
+      "score": 14.6,
+      "published_at": "2026-03-12T19:23:02+00:00",
+      "summary": "<div class=\"medium-feed-item\"><p class=\"medium-feed-image\"><a href=\"https://medium.com/@Onecooltip/turn-your-lock-screen-into-a-live-weather-dashboard-582bcf2baf40?source=rss------ios-5\"><img src=\"https://cdn-images-1.medium.com/max/600/0*D"
+    },
+    {
+      "source": "Medium",
+      "title": "UI Playground: A Small Tool Born From a Very Familiar Frustration",
+      "url": "https://medium.com/@emanuel.m.fernandes/ui-playground-a-small-tool-born-from-a-very-familiar-frustration-bc1d31135c8e?source=rss------swiftui-5",
+      "score": 14.322,
+      "published_at": "2026-03-12T18:25:31+00:00",
+      "summary": "<div class=\"medium-feed-item\"><p class=\"medium-feed-image\"><a href=\"https://medium.com/@emanuel.m.fernandes/ui-playground-a-small-tool-born-from-a-very-familiar-frustration-bc1d31135c8e?source=rss------swiftui-5\"><img src=\"https://cdn-image"
+    },
+    {
+      "source": "Medium iOS Tag",
+      "title": "UI Playground: A Small Tool Born From a Very Familiar Frustration",
+      "url": "https://medium.com/@emanuel.m.fernandes/ui-playground-a-small-tool-born-from-a-very-familiar-frustration-bc1d31135c8e?source=rss------ios-5",
+      "score": 14.322,
+      "published_at": "2026-03-12T18:25:31+00:00",
+      "summary": "<div class=\"medium-feed-item\"><p class=\"medium-feed-image\"><a href=\"https://medium.com/@emanuel.m.fernandes/ui-playground-a-small-tool-born-from-a-very-familiar-frustration-bc1d31135c8e?source=rss------ios-5\"><img src=\"https://cdn-images-1."
+    },
+    {
+      "source": "Medium",
+      "title": "SOLID Principles in Swift:",
+      "url": "https://medium.com/@nbalaji0610/solid-principles-in-swift-78df934f985f?source=rss------swift-5",
+      "score": 14.224,
+      "published_at": "2026-03-12T18:04:40+00:00",
+      "summary": "<div class=\"medium-feed-item\"><p class=\"medium-feed-snippet\">The SOLID principles are the bread and butter of clean, maintainable, and scalable object-oriented design. In Swift, applying these helps&#x2026;</p><p class=\"medium-feed-link\"><a"
+    },
+    {
+      "source": "dev.to",
+      "title": "# Unstructured Concurrency in iOS",
+      "url": "https://dev.to/vnayak_hejib/-unstructured-concurrency-in-ios-1pl7",
+      "score": 13.988,
+      "published_at": "2026-03-12T17:13:29+00:00",
+      "summary": "<p>A few months ago, I started noticing something strange in my app.</p> <p>Nothing was crashing.<br /> Nothing obvious was broken.</p> <p>But occasionally:</p> <ul> <li> users saw stale data appear briefly </li> <li> network requests were "
+    },
+    {
+      "source": "Medium iOS Tag",
+      "title": "What Is Risk-Adjusted Yield and Why Does It Matter?",
+      "url": "https://medium.com/@workerjutt0/what-is-risk-adjusted-yield-and-why-does-it-matter-707574ab1ff9?source=rss------ios-5",
+      "score": 12.875,
+      "published_at": "2026-03-12T12:46:41+00:00",
+      "summary": "<div class=\"medium-feed-item\"><p class=\"medium-feed-image\"><a href=\"https://medium.com/@workerjutt0/what-is-risk-adjusted-yield-and-why-does-it-matter-707574ab1ff9?source=rss------ios-5\"><img src=\"https://cdn-images-1.medium.com/max/1024/1*"
+    },
+    {
+      "source": "dev.to iOS Tag",
+      "title": "What Does It Take to Build a Successful iPhone App in 2026?",
+      "url": "https://dev.to/techqware_be486c3de535160/what-does-it-take-to-build-a-successful-iphone-app-in-2026-28nb",
+      "score": 12.42,
+      "published_at": "2026-03-12T10:43:46+00:00",
+      "summary": "<p><strong>Introduction</strong></p> <p>Mobile apps have become a major driver of digital business growth, and the iPhone ecosystem remains one of the most valuable platforms for companies launching high-quality applications. With millions "
+    },
+    {
+      "source": "dev.to iOS Tag",
+      "title": "Flutter\u2019s Secret Handshake with External Apps \ud83e\udd1d",
+      "url": "https://dev.to/yash_patel_b72542e8cef471/flutters-secret-handshake-with-external-apps-10aa",
+      "score": 11.974,
+      "published_at": "2026-03-12T08:34:08+00:00",
+      "summary": "<p>Sometimes the best feature in your app is <strong>not rebuilding something that already exists.</strong></p> <p>In one of my recent Flutter projects, I needed to collect structured field data. There was already a specialized third-party "
+    },
+    {
+      "source": "HackerNews",
+      "title": "50 Years of Thinking Different",
+      "url": "https://www.apple.com/50-years-of-thinking-different/",
+      "score": 11.5,
+      "published_at": "2026-03-12T13:17:00+00:00",
+      "summary": ""
+    },
+    {
+      "source": "Medium iOS SwiftUI",
+      "title": "visionOS Development: Build Apps for Apple Vision Pro | by Chandra Welim | Mar, 2026 - medium.com",
+      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNaVY5ZC1lYkFZbUJiOXVnYVBDM1IzVlFVN3pLTTNkUVczMjlQQ2V3WUpXVkdWcGdSaUxNWUtJcXlrVmZNMklacTdDekpfMDNSWmVBSnk3eXpKMnlWWFp5TExHQlVVV2VHb3dMbHFzbGViNk9xa3ZQVExzUkNMVWNPMFFvRlZ5eW5vOTVhaEM5SEZORXFHV0tFaWRoMHZVODNu?oc=5",
+      "score": 10.798,
+      "published_at": "2026-03-12T02:01:02+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMioAFBVV95cUxNaVY5ZC1lYkFZbUJiOXVnYVBDM1IzVlFVN3pLTTNkUVczMjlQQ2V3WUpXVkdWcGdSaUxNWUtJcXlrVmZNMklacTdDekpfMDNSWmVBSnk3eXpKMnlWWFp5TExHQlVVV2VHb3dMbHFzbGViNk9xa3ZQVExzUkNMVWNPMFFvRlZ5eW5vOTVhaE"
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "iOS 16.7.15 (20H380)",
+      "url": "https://developer.apple.com/news/releases/?id=03112026a",
+      "score": 10.042,
+      "published_at": "2026-03-11T21:00:00+00:00",
+      "summary": "View downloads"
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "iPadOS 16.7.15 (20H380)",
+      "url": "https://developer.apple.com/news/releases/?id=03112026b",
+      "score": 10.042,
+      "published_at": "2026-03-11T21:00:00+00:00",
+      "summary": "View downloads"
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "iOS 15.8.7 (19H411)",
+      "url": "https://developer.apple.com/news/releases/?id=03112026c",
+      "score": 10.042,
+      "published_at": "2026-03-11T21:00:00+00:00",
+      "summary": "View downloads"
+    },
+    {
+      "source": "dev.to",
+      "title": "How I Build SwiftUI Apps 2x Faster in 2026",
+      "url": "https://dev.to/__be2942592/how-i-build-swiftui-apps-2x-faster-in-2026-24ad",
+      "score": 9.376,
+      "published_at": "2026-03-11T15:54:18+00:00",
+      "summary": "<p>After 3 years of building iOS apps, I've developed a workflow that lets me ship features twice as fast. Here's exactly what changed.</p> <h2> 1. Component Library First </h2> <p>Before starting any project, I build (or reuse) a component"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "doq : Apple developer docs in your terminal, powered by Xcode's symbol graphs",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rrfcnq/doq_apple_developer_docs_in_your_terminal_powered/",
+      "score": 9.0,
+      "published_at": "2026-03-12T03:03:45+00:00",
+      "summary": "Sharing a tool I built today: doq (https://github.com/Aayush9029/doq) - a CLI that gives you fast, offline access to Apple developer documentation right from your terminal. It pulls symbol data from Xcode's SDK, builds a local SQLite search"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "Why VIPER and MVVM in SwiftUI are actually the same pattern: A lesson in architectural thinking - LinkedIn",
+      "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxPUXlNSjZBNFdVbmRENmFxUDdaZF9vUmEtVTJZUHFMZjZsV21WeVc4UjY4UllfNGpUcWVQLVYxV0lPS2U1QXpmYmlnUG9uM0pmZW1xMzluSXRGTU9Md01OQzZnZnBwUHRtYlREWkliaktlU1d1Vk5PcHdyaF9SYTI1QXRTbHc3bE1fUkFnQXo4NmpIeWx5VERlc1N5YnA3TTE0eFYxdkFQdWtmTkp1a2pkeV9oOVpQeWgzRDUtWEFMQWN4dw?oc=5",
+      "score": 7.37,
+      "published_at": "2026-03-10T19:00:01+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwgFBVV95cUxPUXlNSjZBNFdVbmRENmFxUDdaZF9vUmEtVTJZUHFMZjZsV21WeVc4UjY4UllfNGpUcWVQLVYxV0lPS2U1QXpmYmlnUG9uM0pmZW1xMzluSXRGTU9Md01OQzZnZnBwUHRtYlREWkliaktlU1d1Vk5PcHdyaF9SYTI1QXRTbHc3bE1fUkFnQX"
+    },
+    {
+      "source": "X.com iOS SwiftUI",
+      "title": "What is \u201cisolation\u201d in Swift? And why does understanding it matter? It turns out many frustrations developers encounter in Swift concurrency evaporate when they internalize the concept. These videos are going to go beyond basics, so let\u2019s get into it: pointfree.c - x.com",
+      "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE5hVGJKLUMzdTZWZHJxMVFIS3JpOFFJcmQwS2xSZ2twY25MWS1QU1FrelR1TjN2MzMweTVBbHVoQjY0WVdJa25FMDg2TnJWYXFmbDlZSXlqd3V1M0s4dnRBaFdn?oc=5",
+      "score": 5.8,
+      "published_at": "2026-03-09T16:33:01+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiYkFVX3lxTE5hVGJKLUMzdTZWZHJxMVFIS3JpOFFJcmQwS2xSZ2twY25MWS1QU1FrelR1TjN2MzMweTVBbHVoQjY0WVdJa25FMDg2TnJWYXFmbDlZSXlqd3V1M0s4dnRBaFdn?oc=5\" target=\"_blank\">What is \u201cisolation\u201d in Swift? And w"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "How are apps making live analog clock widgets on iOS?",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rrg32c/how_are_apps_making_live_analog_clock_widgets_on/",
+      "score": 4.75,
+      "published_at": "2026-03-12T03:38:56+00:00",
+      "summary": "Hey devs, I\u2019m looking for some advice.\n\nI\u2019m new to iOS development and currently building a widget app as a personal project. I\u2019m really into watches, so I decided to try making my own watch-style widgets.\n\nOne thing I still cannot figure o"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "Xcode 15.2 build taking foreeeeeeeveeeeerrrr\u2026.",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rriytp/xcode_152_build_taking_foreeeeeeeveeeeerrrr/",
+      "score": 2.75,
+      "published_at": "2026-03-12T06:11:56+00:00",
+      "summary": "Literally waiting 30+ minites it\u2019s stuck on 18/121 and no info at all\u2026 should I just leave the stupid thing overnight?"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "How to build app for iOS 18.6.2?",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rrviru/how_to_build_app_for_ios_1862/",
+      "score": 2.4,
+      "published_at": "2026-03-12T16:30:00+00:00",
+      "summary": "I'm trying to build an app to my iPhone which is on 18.6.2. When I try to build, it says 'Download Xcode support for iOS 26.2? - iOS 26.2 must be installed in order to run this scheme.'\n\nI've checked that minimum deployments is iOS 18, but "
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "How to become better at design architecture",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rs0l4k/how_to_become_better_at_design_architecture/",
+      "score": 2.35,
+      "published_at": "2026-03-12T19:30:28+00:00",
+      "summary": "I often see posts that mention how AI is good at coding but not good at designing architecture or preventing security vulnerabilities. So how can I learn these concepts. As I am looking for my first full time job I want to try and have a de"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "I made a mockup tool for my marketing and showcase.",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rrvi69/i_made_a_mockup_tool_for_my_marketing_and_showcase/",
+      "score": 2.35,
+      "published_at": "2026-03-12T16:29:24+00:00",
+      "summary": "Hi guys.\n\nI frequently need to share feature demonstrations of my apps with my users and on social media. Simple screenshots often fail to capture the audience's interest, so I built a tool to help me create device mockups and video wrapper"
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "SF Swift meetup tomorrow at Lyft!",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rrhgp9/sf_swift_meetup_tomorrow_at_lyft/",
+      "score": 2.0,
+      "published_at": "2026-03-12T04:48:17+00:00",
+      "summary": ""
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "Age requirements for apps distributed in Brazil, Australia, Singapore, Utah, and Louisiana",
+      "url": "https://developer.apple.com/news/?id=f5zj08ey",
+      "score": 1.656,
+      "published_at": "2026-02-24T18:00:48+00:00",
+      "summary": "<p>Today we\u2019re providing an update on the tools available for developers to meet their age assurance obligations under upcoming U.S. and regional laws, including in Brazil, Australia, Singapore, Utah, and Louisiana. Updates to the Declared "
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "Interactive iOS Widgets Creative Use Cases for 2026 - vocal.media",
+      "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxQNU1vamNfZ00zU3g0b1A2TFJRSnFibElwemxHRGhOMm9NNXFzSVJoUFlVUkVUbXFuQk5MVDVyMVpWeHBMQnFxM3VTTlNTT0phRmVaNUI0Y09manR1cDdpdnZpa1YwRjZ1Y2tkQlp3cmx4VEZCLXlWWmtvY3hqT0FDaw?oc=5",
+      "score": 1.328,
+      "published_at": "2026-02-20T06:25:28+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMigAFBVV95cUxQNU1vamNfZ00zU3g0b1A2TFJRSnFibElwemxHRGhOMm9NNXFzSVJoUFlVUkVUbXFuQk5MVDVyMVpWeHBMQnFxM3VTTlNTT0phRmVaNUI0Y09manR1cDdpdnZpa1YwRjZ1Y2tkQlp3cmx4VEZCLXlWWmtvY3hqT0FDaw?oc=5\" target=\"_"
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "Get ready with the latest beta releases",
+      "url": "https://developer.apple.com/news/?id=xgkk9w83",
+      "score": 1.143,
+      "published_at": "2026-02-16T15:00:14+00:00",
+      "summary": "<p>The beta versions of iOS 26.4, iPadOS 26.4, macOS 26.4, tvOS 26.4, visionOS 26.4, and watchOS 26.4 are now available. Get your apps ready by confirming they work as expected on these releases. And make sure to build and test with Xcode 2"
+    },
+    {
+      "source": "Apple Docs/Developer",
+      "title": "Updated App Review Guidelines now available",
+      "url": "https://developer.apple.com/news/?id=d75yllv4",
+      "score": 0.829,
+      "published_at": "2026-02-06T16:00:56+00:00",
+      "summary": "<p>The App Review Guidelines have been revised to clarify that apps with random or anonymous chat are subject to the <a href=\"https://developer.apple.com/app-store/review/guidelines/#user-generated-content\">1.2 User-Generated Content guidel"
+    },
+    {
+      "source": "dev.to iOS SwiftUI",
+      "title": "When NOT to Use `@EnvironmentObject` in SwiftUI - DEV Community",
+      "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxOZXQ2SUZaUkUtQ1Brb0lrLThjM0pWTzZVZjRtZmdtTUl1SzdoSXNKV3pvb255UGpENzNXWWJKZU5JcEZ4M0ZsVGNBUEF5OTJRLXVpZEZXNzhhNlc1QXVJdVZCNEc3WXRyc1FXQjRMREJsc1BGSUpBaHFiZzlrZTNwWTdB?oc=5",
+      "score": 0.799,
+      "published_at": "2026-02-05T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiggFBVV95cUxOZXQ2SUZaUkUtQ1Brb0lrLThjM0pWTzZVZjRtZmdtTUl1SzdoSXNKV3pvb255UGpENzNXWWJKZU5JcEZ4M0ZsVGNBUEF5OTJRLXVpZEZXNzhhNlc1QXVJdVZCNEc3WXRyc1FXQjRMREJsc1BGSUpBaHFiZzlrZTNwWTdB?oc=5\" target="
+    },
+    {
+      "source": "Reddit r/iOSProgramming",
+      "title": "Seeking UI help: searching similar tasks when creating a new task.",
+      "url": "https://reddit.com/r/iOSProgramming/comments/1rrqvma/seeking_ui_help_searching_similar_tasks_when/",
+      "score": 0.35,
+      "published_at": "2026-03-12T13:33:41+00:00",
+      "summary": "Consider a task manager. (Yes, I know!)\n\nThe user has pressed \"New task\" and is on a full screen sheet for entering the task's details, including its title. They start typing a title. But they're not sure whether they've already put that ta"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "How To Build An iOS Application That Works Flawlessly With iOS 26 - ilounge.com",
+      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxPX3FtZ2NHdzVCUFhYenVNNUFTME1IREJ4TlRIMG55U19WZmxWSWxSRTNPTFRMRGJ0ZENiM3JYcEJVdElvellTOWdaMjVQdzA4OGd0NHY5Ny1fcTNDWDRwblZ6YksyMHc3VnFTdHFSd1dhTHlQUjloYk1ucHJXQmJmTFN6UEhGOWlyaFE1M1N6Q3k2Y2xrRDRUdG83WENzRW8?oc=5",
+      "score": 0.213,
+      "published_at": "2025-10-25T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMinwFBVV95cUxPX3FtZ2NHdzVCUFhYenVNNUFTME1IREJ4TlRIMG55U19WZmxWSWxSRTNPTFRMRGJ0ZENiM3JYcEJVdElvellTOWdaMjVQdzA4OGd0NHY5Ny1fcTNDWDRwblZ6YksyMHc3VnFTdHFSd1dhTHlQUjloYk1ucHJXQmJmTFN6UEhGOWlyaFE1M1"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "The iOS Developer\u2019s Ultimate 2025 Curriculum - HackerNoon",
+      "url": "https://news.google.com/rss/articles/CBMidEFVX3lxTE5pdUZjZ1N3YllBVE1nSjN3V1gyajVjX0hoWHFsdnRES01PV1dpbm5kSmJvUEtIYjk0cUhoUTRXX2h0ZDNPV18xQkhiTk4xcVBUdE9VTnp2MWpLOXp2aEdsOGZCeGY1azhlb0YyNjdRV2ZhUnQz?oc=5",
+      "score": 0.142,
+      "published_at": "2025-08-15T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMidEFVX3lxTE5pdUZjZ1N3YllBVE1nSjN3V1gyajVjX0hoWHFsdnRES01PV1dpbm5kSmJvUEtIYjk0cUhoUTRXX2h0ZDNPV18xQkhiTk4xcVBUdE9VTnp2MWpLOXp2aEdsOGZCeGY1azhlb0YyNjdRV2ZhUnQz?oc=5\" target=\"_blank\">The iOS Dev"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "\ud83d\udea8 I caused a memory leak in SwiftUI with 1 line of code. Here\u2019s what I learned, so you don\u2019t have to. \ud83d\ude05 I was building a chat screen in SwiftUI. Each row represented a chat message and had its own logic (like showing if the message was read, reacting to long-p - LinkedIn",
+      "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxOcm51RjdveXZKdnhELUNMVU02dHNKVF9KUV8xSkdpRGFZVmNWSmtzRTlvZG9KTjZCSUdlcVM1ejF4VUdrZVI5QWVjM0luODZpa1JKd1FjT0t0RkctOThaUUllWEY5ZXhUMGlfMENaV2thM0pJb1RIYUhEUC1WVzBvb1NyV2wwWkE1SFhEN2dOVXdzSm9OOG1JU29RN3IxdUVpWlBSSEZBQmtlRW93eUMwQVMzaGhlQThsb3JtSnZmUFNmMDA?oc=5",
+      "score": 0.124,
+      "published_at": "2025-07-16T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwwFBVV95cUxOcm51RjdveXZKdnhELUNMVU02dHNKVF9KUV8xSkdpRGFZVmNWSmtzRTlvZG9KTjZCSUdlcVM1ejF4VUdrZVI5QWVjM0luODZpa1JKd1FjT0t0RkctOThaUUllWEY5ZXhUMGlfMENaV2thM0pJb1RIYUhEUC1WVzBvb1NyV2wwWkE1SFhEN2"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "Apple supercharges its tools and technologies for developers to foster creativity, innovation, and design - Apple",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQWUZreTVWOEpULVk0VXlKMWwxQ1M4dFNYcWRsclA4Wkh5M3N2X0F0ZWdiazgxaWYyZGdtSmd4dmhZbjl3b1R0OVV5RnZ3N093QV8yYWZBWGYtRHJraDA3UGdoTlRPdmhIQlJjM28tZmZNSFlkbkJxNnRBOTc0WnJYa0RpZS1Qb2k1RWZiWXBNd3FEMTFkc0FadTBUWk1HOXFnUUE?oc=5",
+      "score": 0.108,
+      "published_at": "2025-06-09T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiogFBVV95cUxQWUZreTVWOEpULVk0VXlKMWwxQ1M4dFNYcWRsclA4Wkh5M3N2X0F0ZWdiazgxaWYyZGdtSmd4dmhZbjl3b1R0OVV5RnZ3N093QV8yYWZBWGYtRHJraDA3UGdoTlRPdmhIQlJjM28tZmZNSFlkbkJxNnRBOTc0WnJYa0RpZS1Qb2k1RWZiWX"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "Top iOS Development Tools 2024: Elevate Your App Game! - Simplilearn.com",
+      "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE9rVlRMRl9PMXNoWkR4ZTJFX2ktX0M1c1ZROG92M1BsU1NkVTVxQWtGcDlxZWFudXRUYnlFVFRhVGU5MzlXR1JDTE1yUDY4Q3BfWVp1eG9tU2dDZDZxY3ZiN25ob3RiVDdr?oc=5",
+      "score": 0.108,
+      "published_at": "2025-06-09T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiaEFVX3lxTE9rVlRMRl9PMXNoWkR4ZTJFX2ktX0M1c1ZROG92M1BsU1NkVTVxQWtGcDlxZWFudXRUYnlFVFRhVGU5MzlXR1JDTE1yUDY4Q3BfWVp1eG9tU2dDZDZxY3ZiN25ob3RiVDdr?oc=5\" target=\"_blank\">Top iOS Development Tools 2"
+    },
+    {
+      "source": "Medium iOS SwiftUI",
+      "title": "Building a Basic iOS App Using Xcode 16.3 and SwiftUI - medium.com",
+      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxQTVA4VElza2NDVkhMUkpEZ08xSWpFZGt6NlN6VGJkb2RqZnN1R3IxTHhDSUVTNGNPMmQxZkZ0LUhvYlptLXl1MkZaZUNCRUMyblFvbjNRSW1CTWF0eVVXd0N3ZklWRWVDUFRrWkgwYnZqZ2lyb3ZNSHBtaTRiREJDRFh5RDVNTTZJZzQzWnRRUjZsb1Z5UVNZNktPbGwzalU?oc=5",
+      "score": 0.089,
+      "published_at": "2025-04-13T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMinwFBVV95cUxQTVA4VElza2NDVkhMUkpEZ08xSWpFZGt6NlN6VGJkb2RqZnN1R3IxTHhDSUVTNGNPMmQxZkZ0LUhvYlptLXl1MkZaZUNCRUMyblFvbjNRSW1CTWF0eVVXd0N3ZklWRWVDUFRrWkgwYnZqZ2lyb3ZNSHBtaTRiREJDRFh5RDVNTTZJZzQzWn"
+    },
+    {
+      "source": "X.com iOS SwiftUI",
+      "title": "Swift Connection \ud83c\uddeb\ud83c\uddf7 (@swiftconn) - x.com",
+      "url": "https://news.google.com/rss/articles/CBMiO0FVX3lxTE1SbjJfZ1RaSkgwckdvTTlCYVdKQzhraW5mRDFCN0VtcVEybjVxNXl2TW9zYUk2LW11ZXpn?oc=5",
+      "score": 0.048,
+      "published_at": "2024-06-29T15:24:14+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiO0FVX3lxTE1SbjJfZ1RaSkgwckdvTTlCYVdKQzhraW5mRDFCN0VtcVEybjVxNXl2TW9zYUk2LW11ZXpn?oc=5\" target=\"_blank\">Swift Connection \ud83c\uddeb\ud83c\uddf7 (@swiftconn)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">x.com</font>"
+    },
+    {
+      "source": "X.com iOS SwiftUI",
+      "title": "Deep Dish Swift \ud83c\udf55 2026 (@DeepDishSwift) - x.com",
+      "url": "https://news.google.com/rss/articles/CBMiQEFVX3lxTFBraWVTSWFhcXJqSHNTYTNCMnJWTk9yWV9vRnIwYTA3ajAwUjNybHRpUkp6clRUOTFzWGNqdGVmRDk?oc=5",
+      "score": 0.048,
+      "published_at": "2024-06-29T10:48:09+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiQEFVX3lxTFBraWVTSWFhcXJqSHNTYTNCMnJWTk9yWV9vRnIwYTA3ajAwUjNybHRpUkp6clRUOTFzWGNqdGVmRDk?oc=5\" target=\"_blank\">Deep Dish Swift \ud83c\udf55 2026 (@DeepDishSwift)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">x.c"
+    },
+    {
+      "source": "Viral iOS Web",
+      "title": "Getting started with WidgetKit - AppleInsider",
+      "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPUWptS1gwWXhIMG5tN3laZjFJQ1Jjb0pnQlMyYng4REFwdWNyVmpaYmNHY1czWkRRS1lJVElkbmF1UGZ2N0RxeVBBVk9jaWFHUGx5SHhaYjVYem1fczNhYTRlZHdVVlhtUDZQdk9fNzU2c21QRE55NjhDMjcwLVdabktsSVFWTDJaTzdfUXRRbmstV29oVElMZmxJX05VRWN3c2JsWTBZWQ?oc=5",
+      "score": 0.031,
+      "published_at": "2023-08-05T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMipwFBVV95cUxPUWptS1gwWXhIMG5tN3laZjFJQ1Jjb0pnQlMyYng4REFwdWNyVmpaYmNHY1czWkRRS1lJVElkbmF1UGZ2N0RxeVBBVk9jaWFHUGx5SHhaYjVYem1fczNhYTRlZHdVVlhtUDZQdk9fNzU2c21QRE55NjhDMjcwLVdabktsSVFWTDJaTzdfUX"
+    },
+    {
+      "source": "Medium iOS SwiftUI",
+      "title": "Tutorial: Connecting Core Location to a SwiftUI App - coledennis.medium.com",
+      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxPckxSZnhidkhabG5KTEpKTVE0S3BIQjdGMFl2Z2llbDZ1cE5UNmVWSWswc1UwYi1KWWtaS3hsUHc3SkozTzk2dkJWYmI4WVNhcTk5dzF0bWpldjhmYW5YSVR5ZFB4NC12REI2NzJfU2FDMVFld0tjTnRnYk1kZThpdGwtTzZuTGtLZDhUa3dXQUFsb0lFbjdPbg?oc=5",
+      "score": 0.024,
+      "published_at": "2022-09-23T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMimAFBVV95cUxPckxSZnhidkhabG5KTEpKTVE0S3BIQjdGMFl2Z2llbDZ1cE5UNmVWSWswc1UwYi1KWWtaS3hsUHc3SkozTzk2dkJWYmI4WVNhcTk5dzF0bWpldjhmYW5YSVR5ZFB4NC12REI2NzJfU2FDMVFld0tjTnRnYk1kZThpdGwtTzZuTGtLZDhUa3"
+    },
+    {
+      "source": "dev.to iOS SwiftUI",
+      "title": "Goodbye NSPredicate, hello Realm Swift Query API - DEV Community",
+      "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQZnlqLU1JUHJ6NlNlczlzWUZZSUZSRy1hQl9fc1hKRlRjUnk2SmtnRGxYV0VCYUh6a0JZbUFteDBzOWFIVC1Yc3BwT0pxbGpLV0FVUjV6WU1zR3NGOVViMC00X1dxSERraGk1VnhWZUs4QkNmUmhMeGVSYzliZUtrRFVRM3RMUFU?oc=5",
+      "score": 0.019,
+      "published_at": "2021-12-17T08:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMihwFBVV95cUxQZnlqLU1JUHJ6NlNlczlzWUZZSUZSRy1hQl9fc1hKRlRjUnk2SmtnRGxYV0VCYUh6a0JZbUFteDBzOWFIVC1Yc3BwT0pxbGpLV0FVUjV6WU1zR3NGOVViMC00X1dxSERraGk1VnhWZUs4QkNmUmhMeGVSYzliZUtrRFVRM3RMUFU?oc=5\" "
+    },
+    {
+      "source": "dev.to iOS SwiftUI",
+      "title": "Computed Properties in Swift - DEV Community",
+      "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTE9IeUd3dE83MXN4bF90SHdMY3VGNUJ2a1JzMks1YVdtMXhRS2FFeHpzYXpIbWU2M0NkdGktY0hVTDJxTmxVY291ejh3NmNHTzM3bS0yRVVUZGsxeGxtTWVqVWhKWnVSQ2J5bElMS1BLbw?oc=5",
+      "score": 0.013,
+      "published_at": "2019-10-31T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMib0FVX3lxTE9IeUd3dE83MXN4bF90SHdMY3VGNUJ2a1JzMks1YVdtMXhRS2FFeHpzYXpIbWU2M0NkdGktY0hVTDJxTmxVY291ejh3NmNHTzM3bS0yRVVUZGsxeGxtTWVqVWhKWnVSQ2J5bElMS1BLbw?oc=5\" target=\"_blank\">Computed Properti"
+    },
+    {
+      "source": "Medium iOS SwiftUI",
+      "title": "One-Stop Xcode Coziness. As iOS Developers, we will spend most\u2026 - Medium",
+      "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTE5aZ0FfR0Jka2FES2VJeUgtOG5zS2N0T1B6Wl80OWpZQUNMVC1QYUZyQ19uTk1zdF95MFZYRlBZeUhhMlZxY0xMN0hyNXhpQzVKYVpQS3VRZGVzNEtqZEwtWHRQNURodjZNVkU4OU81dEl3dFU?oc=5",
+      "score": 0.013,
+      "published_at": "2019-09-22T07:00:00+00:00",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMic0FVX3lxTE5aZ0FfR0Jka2FES2VJeUgtOG5zS2N0T1B6Wl80OWpZQUNMVC1QYUZyQ19uTk1zdF95MFZYRlBZeUhhMlZxY0xMN0hyNXhpQzVKYVpQS3VRZGVzNEtqZEwtWHRQNURodjZNVkU4OU81dEl3dFU?oc=5\" target=\"_blank\">One-Stop Xco"
+    }
+  ]
+}

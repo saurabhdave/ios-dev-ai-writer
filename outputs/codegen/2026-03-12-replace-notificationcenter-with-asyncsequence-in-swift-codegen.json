@@ -1,0 +1,9 @@
+{
+  "topic": "Replace NotificationCenter with AsyncSequence in Swift",
+  "generated_at_utc": "2026-03-12T20:59:50.259176+00:00",
+  "path": "direct",
+  "repair_attempts": 0,
+  "swift_language_version": "6.2.4",
+  "swift_language_mode": "6",
+  "diagnostics_excerpt": "[validation:snippet]"
+}

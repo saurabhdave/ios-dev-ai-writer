@@ -117,17 +117,14 @@ TOPIC_INTERESTS = [
     item.strip()
     for item in os.getenv(
         "TOPIC_INTERESTS",
-        "AI,AI Agents,AI Automation,Agentic AI,Agentic workflows,Generative AI",
+        "Swift async await patterns,Structured Concurrency,SwiftUI architecture,iOS performance improvements,Xcode tips and debugging workflows,UIKit interoperability,SwiftData persistence,App Intents,Apple Intelligence APIs,WidgetKit,verified Swift tips and tricks,verified SwiftUI modifiers,Swift 6.3 Macros,Reducing Boilerplate in Real Projects,visionOS development,Swift 6 migration and strict concurrency,Deprecated Apple API migration playbooks,Legacy UIKit patterns to modern SwiftUI",
     ).split(",")
     if item.strip()
 ]
 
-# Topic composition policy:
-# - balanced: alternate across iOS-only, AI-only, and hybrid based on recent history
-# - ios_only: keep topics focused on Apple platform engineering without AI requirement
-# - ai_only: keep topics focused on AI/agentic/generative themes (can still be app-dev relevant)
-# - hybrid: combine Apple platform + AI themes in one topic
-TOPIC_MODE = os.getenv("TOPIC_MODE", "balanced").strip().lower()
+# Topic composition policy is now Apple-platform programming only.
+# `TOPIC_MODE` remains for backward compatibility and is normalized to `ios_only`.
+TOPIC_MODE = "ios_only"
 
 # LinkedIn post generation.
 LINKEDIN_POST_ENABLED = os.getenv("LINKEDIN_POST_ENABLED", "true").lower() in {

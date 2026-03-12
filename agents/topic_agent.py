@@ -1,22 +1,14 @@
-"""Topic agent: generate a trending iOS development topic."""
+"""Topic agent: generate a trending Apple-platform development topic."""
 
 from __future__ import annotations
 
-import random
 import re
 from pathlib import Path
 from typing import Iterable
 
 from openai import OpenAI
 
-from config import (
-    OPENAI_API_KEY,
-    OPENAI_MODEL,
-    OPENAI_TEMPERATURE,
-    TOPIC_INTERESTS,
-    TOPIC_MODE,
-    openai_generation_kwargs,
-)
+from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, TOPIC_INTERESTS, openai_generation_kwargs
 
 PROMPT_PATH = Path("prompts/topic_prompt.txt")
 
@@ -40,6 +32,7 @@ def _word_set(text: str) -> set[str]:
         "in",
         "on",
         "of",
+        "apple",
         "ios",
         "swift",
         "swiftui",
@@ -47,25 +40,68 @@ def _word_set(text: str) -> set[str]:
     return {word for word in words if len(word) > 2 and word not in stop_words}
 
 
+APPLE_WORD_PATTERNS = [
+    r"\bapple\b",
+    r"\bios\b",
+    r"\bipados\b",
+    r"\bmacos\b",
+    r"\bwatchos\b",
+    r"\bvisionos\b",
+    r"\bswift\b",
+    r"\bswiftui\b",
+    r"\buikit\b",
+    r"\bappkit\b",
+    r"\bxcode\b",
+    r"\bcombine\b",
+    r"\bswiftdata\b",
+    r"\bcore\s?data\b",
+    r"\bwidgetkit\b",
+    r"\bapp\sintents?\b",
+    r"\basync\s*/\s*await\b",
+    r"\bstructured concurrency\b",
+    r"\bmodifier(s)?\b",
+    r"\bperformance\b",
+    r"\binstruments?\b",
+    r"\bapple intelligence\b",
+    r"\bfoundation models?\b",
+    r"\bmacro(s)?\b",
+    r"\bswift\s*6\.?3\b",
+    r"\bboilerplate\b",
+]
+
 AI_WORD_PATTERNS = [
     r"\bai\b",
     r"\bagentic\b",
     r"\bagent(s)?\b",
     r"\bgenerative\b",
     r"\bllm(s)?\b",
+    r"\bprompt(s)?\b",
+    r"\binference\b",
     r"\bautomation\b",
+    r"\bmachine learning\b",
+    r"\bcore\s?ml\b",
 ]
 
-IOS_WORD_PATTERNS = [
-    r"\bios\b",
-    r"\bswift\b",
-    r"\bswiftui\b",
-    r"\bxcode\b",
-    r"\buikit\b",
-    r"\bapple\b",
-    r"\bvisionos\b",
-    r"\bwatchos\b",
-    r"\bmacos\b",
+MIGRATION_WORD_PATTERNS = [
+    r"\bmigration\b",
+    r"\bmigrate\b",
+    r"\bdeprecated?\b",
+    r"\blegacy\b",
+    r"\bswift\s*6\b",
+    r"\bstrict concurrency\b",
+]
+
+MIGRATION_INTEREST_DEFAULTS = [
+    "Swift 6 migration and strict concurrency",
+    "Deprecated Apple APIs to modern replacements",
+    "Legacy UIKit patterns to modern SwiftUI",
+]
+
+APPLE_INTELLIGENCE_ALLOWLIST = [
+    r"\bapple intelligence\b",
+    r"\bapple intelligence api(s)?\b",
+    r"\bfoundation models?\b",
+    r"\bapp\sintents?\b",
 ]
 
 
@@ -75,118 +111,60 @@ def _contains_pattern(text: str, patterns: list[str]) -> bool:
     return any(re.search(pattern, lowered) for pattern in patterns)
 
 
-def _classify_title_mode(title: str) -> str:
-    """Classify title as ios_only, ai_only, hybrid, or other."""
-    has_ai = _contains_pattern(title, AI_WORD_PATTERNS)
-    has_ios = _contains_pattern(title, IOS_WORD_PATTERNS)
-
-    if has_ai and has_ios:
-        return "hybrid"
-    if has_ai:
-        return "ai_only"
-    if has_ios:
-        return "ios_only"
-    return "other"
+def _has_allowed_intelligence_context(text: str) -> bool:
+    """Allow explicit Apple Intelligence contexts while blocking generic AI framing."""
+    return _contains_pattern(text, APPLE_INTELLIGENCE_ALLOWLIST)
 
 
-def _select_focus_mode(recent_titles: list[str], requested_mode: str) -> str:
-    """Choose topic focus mode from requested policy and recent title history."""
-    allowed_modes = {"balanced", "ios_only", "ai_only", "hybrid"}
-    mode = requested_mode if requested_mode in allowed_modes else "balanced"
-    if mode != "balanced":
-        return mode
-
-    window = recent_titles[:12]
-    ios_count = sum(1 for title in window if _classify_title_mode(title) == "ios_only")
-    ai_count = sum(1 for title in window if _classify_title_mode(title) == "ai_only")
-    hybrid_count = sum(1 for title in window if _classify_title_mode(title) == "hybrid")
-    counts = {
-        "ios_only": ios_count,
-        "ai_only": ai_count,
-        "hybrid": hybrid_count,
-    }
-
-    min_count = min(counts.values())
-    candidates = [mode_name for mode_name, count in counts.items() if count == min_count]
-
-    # Avoid repeating the immediately previous mode when we have alternatives.
-    if len(candidates) > 1 and window:
-        previous_mode = _classify_title_mode(window[0])
-        if previous_mode in candidates:
-            non_repeating = [mode_name for mode_name in candidates if mode_name != previous_mode]
-            if non_repeating:
-                candidates = non_repeating
-
-    return random.choice(candidates or ["ios_only", "ai_only", "hybrid"])
+def _is_apple_programming_topic(title: str) -> bool:
+    """Validate generated title scope for Apple-platform programming only."""
+    has_apple_signal = _contains_pattern(title, APPLE_WORD_PATTERNS)
+    has_ai_signal = _contains_pattern(title, AI_WORD_PATTERNS)
+    has_allowed_intelligence = _has_allowed_intelligence_context(title)
+    return has_apple_signal and (not has_ai_signal or has_allowed_intelligence)
 
 
-def _matches_focus_mode(title: str, focus_mode: str) -> bool:
-    """Validate that generated title follows the requested topic focus mode."""
-    if focus_mode not in {"ios_only", "ai_only", "hybrid"}:
-        return True
-    return _classify_title_mode(title) == focus_mode
-
-
-def _filtered_interests(topic_interests: list[str], focus_mode: str) -> list[str]:
-    """Filter/default interests so prompts align with selected focus mode."""
+def _filtered_interests(topic_interests: list[str]) -> list[str]:
+    """Keep Apple-programming interests and drop AI-first topics."""
     cleaned = [item.strip() for item in topic_interests if item and item.strip()]
-    has_ai_interest = any(_contains_pattern(item, AI_WORD_PATTERNS) for item in cleaned)
-    has_ios_interest = any(_contains_pattern(item, IOS_WORD_PATTERNS) for item in cleaned)
-
-    if focus_mode == "ios_only":
-        ios_interests = [item for item in cleaned if not _contains_pattern(item, AI_WORD_PATTERNS)]
-        if ios_interests:
-            return ios_interests
-        return [
-            "SwiftUI architecture",
-            "iOS performance",
-            "macOS app workflows",
-            "watchOS app design",
-            "visionOS interaction patterns",
+    apple_interests = [
+        item
+        for item in cleaned
+        if _contains_pattern(item, APPLE_WORD_PATTERNS) and not _contains_pattern(item, AI_WORD_PATTERNS)
+    ]
+    if not apple_interests:
+        apple_interests = [
+            "Swift async await patterns",
+            "Structured Concurrency on Apple platforms",
+            "SwiftUI performance improvements with Instruments",
+            "Swift 6.3 Macros adoption patterns",
+            "Reducing boilerplate in real Apple-platform projects",
+            "App Intents and Apple Intelligence APIs",
+            "Xcode tips and debugging workflows",
+            "Verified SwiftUI modifiers and rendering behavior",
+            "SwiftData and persistence patterns",
         ]
 
-    if focus_mode == "ai_only":
-        ai_interests = [item for item in cleaned if _contains_pattern(item, AI_WORD_PATTERNS)]
-        if ai_interests:
-            return ai_interests
-        return [
-            "Agentic workflows",
-            "LLM orchestration",
-            "Prompt routing",
-            "Model evaluation",
-            "AI automation",
-        ]
-
-    # hybrid mode: make sure both Apple-platform and AI anchors are present.
-    hybrid_interests = list(cleaned)
-    if not has_ios_interest:
-        hybrid_interests.extend(["iOS engineering", "SwiftUI apps"])
-    if not has_ai_interest:
-        hybrid_interests.extend(["Agentic AI", "Generative AI"])
-    return hybrid_interests
+    has_migration_interest = any(
+        _contains_pattern(item, MIGRATION_WORD_PATTERNS) for item in apple_interests
+    )
+    if not has_migration_interest:
+        apple_interests.extend(MIGRATION_INTEREST_DEFAULTS)
+    return apple_interests
 
 
-def _fallback_topic_title(focus_mode: str, recent_titles: Iterable[str]) -> str:
-    """Use mode-safe fallback titles when model responses keep violating constraints."""
-    fallback_by_mode = {
-        "ios_only": [
-            "SwiftUI State Architecture Across iOS macOS watchOS",
-            "Reliable Background Tasks on iOS macOS watchOS",
-            "Testing Shared SwiftUI Features Across Apple Platforms",
-        ],
-        "ai_only": [
-            "Designing Reliable Agent Memory for Mobile Apps",
-            "Evaluating LLM Tool Calls for App Automation",
-            "Prompt Routing Strategies for Autonomous App Workflows",
-        ],
-        "hybrid": [
-            "On-Device AI Inference Pipelines in SwiftUI Apps",
-            "Building Agentic Features with SwiftUI Background Tasks",
-            "Secure AI Assistants for iOS Enterprise Workflows",
-        ],
-    }
-
-    candidates = fallback_by_mode.get(focus_mode, fallback_by_mode["hybrid"])
+def _fallback_topic_title(recent_titles: Iterable[str]) -> str:
+    """Use Apple-only fallback titles when model responses violate constraints."""
+    candidates = [
+        "Swift 6.3 Macros for iOS Codebases",
+        "Reducing SwiftUI Boilerplate in Real Projects",
+        "Migrating Deprecated iOS APIs to Swift 6 Safely",
+        "Swift Async Await Migration from Completion Handlers",
+        "Structured Concurrency Patterns for SwiftUI Apps",
+        "Scaling SwiftUI State Management in Production Apps",
+        "Reliable Background Tasks with Swift Concurrency on iOS",
+        "Profiling SwiftUI List Performance with Instruments",
+    ]
     for candidate in candidates:
         normalized = _constrain_title_length(candidate)
         if normalized and not _is_repetitive(normalized, recent_titles):
@@ -246,17 +224,17 @@ def generate_topic(
     topic_interests: list[str] | None = None,
     topic_mode: str | None = None,
 ) -> str:
-    """Generate a single trending iOS topic suitable for a Medium article title."""
+    """Generate a single Apple-platform topic suitable for a Medium article title."""
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set.")
 
     client = OpenAI(api_key=OPENAI_API_KEY)
     recent_titles = recent_titles or []
     topic_interests = topic_interests or TOPIC_INTERESTS
-    focus_mode = _select_focus_mode(recent_titles, topic_mode or TOPIC_MODE)
-    filtered_interests = _filtered_interests(topic_interests, focus_mode)
+    _ = topic_mode  # Deprecated. Topic generation is Apple-platform only.
+    filtered_interests = _filtered_interests(topic_interests)
     recent_titles_context = "\n".join(f"- {title}" for title in recent_titles[:15]) or "- None"
-    topic_interests_context = "\n".join(f"- {item}" for item in filtered_interests) or "- AI"
+    topic_interests_context = "\n".join(f"- {item}" for item in filtered_interests) or "- SwiftUI"
     prompt_template = _load_prompt_template()
 
     candidate = ""
@@ -266,7 +244,6 @@ def generate_topic(
             or "No external trend signals were available this run.",
             recent_titles=recent_titles_context,
             topic_interests=topic_interests_context,
-            focus_mode=focus_mode,
         )
         response = client.responses.create(
             model=OPENAI_MODEL,
@@ -281,11 +258,7 @@ def generate_topic(
         candidate = output_text.splitlines()[0].strip().strip('"')
         candidate = re.sub(r"^\s*\d+[\.)]\s*", "", candidate).strip()
         candidate = _constrain_title_length(candidate)
-        if (
-            candidate
-            and _matches_focus_mode(candidate, focus_mode)
-            and not _is_repetitive(candidate, recent_titles)
-        ):
+        if candidate and _is_apple_programming_topic(candidate) and not _is_repetitive(candidate, recent_titles):
             return candidate
 
-    return _fallback_topic_title(focus_mode, recent_titles)
+    return _fallback_topic_title(recent_titles)

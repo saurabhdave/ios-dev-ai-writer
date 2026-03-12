@@ -14,6 +14,7 @@ Rewrite this draft into a polished, professional Medium-ready article body.
 
 Hard constraints:
 - Keep markdown format with clear ## and ### headings.
+- Capitalize section headings (avoid lowercase-only headings like `## why ...`).
 - Ensure core sections use numbered `##` headings (`## 1. ...`, `## 2. ...`).
 - Keep paragraphs short (2-4 lines max).
 - Keep tone senior, practical, and precise.
@@ -29,6 +30,15 @@ Hard constraints:
 - Include one short pull-quote style insight using markdown blockquote (`> ...`).
 - Keep heading hierarchy clean (`##` and `###` only; no deeper heading levels).
 - Remove fluff, repetition, and vague claims.
+- Remove generic consulting-style language and replace it with concrete engineering guidance.
+- In each core section, ensure there is:
+  - a concrete Apple API/tool/framework callout,
+  - a decision criterion ("when to choose this vs alternatives"),
+  - at least one operational/testing/observability note.
+- Strengthen real-world perspective: mention rollout, failure modes, backward compatibility, debugging, or maintainability where relevant.
+- Ensure recommendations are verifiable and defensible for senior engineers; avoid unsupported certainty.
+- Where uncertainty exists, rewrite with explicit assumptions or limits.
+- For modern SwiftUI state recommendations, prefer Swift Observation (`@Observable`) as the default on Swift 6+.
 - Remove unsupported numeric claims (percentages, benchmarks, hard numbers) unless clearly grounded in the verified references above.
 - Replace uncertain stats with precise qualitative wording.
 - Do not include any URLs or markdown links in the body.

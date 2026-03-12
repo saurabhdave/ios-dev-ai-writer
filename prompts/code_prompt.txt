@@ -10,6 +10,16 @@ Requirements:
 - Target Swift language version: {swift_language_version}.
 - Ensure syntax is valid in Swift compiler language mode: {swift_language_mode}.
 - Prefer modern Swift concurrency where appropriate.
+- Prefer Swift Observation for state models in Swift 6+:
+  - use `@Observable` types instead of `ObservableObject`,
+  - use plain stored properties instead of `@Published`,
+  - use `@State` for owned observable instances in views,
+  - use `@Bindable` only when bindings (`$`) are required.
+- Do not annotate properties inside an `@Observable` type with `@Bindable`; keep model properties plain.
+- Use `@Bindable` in SwiftUI `View` consumers only (for non-owned observable inputs requiring `$` bindings).
+- Do not use `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`
+  unless the topic is explicitly demonstrating legacy migration from those patterns.
+- Include `import Observation` when using `@Observable`.
 - Use clear naming and practical structure.
 - Include concise comments only where they add clarity.
 - Keep code realistic for a Medium technical article.

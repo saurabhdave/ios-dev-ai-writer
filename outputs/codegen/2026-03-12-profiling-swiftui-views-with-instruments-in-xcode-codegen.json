@@ -1,0 +1,9 @@
+{
+  "topic": "Profiling SwiftUI Views with Instruments in Xcode",
+  "generated_at_utc": "2026-03-12T20:44:45.147454+00:00",
+  "path": "omitted",
+  "repair_attempts": 2,
+  "swift_language_version": "6.2.4",
+  "swift_language_mode": "6",
+  "diagnostics_excerpt": "[validation:snippet]      ^\n/var/folders/fr/j0_tl1h90f7cv4jytj_6yzy00000gp/T/tmp9uuldvyo/GeneratedArticleCode.swift:146:28: error: expected '}' at end of brace statement\n                Text(\"Image\n                           ^\n/var/folders/fr/j0_tl1h90f7cv4jytj_6yzy00000gp/T/tmp9uuldvyo/GeneratedArticleCode.swift:115:25: note: to match this opening '{'\n    var body: some View {\n                        ^\n/var/folders/fr/j0_tl1h90f7cv4jytj_6yzy00000gp/T/tmp9uuldvyo/GeneratedArticleCode.swift:146:28: error: expected '}' in struct\n                Text(\"Image\n                           ^\n/var/folders/fr/j0_tl1h90f7cv4jytj_6yzy00000gp/T/tmp9uuldvyo/GeneratedArticleCode.swift:106:31: note: to match this opening '{'\nstruct ProfilingRowView: View {\n                              ^"
+}

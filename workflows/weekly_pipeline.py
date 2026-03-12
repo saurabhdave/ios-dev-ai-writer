@@ -35,7 +35,6 @@ from scanners.trend_scanner import TrendSignal, discover_ios_trends, save_trend_
 REFERENCE_TOKEN_STOPWORDS = {
     "about",
     "across",
-    "agentic",
     "and",
     "app",
     "apps",
@@ -73,14 +72,22 @@ IOS_ANCHOR_TERMS = {
 HIGH_QUALITY_REFERENCE_DOMAINS = {
     "developer.apple.com",
     "swift.org",
-    "github.com",
-    "news.ycombinator.com",
-    "reddit.com",
     "forums.swift.org",
     "avanderlee.com",
+    "github.com",
+}
+
+TRUSTED_REFERENCE_DOMAINS = {
+    "developer.apple.com",
+    "swift.org",
+    "forums.swift.org",
+    "avanderlee.com",
+    "github.com",
 }
 
 LOW_SIGNAL_REFERENCE_DOMAINS = {
+    "reddit.com",
+    "news.ycombinator.com",
     "dev.to",
     "medium.com",
 }
@@ -92,6 +99,32 @@ LOW_SIGNAL_TITLE_PATTERNS = [
     r"\btop \d+\b",
     r"\bultimate guide\b",
 ]
+
+REFERENCE_EXCLUSION_PATTERNS = [
+    r"\bai\b",
+    r"\bagent(s)?\b",
+    r"\bagentic\b",
+    r"\bgenerative\b",
+    r"\bllm(s)?\b",
+    r"\bprompt(s)?\b",
+    r"\binference\b",
+    r"\bautomation\b",
+    r"\bmachine learning\b",
+    r"\bcore\s?ml\b",
+]
+
+REFERENCE_ALLOWED_INTELLIGENCE_PATTERNS = [
+    r"\bapple intelligence\b",
+    r"\bapple intelligence api(s)?\b",
+    r"\bfoundation models?\b",
+    r"\bapp\sintents?\b",
+]
+
+
+def _has_allowed_intelligence_context(text: str) -> bool:
+    """Allow explicit Apple Intelligence contexts while filtering generic AI noise."""
+    lowered = text.lower()
+    return any(re.search(pattern, lowered) for pattern in REFERENCE_ALLOWED_INTELLIGENCE_PATTERNS)
 
 
 def _slugify(text: str) -> str:
@@ -147,12 +180,8 @@ def _topic_terms(topic: str) -> set[str]:
     terms = {
         token
         for token in raw_terms
-        if (len(token) >= 4 or token in {"ai", "ios"}) and token not in REFERENCE_TOKEN_STOPWORDS
+        if (len(token) >= 4 or token == "ios") and token not in REFERENCE_TOKEN_STOPWORDS
     }
-    if "agentic" in raw_terms:
-        terms.add("agentic")
-    if "automation" in raw_terms:
-        terms.add("automation")
     return terms
 
 
@@ -162,6 +191,11 @@ def _is_reference_relevant(source: str, title: str, topic_terms: set[str]) -> bo
         return True
 
     text = f"{source} {title}".lower()
+    if (
+        any(re.search(pattern, text) for pattern in REFERENCE_EXCLUSION_PATTERNS)
+        and not _has_allowed_intelligence_context(text)
+    ):
+        return False
     has_ios_anchor = any(anchor in text for anchor in IOS_ANCHOR_TERMS)
 
     matched_terms = {
@@ -169,15 +203,13 @@ def _is_reference_relevant(source: str, title: str, topic_terms: set[str]) -> bo
         for term in topic_terms
         if re.search(rf"\b{re.escape(term)}\b", text)
     }
-    non_generic_matches = matched_terms - {"ai", "ios"}
+    non_generic_matches = matched_terms - {"ios"}
 
-    if has_ios_anchor:
+    if has_ios_anchor and len(non_generic_matches) >= 1:
         return True
-    if "ios" in matched_terms:
+    if "ios" in matched_terms and len(non_generic_matches) >= 1:
         return True
     if len(non_generic_matches) >= 2:
-        return True
-    if {"agentic", "automation"}.issubset(matched_terms):
         return True
     return False
 
@@ -195,6 +227,11 @@ def _domain_in(domain: str, candidates: set[str]) -> bool:
     return any(domain == candidate or domain.endswith(f".{candidate}") for candidate in candidates)
 
 
+def _is_trusted_reference_domain(url: str) -> bool:
+    """Return True when URL belongs to a trusted technical source domain."""
+    return _domain_in(_domain_from_url(url), TRUSTED_REFERENCE_DOMAINS)
+
+
 def _reference_quality_score(source: str, title: str, url: str, topic_terms: set[str]) -> int:
     """Score references to prefer stronger sources and suppress listicle noise."""
     text = f"{source} {title}".lower()
@@ -204,7 +241,7 @@ def _reference_quality_score(source: str, title: str, url: str, topic_terms: set
         for term in topic_terms
         if re.search(rf"\b{re.escape(term)}\b", text)
     }
-    non_generic_matches = matched_terms - {"ai", "ios"}
+    non_generic_matches = matched_terms - {"ios"}
 
     score = 0
     if _domain_in(domain, HIGH_QUALITY_REFERENCE_DOMAINS):
@@ -225,9 +262,7 @@ def _reference_items(
     """Build validated reference list as (source, title, url)."""
     seen_urls: set[str] = set()
     topic_terms = _topic_terms(topic)
-    strict_candidates: list[tuple[int, float, tuple[str, str, str]]] = []
-    relaxed_candidates: list[tuple[int, float, tuple[str, str, str]]] = []
-    relevant_candidates: list[tuple[int, float, tuple[str, str, str]]] = []
+    trusted_candidates: list[tuple[int, float, tuple[str, str, str]]] = []
     blocked_url_substrings = {
         "news.google.com/rss/articles/",
     }
@@ -236,6 +271,16 @@ def _reference_items(
         "jobs",
         "careers",
         "feedback requested",
+        " ai ",
+        "agent",
+        "agentic",
+        "generative",
+        "llm",
+        "prompt",
+        "inference",
+        "automation",
+        "machine learning",
+        "core ml",
     }
 
     for trend in trends:
@@ -243,15 +288,23 @@ def _reference_items(
         url = trend.url.strip()
         source = trend.source.strip()
         lowered_title = title.lower()
+        combined_text = f"{source} {title}".lower()
 
         if not title or not url or not url.startswith("http"):
             continue
         if len(title) > 140:
             continue
+        if (
+            any(re.search(pattern, combined_text) for pattern in REFERENCE_EXCLUSION_PATTERNS)
+            and not _has_allowed_intelligence_context(combined_text)
+        ):
+            continue
         if not _is_reference_relevant(source, title, topic_terms):
             continue
         quality_score = _reference_quality_score(source, title, url, topic_terms)
-        if any(term in lowered_title for term in blocked_title_terms):
+        if any(term in lowered_title for term in blocked_title_terms) and not _has_allowed_intelligence_context(
+            combined_text
+        ):
             continue
         if any(fragment in url for fragment in blocked_url_substrings):
             continue
@@ -260,15 +313,12 @@ def _reference_items(
 
         seen_urls.add(url)
         payload = (source, title, url)
-        relevant_candidates.append((quality_score, trend.score, payload))
-        if quality_score >= 1:
-            strict_candidates.append((quality_score, trend.score, payload))
-        if quality_score >= 0:
-            relaxed_candidates.append((quality_score, trend.score, payload))
+        if quality_score >= 1 and _is_trusted_reference_domain(url):
+            trusted_candidates.append((quality_score, trend.score, payload))
 
-    selected = strict_candidates or relaxed_candidates or relevant_candidates
-    selected.sort(key=lambda item: (item[0], item[1]), reverse=True)
-    return [payload for _, _, payload in selected[:max_items]]
+    # Trust-first publication policy: include only trusted technical source domains.
+    trusted_candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    return [payload for _, _, payload in trusted_candidates[:max_items]]
 
 
 def _references_for_prompt(

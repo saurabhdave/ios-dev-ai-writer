@@ -13,21 +13,25 @@ Code context (optional):
 {code_example}
 
 Task:
-Write a professional LinkedIn post that promotes this article for maximum organic reach.
+Write a professional LinkedIn post that shares the article with a senior engineering audience.
 
 Requirements:
-- Tone: senior, credible, architecture-focused, and easy to understand.
+- Tone: senior, credible, architecture-focused, and practical.
 - Write as an experienced engineer sharing practical field guidance.
-- Length: 900-1600 characters.
-- Use 2-4 relevant emojis naturally (not excessive).
+- Length: 700-1200 characters.
+- Emojis are optional; if used, use at most 1 and keep it subtle.
 - Start with a strong hook in the first 1-2 lines.
 - Include 3-5 concise bullet points with practical takeaways.
+- Include one explicit tradeoff or decision point from real-world implementation.
+- Include at least one concrete Apple framework/tool callout.
+- Keep claims verifiable and conservative; avoid certainty unless clearly grounded.
+- If a detail is uncertain, phrase it as an assumption or observed pattern.
 - {snippet_requirement}
 - Any Swift snippet must target Swift {swift_language_version} and compile in Swift language mode {swift_language_mode}.
 - Do not invent incidents, releases, metrics, or version-specific claims.
 - If a concrete claim is not clearly grounded in the allowed references, use cautious qualitative wording.
 - End with a clear call to action (question or invitation to discuss).
-- Add 5-8 relevant hashtags at the end, on one line.
+- Add 3-5 relevant hashtags at the end, on one line.
 - No markdown headings.
 - No fabricated claims.
 

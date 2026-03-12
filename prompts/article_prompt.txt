@@ -17,6 +17,7 @@ Hard requirements:
 - Audience: intermediate to senior iOS developers.
 - Tone: professional, practical, and precise.
 - Use clear ## and ### headings, following the outline order.
+- Capitalize section headings (avoid lowercase-only headings like `## why ...`).
 - Format core sections as numbered `##` headings (for example: `## 1. ...`, `## 2. ...`).
 - Keep paragraphs short and readable (prefer 2-4 sentences each).
 - Start with a concise hook intro before the first `##` heading.
@@ -30,6 +31,17 @@ Hard requirements:
 - Include engineering tradeoffs and concrete implementation advice.
 - Include one practical checklist section.
 - End with a short closing takeaway section.
+- Write from a real-world Apple software engineering perspective, not a tutorial tone.
+- In every core section, include:
+  - one concrete Apple API/tool/framework name,
+  - one architecture decision criterion ("choose X when..., choose Y when..."),
+  - one production concern (testing, observability, rollout, migration, or failure handling).
+- Include at least one section that covers validation/operations (XCTest strategy, Instruments, logging, monitoring, rollout gates).
+- Prefer specific implementation details over abstract principles.
+- Avoid generic phrases like "best practices", "in today's fast-paced world", "it is important to", "leverage", or "game-changer".
+- Keep recommendations verifiable: tie concrete guidance to Apple APIs/tools, known engineering constraints, or allowed references.
+- If certainty is low, explicitly state assumptions/limits instead of asserting facts.
+- For modern SwiftUI state guidance, treat Swift Observation (`@Observable`) as the default for Swift 6+ codebases.
 - Do not add code fences (code is generated separately).
 - Do not include URLs or markdown links in the body.
 - Do not invent facts, products, APIs, or version claims.

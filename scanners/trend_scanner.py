@@ -28,53 +28,98 @@ from config import (
 
 
 IOS_KEYWORD_PATTERNS = [
+    r"\bapple\b",
     r"\bios\b",
+    r"\bipados\b",
+    r"\bmacos\b",
+    r"\bwatchos\b",
+    r"\bvisionos\b",
     r"\bswift\b",
     r"\bswiftui\b",
     r"\buikit\b",
+    r"\bappkit\b",
     r"\bxcode\b",
     r"\btestflight\b",
     r"\bapp\s?store\b",
     r"\bcore\sdata\b",
     r"\bswiftdata\b",
+    r"\bwidgetkit\b",
+    r"\bapp\sintents?\b",
+    r"\basync\s*/\s*await\b",
+    r"\bstructured concurrency\b",
+    r"\bmodifier(s)?\b",
+    r"\bperformance\b",
+    r"\binstruments?\b",
+    r"\bapple intelligence\b",
+    r"\bfoundation models?\b",
+    r"\bmacro(s)?\b",
+    r"\bswift\s*6\.?3\b",
+    r"\bboilerplate\b",
     r"\basync\b",
     r"\bconcurrency\b",
-    r"\bvisionos\b",
     r"\bwwdc\b",
 ]
 
-AI_TOPIC_PATTERNS = [
+TOPIC_EXCLUSION_PATTERNS = [
     r"\bai\b",
-    r"\bagentic\b",
     r"\bagent(s)?\b",
-    r"\bgenerative ai\b",
-    r"\bautomation\b",
+    r"\bagentic\b",
+    r"\bgenerative\b",
     r"\bllm(s)?\b",
     r"\bprompt(s)?\b",
-    r"\bon-device model(s)?\b",
+    r"\binference\b",
+    r"\bautomation\b",
+    r"\bmachine learning\b",
+    r"\bcore\s?ml\b",
+]
+
+APPLE_INTELLIGENCE_ALLOWLIST = [
+    r"\bapple intelligence\b",
+    r"\bapple intelligence api(s)?\b",
+    r"\bfoundation models?\b",
+    r"\bapp\sintents?\b",
 ]
 
 DEFAULT_VIRAL_QUERIES = [
-    "iOS SwiftUI Swift Concurrency architecture AI app development",
-    "Agentic AI workflows in iOS apps SwiftUI",
-    "Generative AI integration patterns in Apple platform apps",
-    "AI automation for iOS developer workflows",
-    "site:linkedin.com/posts iOS SwiftUI AI",
+    "Reducing boilerplate in real iOS SwiftUI projects",
+    "Swift 6.3 Macros iOS SwiftUI practical usage",
+    "Swift async await patterns in iOS SwiftUI apps",
+    "Structured Concurrency SwiftUI iOS patterns",
+    "SwiftUI performance improvements Instruments Xcode",
+    "Verified SwiftUI modifiers tips and tricks",
+    "Xcode tips and tricks iOS debugging build performance",
+    "App Intents Apple Intelligence APIs iOS",
+    "iOS SwiftUI Swift Concurrency architecture app development",
+    "Xcode performance debugging Instruments iOS apps",
+    "SwiftData Core Data migration Apple platforms",
+    "Swift 6 strict concurrency migration deprecated iOS APIs",
+    "UIKit to SwiftUI migration patterns Apple platforms",
+    "WidgetKit App Intents iOS development",
+    "site:linkedin.com/posts iOS SwiftUI",
 ]
 
 SOCIAL_WEB_QUERY_SOURCES = [
-    ("X.com iOS + AI", "site:x.com iOS SwiftUI AI OR agentic"),
-    ("dev.to iOS + AI", "site:dev.to iOS SwiftUI AI OR agent"),
-    ("Medium iOS + AI", "site:medium.com iOS SwiftUI AI OR generative"),
+    (
+        "X.com iOS SwiftUI",
+        "site:x.com iOS SwiftUI OR Swift async await OR Structured Concurrency OR Swift 6 migration",
+    ),
+    (
+        "dev.to iOS SwiftUI",
+        "site:dev.to iOS SwiftUI OR verified modifiers OR Xcode tips OR deprecated API migration",
+    ),
+    (
+        "Medium iOS SwiftUI",
+        "site:medium.com iOS SwiftUI OR App Intents OR Apple Intelligence API OR Swift 6 migration",
+    ),
 ]
 
 PLATFORM_RSS_FEEDS = [
     ("dev.to", "https://dev.to/feed/tag/ios"),
+    ("dev.to", "https://dev.to/feed/tag/swift"),
     ("dev.to", "https://dev.to/feed/tag/swiftui"),
-    ("dev.to", "https://dev.to/feed/tag/artificial-intelligence"),
     ("Medium", "https://medium.com/feed/tag/ios"),
+    ("Medium", "https://medium.com/feed/tag/swift"),
     ("Medium", "https://medium.com/feed/tag/swiftui"),
-    ("Medium", "https://medium.com/feed/tag/artificial-intelligence"),
 ]
 
 LOW_SIGNAL_TITLE_PATTERNS = [
@@ -99,11 +144,14 @@ class TrendSignal:
 
 
 def _is_topic_related(text: str) -> bool:
-    """Keyword filter to retain iOS/agentic AI relevant items."""
+    """Keyword filter to retain Apple-platform programming relevant items."""
     normalized = text.lower()
-    return any(re.search(pattern, normalized) for pattern in IOS_KEYWORD_PATTERNS) or any(
-        re.search(pattern, normalized) for pattern in AI_TOPIC_PATTERNS
+    has_apple_signal = any(re.search(pattern, normalized) for pattern in IOS_KEYWORD_PATTERNS)
+    has_excluded_signal = any(re.search(pattern, normalized) for pattern in TOPIC_EXCLUSION_PATTERNS)
+    has_allowed_intelligence = any(
+        re.search(pattern, normalized) for pattern in APPLE_INTELLIGENCE_ALLOWLIST
     )
+    return has_apple_signal and (not has_excluded_signal or has_allowed_intelligence)
 
 
 def _iso_now() -> str:

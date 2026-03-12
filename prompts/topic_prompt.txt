@@ -6,9 +6,6 @@ Trend context (from scanner):
 Priority interest themes for upcoming versions:
 {topic_interests}
 
-Focus mode for this run:
-{focus_mode}
-
 Recently published titles (avoid repeating these topics/angles):
 {recent_titles}
 
@@ -20,10 +17,19 @@ Hard constraints:
 - Max 10 words.
 - Max 60 characters.
 - Focus on one clear topic (no "and", no multi-topic mashups).
-- Must be practical and professionally scoped for iOS engineers.
-- If focus mode is `ios_only`: produce an Apple platform engineering topic without requiring AI terms.
-- If focus mode is `ai_only`: produce an AI/agentic/generative topic relevant to app engineering (iOS mention optional).
-- If focus mode is `hybrid`: combine one Apple platform angle with one AI/agentic angle.
+- Must be practical and professionally scoped for Apple-platform engineers.
+- Must be clearly about Apple ecosystem programming (Swift, SwiftUI, UIKit, Xcode, iOS, iPadOS, macOS, watchOS, visionOS, App Intents, WidgetKit, etc.).
+- Strongly prefer these topic families when relevant:
+  - Swift async/await and Structured Concurrency,
+  - SwiftUI/iOS performance improvements and profiling,
+  - App Intents and Apple Intelligence APIs on Apple platforms,
+  - Swift 6.3 Macros and practical macro adoption patterns,
+  - reducing boilerplate in real projects with maintainable Apple-platform patterns,
+  - Xcode workflows and debugging/productivity tips,
+  - verified Swift/SwiftUI tips and verified SwiftUI modifiers.
+- Prefer migration-focused titles when possible: deprecated/legacy Apple patterns -> modern Swift 6+ implementations.
+- Favor concrete transitions such as old API/pattern to replacement API/pattern.
+- Do not use generic AI/ML framing or terms (AI, ML, LLM, agentic, generative, prompt, inference, automation, Core ML, machine learning), except explicit Apple Intelligence API context.
 - Avoid hype words and generic phrases.
 - Do not include fake product/version claims.
 - Must be materially different from recent titles.

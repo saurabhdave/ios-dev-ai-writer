@@ -1,6 +1,6 @@
 [project]
 name = "ios-dev-ai-writer"
-version = "0.1.7"
+version = "0.1.8"
 description = "AI agent pipeline that generates weekly iOS Medium articles from trend signals."
 readme = "README.md"
 requires-python = ">=3.11"

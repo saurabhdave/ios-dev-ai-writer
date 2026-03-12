@@ -36,6 +36,7 @@ SNIPPET_REQUIREMENT_BY_MODE = {
     "never": "Do not include any code snippet in this post.",
 }
 SWIFT_IMPORT_RE = re.compile(r"^\s*import\s+([A-Za-z_][A-Za-z0-9_]*)\s*$")
+HASHTAG_RE = re.compile(r"#\w+")
 IOS_SIMULATOR_TARGET = "arm64-apple-ios16.0-simulator"
 UNSUPPORTED_SWIFT_VERSION_PATTERN = re.compile(r"invalid value '[^']+' in '-swift-version")
 
@@ -353,15 +354,40 @@ def _truncate_body(text: str, max_length: int) -> str:
     return candidate + "..."
 
 
+def _looks_like_swift_code_line(line: str) -> bool:
+    """Best-effort detector for stray unfenced Swift lines in social copy."""
+    stripped = line.strip()
+    if not stripped:
+        return False
+    if stripped in {"{", "}"}:
+        return True
+    if stripped.lower().startswith("swift snippet"):
+        return True
+    code_prefixes = (
+        "final class ",
+        "class ",
+        "struct ",
+        "enum ",
+        "func ",
+        "init(",
+        "let ",
+        "var ",
+        "@MainActor",
+    )
+    if stripped.startswith(code_prefixes):
+        return True
+    if ("{" in stripped or "}" in stripped) and any(
+        token in stripped for token in ("class", "struct", "func", "init", "let ", "var ")
+    ):
+        return True
+    return False
+
+
 def _ensure_post_constraints(post: str, code_example: str, snippet_mode: str) -> str:
     """Normalize post formatting and enforce hashtag/emoji/snippet constraints."""
     normalized_mode = _normalize_snippet_mode(snippet_mode)
     cleaned = post.strip()
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
-
-    # Ensure at least one emoji exists for social readability.
-    if not re.search(r"[\U0001F300-\U0001FAFF]", cleaned):
-        cleaned = f"🚀 {cleaned}"
 
     without_code, raw_code_block = _extract_first_code_block(cleaned)
     code_block = ""
@@ -372,21 +398,21 @@ def _ensure_post_constraints(post: str, code_example: str, snippet_mode: str) ->
         if not code_block and normalized_mode == "always":
             code_block = _prepare_snippet(code_example, max_lines=6)
 
-    hashtags = re.findall(r"#\w+", without_code)
+    hashtags = HASHTAG_RE.findall(without_code)
     unique_hashtags: list[str] = []
     for tag in hashtags:
         normalized = tag.lower()
         if normalized not in {h.lower() for h in unique_hashtags}:
             unique_hashtags.append(tag)
 
-    if len(unique_hashtags) < 5:
+    if len(unique_hashtags) < 3:
         for tag in DEFAULT_HASHTAGS:
             if tag.lower() not in {h.lower() for h in unique_hashtags}:
                 unique_hashtags.append(tag)
-            if len(unique_hashtags) >= 5:
+            if len(unique_hashtags) >= 3:
                 break
 
-    unique_hashtags = unique_hashtags[:8]
+    unique_hashtags = unique_hashtags[:5]
 
     # Remove hashtag lines and rebuild a clean single hashtag line at the end.
     no_hashtag_lines = [
@@ -395,6 +421,14 @@ def _ensure_post_constraints(post: str, code_example: str, snippet_mode: str) ->
         if not re.fullmatch(r"(?:#\w+\s*)+", line.strip())
     ]
     body = "\n".join(no_hashtag_lines).strip()
+    body = HASHTAG_RE.sub("", body)
+    body = re.sub(r"[ \t]{2,}", " ", body).strip()
+
+    # Remove stray code-style lines unless snippet mode explicitly requires code.
+    if normalized_mode != "always" and not code_block:
+        filtered_lines = [line for line in body.splitlines() if not _looks_like_swift_code_line(line)]
+        body = "\n".join(filtered_lines).strip()
+
     hashtag_line = " ".join(unique_hashtags)
 
     snippet_part = "```swift\n" + code_block + "\n```" if code_block else ""
@@ -481,7 +515,7 @@ def generate_linkedin_post(
     allowed_references: str = "",
     factual_passes: int = 0,
 ) -> str:
-    """Generate a polished LinkedIn post with emojis and hashtags."""
+    """Generate a polished LinkedIn post for senior engineering audiences."""
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set.")
 
@@ -499,7 +533,7 @@ def generate_linkedin_post(
         model=OPENAI_MODEL,
         max_output_tokens=700,
         input=prompt,
-        **openai_generation_kwargs(min(OPENAI_TEMPERATURE, 0.65)),
+        **openai_generation_kwargs(min(OPENAI_TEMPERATURE, 0.4)),
     )
 
     post = response.output_text.strip()

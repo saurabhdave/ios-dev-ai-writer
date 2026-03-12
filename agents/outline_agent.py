@@ -29,7 +29,7 @@ def generate_outline(topic: str) -> str:
         model=OPENAI_MODEL,
         max_output_tokens=700,
         input=prompt,
-        **openai_generation_kwargs(OPENAI_TEMPERATURE),
+        **openai_generation_kwargs(min(OPENAI_TEMPERATURE, 0.45)),
     )
 
     outline = response.output_text.strip()

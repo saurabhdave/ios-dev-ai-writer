@@ -1,11 +1,11 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.1.7-brightgreen)
+![Version](https://img.shields.io/badge/version-0.1.8-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About
-`ios-dev-ai-writer` is an open-source Python agent pipeline that generates weekly Medium-style iOS articles.
+`ios-dev-ai-writer` is an open-source Python agent pipeline that generates weekly Medium-style Apple-platform engineering articles.
 It discovers trends, creates a topic, builds an outline, writes the article body, generates Swift/SwiftUI code, creates a LinkedIn promo post, and saves output automatically.
 
 ## ✨ Features
@@ -16,10 +16,10 @@ It discovers trends, creates a topic, builds an outline, writes the article body
   - WWDC videos feed
   - Broader web/social sources including `x.com`, `dev.to`, and `medium.com` (query + RSS coverage)
 - Priority topic interests for upcoming posts:
-  - AI, AI Agents, AI Automation
-  - Agentic AI and agentic workflows
-  - Generative AI in Apple platform apps
-- Flexible topic composition modes: iOS-only, AI-only, or hybrid
+  - Swift async/await, Structured Concurrency, Swift 6.3 Macros
+  - iOS performance architecture, and boilerplate reduction patterns
+  - Apple-platform APIs like App Intents, Apple Intelligence APIs, and WidgetKit
+- Apple ecosystem programming-only topic generation (no AI-first topic modes)
 - Trend-grounded topic generation using OpenAI
 - Structured Medium article outline generation
 - Professional Medium-style article generation (~900-1200 words)
@@ -28,8 +28,10 @@ It discovers trends, creates a topic, builds an outline, writes the article body
 - URL-safety guardrails (body text strips unverified links)
 - Anti-repetition topic selection using recent article history
 - Practical Swift/SwiftUI code generation
+- Swift 6 Observation-first code generation (`@Observable` preferred over legacy wrappers)
 - Swift version targeting for generated snippets (default: Swift 6.2.4, compiler mode 6)
-- Professional LinkedIn post generation (emojis + hashtag optimization)
+- Senior, architecture-focused LinkedIn post generation with claim guardrails
+- Trust-first reference publication from vetted technical domains
 - Code generation observability metadata (`direct|repaired|omitted` path + repair attempts)
 - Snippet-safe code validation mode with Swift-book-guided typo/unknown-symbol repairs
 - Output saved to:
@@ -134,8 +136,8 @@ export MEDIUM_LAYOUT_MAX_REPAIR_PASSES="2"                         # optional
 export MEDIUM_LAYOUT_MIN_SCORE="8"                                 # optional
 export FACT_GROUNDING_ENABLED="true"                               # optional
 export FACT_GROUNDING_MAX_PASSES="1"                               # optional
-export TOPIC_INTERESTS="AI,AI Agents,AI Automation,Agentic AI,Agentic workflows,Generative AI"  # optional
-export TOPIC_MODE="balanced"                                       # optional: balanced|ios_only|ai_only|hybrid
+export TOPIC_INTERESTS="Swift async await patterns,Structured Concurrency,SwiftUI architecture,iOS performance improvements,Xcode tips and debugging workflows,UIKit interoperability,SwiftData persistence,App Intents,Apple Intelligence APIs,WidgetKit,verified Swift tips and tricks,verified SwiftUI modifiers,Swift 6.3 Macros,Reducing Boilerplate in Real Projects,visionOS development,Swift 6 migration and strict concurrency,Deprecated Apple API migration playbooks,Legacy UIKit patterns to modern SwiftUI"  # optional
+export TOPIC_MODE="ios_only"                                       # optional; normalized to ios_only
 export LINKEDIN_POST_ENABLED="true"                                # optional
 export LINKEDIN_CODE_SNIPPET_MODE="auto"                           # optional: auto|always|never
 export SWIFT_LANGUAGE_VERSION="6.2.4"                              # optional
@@ -170,7 +172,7 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.1.7` (see `VERSION`)
+- Current version: `0.1.8` (see `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
@@ -179,8 +181,8 @@ LinkedIn query example:
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.1.7
-git push origin v0.1.7
+git tag v0.1.8
+git push origin v0.1.8
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 

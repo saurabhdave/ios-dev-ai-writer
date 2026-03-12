@@ -5,16 +5,28 @@
       "query": "site:linkedin.com/posts iOS SwiftUI"
     },
     {
-      "name": "X.com iOS + Agentic AI",
-      "query": "site:x.com iOS SwiftUI Agentic AI"
+      "name": "X.com iOS SwiftUI",
+      "query": "site:x.com iOS SwiftUI Swift Concurrency"
     },
     {
-      "name": "dev.to iOS + Generative AI",
-      "query": "site:dev.to iOS SwiftUI Generative AI"
+      "name": "dev.to SwiftUI iOS",
+      "query": "site:dev.to iOS SwiftUI Swift"
     },
     {
-      "name": "Medium iOS + AI Agents",
-      "query": "site:medium.com iOS SwiftUI AI Agents"
+      "name": "Medium iOS SwiftUI",
+      "query": "site:medium.com iOS SwiftUI Xcode"
+    },
+    {
+      "name": "Swift 6 Migration Topics",
+      "query": "site:medium.com OR site:dev.to Swift 6 migration deprecated iOS API"
+    },
+    {
+      "name": "Swift 6.3 Macros Topics",
+      "query": "site:medium.com OR site:dev.to Swift 6.3 Macros iOS SwiftUI"
+    },
+    {
+      "name": "Boilerplate Reduction Topics",
+      "query": "site:medium.com OR site:dev.to reducing boilerplate iOS SwiftUI real projects"
     }
   ],
   "rss_feeds": [

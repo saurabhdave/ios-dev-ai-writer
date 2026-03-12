@@ -16,5 +16,10 @@ Requirements:
   6) closing takeaway.
 - Use `##` for major sections and `###` for sub-points.
 - Format core sections as numbered headings: `## 1. ...`, `## 2. ...`.
-- For each core section, add 2-3 practical sub-points (implementation angle + caution).
+- For each core section, add 2-3 practical sub-points that include:
+  - one concrete Apple API/tool/framework callout,
+  - one "when to use vs when not to use" decision point,
+  - one production caution (failure mode, rollout, or operational risk).
+- Include at least one core section focused on testing/observability (XCTest, Instruments, MetricKit, os_log/signposts, crash monitoring, etc.).
+- Prefer real team concerns: migration strategy, backward compatibility, release risk, incident handling, and maintainability.
 - Keep the outline compact and directly useful for a 900-1200 word article.
