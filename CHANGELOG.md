@@ -6,6 +6,9 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Changed
+- Consolidated Python dependency installation on `pyproject.toml` and removed the duplicate `requirements.txt` source of truth.
+
 ## [0.1.8] - 2026-03-12
 
 ### Changed

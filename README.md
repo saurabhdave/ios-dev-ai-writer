@@ -74,7 +74,6 @@ ios-dev-ai-writer/
 ├── VERSION
 ├── CHANGELOG.md
 ├── LICENSE
-├── requirements.txt
 ├── pyproject.toml
 ├── config.py
 ├── main.py
@@ -116,7 +115,7 @@ flowchart TD
 2. Create and activate a Python 3.11 virtual environment.
 3. Install dependencies:
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 4. Configure environment variables (or `.env`):
 ```bash
@@ -192,7 +191,7 @@ The workflow `.github/workflows/weekly.yml` runs every Monday, Wednesday, and Fr
 Workflow steps:
 1. Checkout repository
 2. Set up Python 3.11
-3. Install dependencies
+3. Install dependencies from `pyproject.toml`
 4. Run `python main.py`
 5. Commit and push generated content from:
    - `outputs/articles/`
