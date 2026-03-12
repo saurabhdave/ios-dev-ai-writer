@@ -9,7 +9,14 @@ from typing import Iterable
 
 from openai import OpenAI
 
-from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, TOPIC_INTERESTS, TOPIC_MODE
+from config import (
+    OPENAI_API_KEY,
+    OPENAI_MODEL,
+    OPENAI_TEMPERATURE,
+    TOPIC_INTERESTS,
+    TOPIC_MODE,
+    openai_generation_kwargs,
+)
 
 PROMPT_PATH = Path("prompts/topic_prompt.txt")
 
@@ -263,12 +270,15 @@ def generate_topic(
         )
         response = client.responses.create(
             model=OPENAI_MODEL,
-            temperature=OPENAI_TEMPERATURE,
             max_output_tokens=220,
             input=prompt,
+            **openai_generation_kwargs(OPENAI_TEMPERATURE),
         )
 
-        candidate = response.output_text.strip().splitlines()[0].strip().strip('"')
+        output_text = (response.output_text or "").strip()
+        if not output_text:
+            continue
+        candidate = output_text.splitlines()[0].strip().strip('"')
         candidate = re.sub(r"^\s*\d+[\.)]\s*", "", candidate).strip()
         candidate = _constrain_title_length(candidate)
         if (

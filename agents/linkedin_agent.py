@@ -18,6 +18,7 @@ from config import (
     OPENAI_TEMPERATURE,
     SWIFT_COMPILER_LANGUAGE_MODE,
     SWIFT_LANGUAGE_VERSION,
+    openai_generation_kwargs,
 )
 
 PROMPT_PATH = Path("prompts/linkedin_prompt.txt")
@@ -461,9 +462,9 @@ def _enforce_factual_grounding_post(
         )
         response = client.responses.create(
             model=OPENAI_MODEL,
-            temperature=min(OPENAI_TEMPERATURE, 0.3),
             max_output_tokens=700,
             input=prompt,
+            **openai_generation_kwargs(min(OPENAI_TEMPERATURE, 0.3)),
         )
         revised = response.output_text.strip()
         if not revised:
@@ -496,9 +497,9 @@ def generate_linkedin_post(
 
     response = client.responses.create(
         model=OPENAI_MODEL,
-        temperature=min(OPENAI_TEMPERATURE, 0.65),
         max_output_tokens=700,
         input=prompt,
+        **openai_generation_kwargs(min(OPENAI_TEMPERATURE, 0.65)),
     )
 
     post = response.output_text.strip()

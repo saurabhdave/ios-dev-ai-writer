@@ -1,7 +1,7 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.1.6-brightgreen)
+![Version](https://img.shields.io/badge/version-0.1.7-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About
@@ -37,7 +37,7 @@ It discovers trends, creates a topic, builds an outline, writes the article body
   - `outputs/trends/{timestamp}-trend-signals.json`
   - `outputs/linkedin/{date}-{slug}-linkedin.md`
   - `outputs/codegen/{date}-{slug}-codegen.json`
-- Weekly GitHub Actions automation (Monday 10:00 UTC)
+- GitHub Actions automation 3 days/week (Monday, Wednesday, Friday at 10:00 UTC)
 
 ## 🧱 Project Structure
 ```text
@@ -82,7 +82,7 @@ ios-dev-ai-writer/
 ## 🧭 Architecture Diagram
 ```mermaid
 flowchart TD
-    A[GitHub Actions Weekly Trigger] --> B[main.py]
+    A[GitHub Actions Scheduled Trigger 3x per week] --> B[main.py]
     B --> C[workflows/weekly_pipeline.py]
     C --> S[scanners/trend_scanner.py]
     S --> S1[HackerNews]
@@ -119,8 +119,9 @@ pip install -r requirements.txt
 4. Configure environment variables (or `.env`):
 ```bash
 export OPENAI_API_KEY="your_api_key"
-export OPENAI_MODEL="gpt-4.1-mini"                                # optional
+export OPENAI_MODEL="gpt-5-mini"                                  # optional
 export OPENAI_TEMPERATURE="0.7"                                   # optional
+export OPENAI_REASONING_EFFORT="low"                              # optional: minimal|low|medium|high (used for gpt-5*)
 export TREND_DISCOVERY_ENABLED="true"                             # optional
 export TREND_MAX_ITEMS_PER_SOURCE="10"                            # optional
 export TREND_HTTP_TIMEOUT_SECONDS="12"                            # optional
@@ -169,7 +170,7 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.1.6` (see `VERSION`)
+- Current version: `0.1.7` (see `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
@@ -178,13 +179,13 @@ LinkedIn query example:
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.1.6
-git push origin v0.1.6
+git tag v0.1.7
+git push origin v0.1.7
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 
 ## 🤖 GitHub Automation
-The workflow `.github/workflows/weekly.yml` runs every Monday at 10:00 UTC.
+The workflow `.github/workflows/weekly.yml` runs every Monday, Wednesday, and Friday at 10:00 UTC.
 
 Workflow steps:
 1. Checkout repository

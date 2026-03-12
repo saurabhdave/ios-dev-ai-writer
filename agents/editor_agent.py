@@ -8,7 +8,7 @@ from pathlib import Path
 
 from openai import OpenAI
 
-from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE
+from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
 
 PROMPT_PATH = Path("prompts/editor_prompt.txt")
 LAYOUT_REPAIR_PROMPT_PATH = Path("prompts/layout_repair_prompt.txt")
@@ -39,9 +39,9 @@ def _render_model_response(client: OpenAI, prompt: str, temperature: float = 0.4
     """Generate markdown text from a provided prompt."""
     response = client.responses.create(
         model=OPENAI_MODEL,
-        temperature=temperature,
         max_output_tokens=2600,
         input=prompt,
+        **openai_generation_kwargs(temperature),
     )
     text = response.output_text.strip()
     if text.startswith("# "):

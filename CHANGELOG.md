@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.1.7] - 2026-03-12
+
+### Changed
+- Switched automation and documented defaults to use OpenAI model `gpt-5-mini`.
+- Updated OpenAI request handling for GPT-5 compatibility by omitting unsupported `temperature` and supplying configurable reasoning effort (`OPENAI_REASONING_EFFORT`).
+- Updated `.github/workflows/weekly.yml` schedule from once weekly to three runs per week (Monday, Wednesday, Friday at 10:00 UTC).
+- Refreshed README model/scheduling/version-tag examples and release references for consistency.
+- Aligned package metadata version in `pyproject.toml` with `VERSION` for release management consistency.
+
 ## [0.1.6] - 2026-03-11
 
 ### Added

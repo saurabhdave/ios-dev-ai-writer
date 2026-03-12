@@ -21,10 +21,41 @@ def _normalize_swift_language_mode(value: str) -> str:
         return major
     return "6"
 
+
+def _normalize_reasoning_effort(value: str) -> str:
+    """Normalize OpenAI reasoning effort level."""
+    cleaned = value.strip().lower()
+    if cleaned in {"minimal", "low", "medium", "high"}:
+        return cleaned
+    return "low"
+
 # OpenAI credentials and model settings.
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")
 OPENAI_TEMPERATURE = float(os.getenv("OPENAI_TEMPERATURE", "0.7"))
+OPENAI_REASONING_EFFORT = _normalize_reasoning_effort(
+    os.getenv("OPENAI_REASONING_EFFORT", "low")
+)
+
+
+def openai_model_supports_temperature(model: str | None = None) -> bool:
+    """Return whether the selected model accepts the `temperature` parameter."""
+    selected = (model or OPENAI_MODEL).strip().lower()
+    return not selected.startswith("gpt-5")
+
+
+def openai_generation_kwargs(temperature: float | None = None) -> dict[str, object]:
+    """Build model-compatible optional generation arguments."""
+    kwargs: dict[str, object] = {}
+    if temperature is None:
+        pass
+    elif openai_model_supports_temperature():
+        kwargs["temperature"] = temperature
+
+    if not openai_model_supports_temperature():
+        kwargs["reasoning"] = {"effort": OPENAI_REASONING_EFFORT}
+
+    return kwargs
 
 # Output directory for generated markdown articles.
 OUTPUT_ARTICLES_DIR = Path("outputs/articles")

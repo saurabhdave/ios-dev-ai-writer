@@ -19,6 +19,7 @@ from config import (
     OPENAI_TEMPERATURE,
     SWIFT_COMPILER_LANGUAGE_MODE,
     SWIFT_LANGUAGE_VERSION,
+    openai_generation_kwargs,
 )
 
 PROMPT_PATH = Path("prompts/code_prompt.txt")
@@ -329,9 +330,9 @@ def _repair_code(
 
     response = client.responses.create(
         model=OPENAI_MODEL,
-        temperature=min(OPENAI_TEMPERATURE, 0.35),
         max_output_tokens=1400,
         input=prompt,
+        **openai_generation_kwargs(min(OPENAI_TEMPERATURE, 0.35)),
     )
     return _clean_generated_code(response.output_text)
 
@@ -350,9 +351,9 @@ def generate_code_with_metadata(topic: str) -> CodeGenerationResult:
 
     response = client.responses.create(
         model=OPENAI_MODEL,
-        temperature=OPENAI_TEMPERATURE,
         max_output_tokens=1200,
         input=prompt,
+        **openai_generation_kwargs(OPENAI_TEMPERATURE),
     )
 
     code = _clean_generated_code(response.output_text)

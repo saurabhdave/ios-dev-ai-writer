@@ -7,7 +7,7 @@ from pathlib import Path
 
 from openai import OpenAI
 
-from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE
+from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
 
 PROMPT_PATH = Path("prompts/article_prompt.txt")
 
@@ -52,9 +52,9 @@ def generate_article(topic: str, outline: str, allowed_references: str) -> str:
     # Generate a long-form post with practical details and production advice.
     response = client.responses.create(
         model=OPENAI_MODEL,
-        temperature=OPENAI_TEMPERATURE,
         max_output_tokens=2600,
         input=prompt,
+        **openai_generation_kwargs(OPENAI_TEMPERATURE),
     )
 
     article = response.output_text.strip()

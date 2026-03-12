@@ -6,7 +6,7 @@ from pathlib import Path
 
 from openai import OpenAI
 
-from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE
+from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
 
 PROMPT_PATH = Path("prompts/outline_prompt.txt")
 
@@ -27,9 +27,9 @@ def generate_outline(topic: str) -> str:
     # The outline should include sections and key talking points.
     response = client.responses.create(
         model=OPENAI_MODEL,
-        temperature=OPENAI_TEMPERATURE,
         max_output_tokens=700,
         input=prompt,
+        **openai_generation_kwargs(OPENAI_TEMPERATURE),
     )
 
     outline = response.output_text.strip()
