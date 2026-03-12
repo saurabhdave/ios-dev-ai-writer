@@ -1,0 +1,9 @@
+{
+  "topic": "Mastering SwiftUI State Management for Scalable iOS Apps",
+  "generated_at_utc": "2026-03-11T19:19:55.244266+00:00",
+  "path": "repaired",
+  "repair_attempts": 1,
+  "swift_language_version": "6.2.4",
+  "swift_language_mode": "6",
+  "diagnostics_excerpt": "[validation:snippet]  | advisory_unknown_symbols=/var/folders/fr/j0_tl1h90f7cv4jytj_6yzy00000gp/T/tmp5rqogao1/GeneratedArticleCode.swift:19:25: error: type 'Task' has no member 'sleep'"
+}
