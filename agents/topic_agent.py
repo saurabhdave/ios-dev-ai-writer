@@ -189,6 +189,46 @@ def _is_repetitive(candidate: str, recent_titles: Iterable[str], threshold: floa
     return False
 
 
+def _cosine_similarity(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = sum(x * x for x in a) ** 0.5
+    norm_b = sum(x * x for x in b) ** 0.5
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)
+
+
+def _is_semantically_repetitive(
+    candidate: str,
+    recent_titles: list[str],
+    client: object,
+    threshold: float = 0.88,
+) -> bool:
+    """Check semantic similarity via embeddings — catches near-duplicates that word overlap misses.
+
+    Uses a single batched embeddings call. Falls back silently to False on any error
+    so the word-set check in _is_repetitive always remains the safety net.
+    """
+    if not recent_titles:
+        return False
+    try:
+        from openai import OpenAI  # noqa: PLC0415
+
+        assert isinstance(client, OpenAI)
+        response = client.embeddings.create(
+            model="text-embedding-3-small",
+            input=[candidate] + list(recent_titles),
+        )
+        embeddings = [item.embedding for item in response.data]
+        candidate_emb = embeddings[0]
+        for prev_emb in embeddings[1:]:
+            if _cosine_similarity(candidate_emb, prev_emb) >= threshold:
+                return True
+    except Exception:
+        pass
+    return False
+
+
 def _constrain_title_length(title: str, max_chars: int = 60, max_words: int = 10) -> str:
     """Constrain title length for professional Medium readability."""
     cleaned = re.sub(r"\s+", " ", title).strip().strip('"')
@@ -261,7 +301,12 @@ def generate_topic(
         candidate = output_text.splitlines()[0].strip().strip('"')
         candidate = re.sub(r"^\s*\d+[\.)]\s*", "", candidate).strip()
         candidate = _constrain_title_length(candidate)
-        if candidate and _is_apple_programming_topic(candidate) and not _is_repetitive(candidate, recent_titles):
+        if (
+            candidate
+            and _is_apple_programming_topic(candidate)
+            and not _is_repetitive(candidate, recent_titles)
+            and not _is_semantically_repetitive(candidate, recent_titles, client)
+        ):
             return candidate
 
     return _fallback_topic_title(recent_titles)

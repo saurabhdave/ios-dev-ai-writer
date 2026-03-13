@@ -12,7 +12,14 @@ from uuid import uuid4
 
 from agents.article_agent import generate_article
 from agents.code_agent import generate_code_with_metadata
-from agents.editor_agent import enforce_factual_grounding, polish_article, reinforce_medium_layout
+from agents.review_agent import review_article
+from agents.editor_agent import (
+    LayoutAssessment,
+    assess_medium_layout,
+    enforce_factual_grounding,
+    polish_article,
+    reinforce_medium_layout,
+)
 from agents.linkedin_agent import generate_linkedin_post
 from agents.outline_agent import generate_outline
 from agents.topic_agent import generate_topic
@@ -26,7 +33,9 @@ from config import (
     OUTPUT_ARTICLES_DIR,
     OUTPUT_CODEGEN_DIR,
     OUTPUT_LINKEDIN_DIR,
+    OUTPUT_QUALITY_HISTORY_PATH,
     LINKEDIN_POST_ENABLED,
+    SELF_REVIEW_ENABLED,
     SWIFT_COMPILER_LANGUAGE_MODE,
     SWIFT_LANGUAGE_VERSION,
     TOPIC_INTERESTS,
@@ -447,6 +456,22 @@ def _save_codegen_metadata(title: str, metadata: dict[str, str | int]) -> Path:
     return output_path
 
 
+def _append_quality_history(record: dict) -> None:
+    """Append a quality record to the running quality_history.json file."""
+    path = OUTPUT_QUALITY_HISTORY_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    existing: list[dict] = []
+    if path.exists():
+        try:
+            existing = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(existing, list):
+                existing = []
+        except (json.JSONDecodeError, ValueError):
+            existing = []
+    existing.append(record)
+    path.write_text(json.dumps(existing, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 def run_weekly_pipeline() -> Path:
     """Execute the end-to-end weekly content generation workflow."""
     run_id = f"weekly-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{uuid4().hex[:8]}"
@@ -520,6 +545,7 @@ def run_weekly_pipeline() -> Path:
                     max_passes=FACT_GROUNDING_MAX_PASSES,
                 )
 
+        layout_assessment: LayoutAssessment
         with timed_step(
             LOGGER,
             "medium_layout_reinforcement",
@@ -529,12 +555,16 @@ def run_weekly_pipeline() -> Path:
             min_score=MEDIUM_LAYOUT_MIN_SCORE,
         ):
             if MEDIUM_LAYOUT_REINFORCEMENT_ENABLED:
-                polished_article = reinforce_medium_layout(
+                polished_article, layout_assessment = reinforce_medium_layout(
                     topic=topic,
                     article=polished_article,
                     allowed_references=reference_context,
                     max_passes=MEDIUM_LAYOUT_MAX_REPAIR_PASSES,
                     min_score=MEDIUM_LAYOUT_MIN_SCORE,
+                )
+            else:
+                layout_assessment = assess_medium_layout(
+                    polished_article, min_score=MEDIUM_LAYOUT_MIN_SCORE
                 )
 
         with timed_step(LOGGER, "sanitize_article", topic=topic):
@@ -558,6 +588,46 @@ def run_weekly_pipeline() -> Path:
                     "swift_language_mode": SWIFT_COMPILER_LANGUAGE_MODE,
                     "diagnostics_excerpt": code_result.diagnostics,
                 },
+            )
+
+        review_result: dict = {}
+        with timed_step(LOGGER, "self_review_article", topic=topic, enabled=SELF_REVIEW_ENABLED):
+            if SELF_REVIEW_ENABLED:
+                review_result = review_article(topic=topic, article=polished_article)
+                log_event(
+                    LOGGER,
+                    "article_self_review_completed",
+                    review_overall=review_result.get("overall_quality"),
+                    review_technical_depth=review_result.get("technical_depth"),
+                    review_actionability=review_result.get("actionability"),
+                    review_issues=review_result.get("issues", []),
+                )
+
+        with timed_step(LOGGER, "append_quality_history", topic=topic):
+            slug = _slugify(topic)
+            has_refs = bool(_reference_items(trends, topic=topic, max_items=1))
+            quality_record = {
+                "date": datetime.now(timezone.utc).date().isoformat(),
+                "slug": slug,
+                "topic": topic,
+                "layout_score": layout_assessment.score,
+                "layout_max_score": layout_assessment.max_score,
+                "layout_issues": list(layout_assessment.issues),
+                "code_path": code_result.path,
+                "code_repair_attempts": code_result.repair_attempts,
+                "has_references": has_refs,
+                "review_overall": review_result.get("overall_quality"),
+                "review_technical_depth": review_result.get("technical_depth"),
+                "review_actionability": review_result.get("actionability"),
+                "review_issues": review_result.get("issues", []),
+                "review_strengths": review_result.get("strengths", []),
+            }
+            _append_quality_history(quality_record)
+            log_event(
+                LOGGER,
+                "article_quality_recorded",
+                **{k: v for k, v in quality_record.items()
+                   if k not in ("layout_issues", "review_issues", "review_strengths")},
             )
 
         with timed_step(LOGGER, "compose_markdown", topic=topic):

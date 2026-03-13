@@ -20,6 +20,11 @@ SECTION_RISK_KEYWORDS = ("tradeoff", "pitfall", "risk", "limit")
 SECTION_CHECKLIST_KEYWORDS = ("checklist", "playbook", "implementation steps")
 SECTION_CLOSING_KEYWORDS = ("takeaway", "conclusion", "final thoughts", "wrap-up")
 
+_CLOSING_PLAIN_TEXT_RE = re.compile(
+    r"(?:^|\n)(?:closing\s+takeaway|conclusion|final\s+thoughts|wrap-up)\b",
+    re.IGNORECASE,
+)
+
 
 def _load_prompt_template() -> str:
     """Load editor prompt template."""
@@ -181,6 +186,9 @@ def assess_medium_layout(article: str, min_score: int = 7) -> LayoutAssessment:
 
     if _contains_keyword(h2_headings, SECTION_CLOSING_KEYWORDS):
         score += 1
+    elif _CLOSING_PLAIN_TEXT_RE.search(body[-600:]):
+        score += 1
+        issues.append("Closing takeaway section exists as plain text — promote it to a `##` heading.")
     else:
         issues.append("End with a concise closing takeaway section.")
 
@@ -266,13 +274,15 @@ def reinforce_medium_layout(
     allowed_references: str,
     max_passes: int = 2,
     min_score: int = 7,
-) -> str:
+) -> tuple[str, LayoutAssessment]:
     """Repair article layout using iterative rubric feedback (reinforcement-style loop)."""
     if max_passes <= 0:
-        return article.strip()
+        body = article.strip()
+        return body, assess_medium_layout(body, min_score=min_score)
 
     if not OPENAI_API_KEY:
-        return article.strip()
+        body = article.strip()
+        return body, assess_medium_layout(body, min_score=min_score)
 
     client = create_openai_client()
     current = article.strip()
@@ -302,7 +312,7 @@ def reinforce_medium_layout(
             current = repaired
         assessment = assess_medium_layout(current, min_score=min_score)
 
-    return current
+    return current, assessment
 
 
 def enforce_factual_grounding(

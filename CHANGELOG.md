@@ -6,7 +6,21 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-03-13
+
+### Added
+- Added post-generation self-review step (`agents/review_agent.py`) that runs an LLM pass on the final article body and produces structured quality scores (`overall_quality`, `technical_depth`, `actionability`) with issues and strengths lists.
+- Added `prompts/review_prompt.txt` for the iOS-specific article review rubric.
+- Added persistent quality history (`outputs/quality_history.json`) — each pipeline run appends a record with layout score, code repair metadata, and LLM review scores for trend analysis across runs.
+- Added `SELF_REVIEW_ENABLED` and `OUTPUT_QUALITY_HISTORY_PATH` config flags to control the new review and history features.
+- Added `CLAUDE.md` with project guidance, architecture overview, and common commands.
+
 ### Changed
+- Replaced word-set Jaccard similarity in topic deduplication with embedding-based cosine similarity (`text-embedding-3-small`) to catch semantic near-duplicates that share few words (e.g., "App Intents deep dive" vs "Mastering App Intents").
+- Fixed closing section detection in `assess_medium_layout`: plain-text "Closing takeaway" near article end now correctly awards the score point and emits an advisory (promote to `##` heading) instead of falsely flagging the section as missing.
+- `reinforce_medium_layout` now returns `tuple[str, LayoutAssessment]` so the final layout score is available to callers without re-running the scorer.
+
+### Changed (previously Unreleased)
 - Consolidated Python dependency installation on `pyproject.toml` and removed the duplicate `requirements.txt` source of truth.
 
 ## [0.1.8] - 2026-03-12

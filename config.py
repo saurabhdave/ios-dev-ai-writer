@@ -153,3 +153,14 @@ CODEGEN_FAILURE_MODE = os.getenv("CODEGEN_FAILURE_MODE", "omit").strip().lower()
 # - compile: strict Swift typecheck against available iOS SDK
 # - none: skip validation completely
 CODEGEN_VALIDATION_MODE = os.getenv("CODEGEN_VALIDATION_MODE", "snippet").strip().lower()
+
+# Post-generation self-review and quality history.
+SELF_REVIEW_ENABLED = os.getenv("SELF_REVIEW_ENABLED", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+OUTPUT_QUALITY_HISTORY_PATH = Path(
+    os.getenv("OUTPUT_QUALITY_HISTORY_PATH", "outputs/quality_history.json")
+)
