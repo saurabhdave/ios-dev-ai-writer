@@ -6,6 +6,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-13
+
+### Changed
+- Migrated generated outputs (`outputs/articles/`, `outputs/linkedin/`, `outputs/codegen/`) out of this repo and into a dedicated content repo (`saurabhdave/ios-ai-articles`).
+- Added `outputs/` and `_content/` to `.gitignore`; all previously tracked output files removed from git history.
+- Added "Publish articles to content repo" step to `.github/workflows/weekly.yml` — clones `ios-ai-articles` via `DEPLOY_TOKEN`, copies outputs, and commits/pushes with message `article: YYYY-MM-DD`.
+- Added `ios-ai-articles/_config.yml` seed file with minimal Jekyll config (title, minima theme, permalink) for bootstrapping the content repo.
+
 ## [0.1.9] - 2026-03-13
 
 ### Added
