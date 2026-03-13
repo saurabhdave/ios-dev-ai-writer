@@ -17,3 +17,9 @@ __pycache__/
 
 # Personal editor settings
 .vscode/
+
+# Generated outputs (published to saurabhdave/ios-ai-articles)
+outputs/
+
+# Temp content repo clone used by CI publish step
+_content/

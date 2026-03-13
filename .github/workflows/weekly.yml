@@ -35,6 +35,21 @@ jobs:
           OPENAI_TEMPERATURE: "0.7"
         run: python main.py
 
+      - name: Publish articles to content repo
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          git clone https://x-access-token:${DEPLOY_TOKEN}@github.com/saurabhdave/ios-ai-articles.git _content
+          cp -r outputs/articles/. _content/articles/ || true
+          cp -r outputs/linkedin/. _content/linkedin/ || true
+          cp -r outputs/codegen/.  _content/codegen/  || true
+          cd _content
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add articles/ linkedin/ codegen/
+          git diff --staged --quiet || git commit -m "article: $(date +%Y-%m-%d)"
+          git push
+
       - name: Commit and push generated content
         run: |
           if [ -n "$(git status --porcelain outputs/articles outputs/trends outputs/linkedin outputs/codegen)" ]; then

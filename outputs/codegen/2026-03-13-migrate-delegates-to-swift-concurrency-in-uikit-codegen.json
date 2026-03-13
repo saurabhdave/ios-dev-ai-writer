@@ -1,9 +1,0 @@
-{
-  "topic": "Migrate Delegates to Swift Concurrency in UIKit",
-  "generated_at_utc": "2026-03-13T22:09:35.370971+00:00",
-  "path": "repaired",
-  "repair_attempts": 1,
-  "swift_language_version": "6.2.4",
-  "swift_language_mode": "6",
-  "diagnostics_excerpt": "[validation:snippet]"
-}

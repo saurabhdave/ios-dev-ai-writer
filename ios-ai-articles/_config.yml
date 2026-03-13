@@ -1,0 +1,5 @@
+# NOTE: This file belongs in the saurabhdave/ios-ai-articles content repo,
+# not in the ios-dev-ai-writer source repo.
+title: iOS Dev AI Writer
+theme: minima
+permalink: /:year/:month/:day/:title/

@@ -1,9 +1,0 @@
-{
-  "topic": "Migrate Completion Handlers to Swift Structured Concurrency",
-  "generated_at_utc": "2026-03-12T23:24:00.164809+00:00",
-  "path": "omitted",
-  "repair_attempts": 2,
-  "swift_language_version": "6.2.4",
-  "swift_language_mode": "6",
-  "diagnostics_excerpt": "[validation:snippet] | observation_style=Avoid legacy observation wrappers (`ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`, `@EnvironmentObject`) in Swift 6 snippets."
-}

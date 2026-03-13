@@ -1,9 +1,0 @@
-{
-  "topic": "Migrate NotificationCenter Observers to Swift Concurrency",
-  "generated_at_utc": "2026-03-13T22:28:03.956679+00:00",
-  "path": "direct",
-  "repair_attempts": 0,
-  "swift_language_version": "6.2.4",
-  "swift_language_mode": "6",
-  "diagnostics_excerpt": "[validation:snippet]"
-}
