@@ -37,7 +37,7 @@ It discovers trends, creates a topic, builds an outline, writes the article body
 - Code generation observability metadata (`direct|repaired|omitted` path + repair attempts)
 - Snippet-safe code validation mode with Swift-book-guided typo/unknown-symbol repairs
 - Structured JSON logging for local runs and GitHub Actions (`agent_name`, token usage, timing, step status)
-- Output saved to:
+- Output generated locally to `outputs/` (gitignored) and auto-published to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles):
   - `outputs/articles/{date}-{slug}.md`
   - `outputs/trends/{timestamp}-trend-signals.json`
   - `outputs/linkedin/{date}-{slug}-linkedin.md`
@@ -72,12 +72,14 @@ ios-dev-ai-writer/
 │   ├── linkedin_prompt.txt
 │   ├── linkedin_factuality_prompt.txt
 │   └── review_prompt.txt
-├── outputs/
+├── outputs/                  # gitignored — published to ios-ai-articles
 │   ├── articles/
 │   ├── trends/
 │   ├── linkedin/
 │   ├── codegen/
 │   └── quality_history.json
+├── ios-ai-articles/          # seed config for content repo
+│   └── _config.yml
 ├── .github/workflows/
 │   ├── weekly.yml
 │   └── release.yml
@@ -123,6 +125,9 @@ flowchart TD
     C --> M[outputs/linkedin/date-slug-linkedin.md]
     C --> N[outputs/codegen/date-slug-codegen.json]
     R --> O[outputs/quality_history.json]
+    J --> P[saurabhdave/ios-ai-articles]
+    M --> P
+    N --> P
 ```
 
 ## ⚙️ Setup
@@ -170,12 +175,14 @@ python main.py
 
 The CLI now emits structured JSON log lines to stdout so GitHub Actions logs show pipeline steps, agent calls, token usage, and elapsed time.
 
-Generated outputs:
+Generated outputs (written to `outputs/` locally — gitignored, not committed to this repo):
 - `outputs/articles/YYYY-MM-DD-your-topic-slug.md`
 - `outputs/trends/YYYY-MM-DDTHH-MM-SSZ-trend-signals.json`
 - `outputs/linkedin/YYYY-MM-DD-your-topic-slug-linkedin.md`
 - `outputs/codegen/YYYY-MM-DD-your-topic-slug-codegen.json`
 - `outputs/quality_history.json` (appended each run)
+
+When run via GitHub Actions, articles, LinkedIn posts, and codegen artifacts are automatically pushed to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles).
 
 ## 🔌 Add New Trend Sources (Recommended)
 Use a config-first workflow:
@@ -192,7 +199,7 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.1.9` (see `VERSION`)
+- Current version: `0.2.0` (see `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
@@ -201,8 +208,8 @@ LinkedIn query example:
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.1.9
-git push origin v0.1.9
+git tag v0.2.0
+git push origin v0.2.0
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 
@@ -214,15 +221,12 @@ Workflow steps:
 2. Set up Python 3.11
 3. Install dependencies from `pyproject.toml`
 4. Run `python main.py`
-5. Commit and push generated content from:
-   - `outputs/articles/`
-   - `outputs/trends/`
-   - `outputs/linkedin/`
-   - `outputs/codegen/`
-   - `outputs/quality_history.json`
+5. Publish `outputs/articles/`, `outputs/linkedin/`, and `outputs/codegen/` to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles) via `DEPLOY_TOKEN`
+6. Commit and push any remaining changes (e.g. `outputs/trends/`) to this repo
 
-Required repository secret:
+Required repository secrets:
 - `OPENAI_API_KEY`
+- `DEPLOY_TOKEN` — GitHub PAT with `contents: write` on `saurabhdave/ios-ai-articles`
 
 ## 📄 License
 MIT License. See `LICENSE`.
