@@ -4,7 +4,7 @@ version = "0.2.0"
 description = "AI agent pipeline that generates weekly iOS Medium articles from trend signals."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
   { name = "ios-dev-ai-writer contributors" }
 ]
@@ -19,7 +19,6 @@ keywords = [
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent"
 ]
 
@@ -29,6 +28,9 @@ dependencies = [
   "requests>=2.32.5,<3",
   "feedparser>=6.0.12,<7"
 ]
+
+[tool.setuptools.packages.find]
+include = ["agents*", "scanners*", "workflows*", "utils*", "integrations*"]
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
