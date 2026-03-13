@@ -29,8 +29,8 @@ dependencies = [
   "feedparser>=6.0.12,<7"
 ]
 
-[tool.setuptools.packages.find]
-include = ["agents*", "scanners*", "workflows*", "utils*", "integrations*"]
+[tool.setuptools]
+packages = ["agents", "scanners", "workflows", "utils"]
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
