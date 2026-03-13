@@ -1,7 +1,7 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.1.8-brightgreen)
+![Version](https://img.shields.io/badge/version-0.1.9-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About
@@ -26,7 +26,9 @@ It discovers trends, creates a topic, builds an outline, writes the article body
 - Built-in editor pass for quality, tone, and readability
 - Reinforcement-style layout repair loop for Medium formatting consistency
 - URL-safety guardrails (body text strips unverified links)
-- Anti-repetition topic selection using recent article history
+- Semantic anti-repetition topic deduplication using embedding-based cosine similarity (`text-embedding-3-small`) to catch near-duplicate topics that share few lexical tokens
+- Post-generation self-review agent scores each article on overall quality, technical depth, and actionability via a dedicated LLM pass
+- Persistent quality history (`outputs/quality_history.json`) accumulating per-run layout scores, code repair counts, and review scores for trend analysis across runs
 - Practical Swift/SwiftUI code generation
 - Swift 6 Observation-first code generation (`@Observable` preferred over legacy wrappers)
 - Swift version targeting for generated snippets (default: Swift 6.2.4, compiler mode 6)
@@ -40,6 +42,7 @@ It discovers trends, creates a topic, builds an outline, writes the article body
   - `outputs/trends/{timestamp}-trend-signals.json`
   - `outputs/linkedin/{date}-{slug}-linkedin.md`
   - `outputs/codegen/{date}-{slug}-codegen.json`
+  - `outputs/quality_history.json` (append-only quality record per run)
 - GitHub Actions automation 3 days/week (Monday, Wednesday, Friday at 10:00 UTC)
 
 ## 🧱 Project Structure
@@ -51,7 +54,8 @@ ios-dev-ai-writer/
 │   ├── article_agent.py
 │   ├── editor_agent.py
 │   ├── code_agent.py
-│   └── linkedin_agent.py
+│   ├── linkedin_agent.py
+│   └── review_agent.py
 ├── scanners/
 │   ├── trend_scanner.py
 │   └── custom_trends.json
@@ -61,17 +65,23 @@ ios-dev-ai-writer/
 │   ├── topic_prompt.txt
 │   ├── outline_prompt.txt
 │   ├── article_prompt.txt
+│   ├── article_factuality_prompt.txt
 │   ├── editor_prompt.txt
+│   ├── layout_repair_prompt.txt
 │   ├── code_prompt.txt
-│   └── linkedin_prompt.txt
+│   ├── linkedin_prompt.txt
+│   ├── linkedin_factuality_prompt.txt
+│   └── review_prompt.txt
 ├── outputs/
 │   ├── articles/
 │   ├── trends/
 │   ├── linkedin/
-│   └── codegen/
+│   ├── codegen/
+│   └── quality_history.json
 ├── .github/workflows/
 │   ├── weekly.yml
 │   └── release.yml
+├── CLAUDE.md
 ├── VERSION
 ├── CHANGELOG.md
 ├── LICENSE
@@ -99,16 +109,20 @@ flowchart TD
     C --> G[editor_agent.polish_article]
     C --> H[code_agent.generate_code]
     C --> L[linkedin_agent.generate_linkedin_post]
+    C --> R[review_agent.review_article]
     D --> API[OpenAI API]
     E --> API
     F --> API
     G --> API
     H --> API
     L --> API
+    R --> API
     C --> I[Markdown Composer]
     I --> J[outputs/articles/date-slug.md]
     C --> K[outputs/trends/timestamp-trend-signals.json]
     C --> M[outputs/linkedin/date-slug-linkedin.md]
+    C --> N[outputs/codegen/date-slug-codegen.json]
+    R --> O[outputs/quality_history.json]
 ```
 
 ## ⚙️ Setup
@@ -144,6 +158,8 @@ export SWIFT_LANGUAGE_VERSION="6.2.4"                              # optional
 export SWIFT_COMPILER_LANGUAGE_MODE="6"                            # optional; maps to swiftc -swift-version
 export CODEGEN_FAILURE_MODE="omit"                                 # optional: omit|error
 export CODEGEN_VALIDATION_MODE="snippet"                           # optional: snippet|compile|none
+export SELF_REVIEW_ENABLED="true"                                  # optional: run LLM self-review after generation
+export OUTPUT_QUALITY_HISTORY_PATH="outputs/quality_history.json"  # optional: path for per-run quality metrics
 export PIPELINE_LOG_LEVEL="INFO"                                   # optional: DEBUG|INFO|WARNING|ERROR
 ```
 
@@ -159,6 +175,7 @@ Generated outputs:
 - `outputs/trends/YYYY-MM-DDTHH-MM-SSZ-trend-signals.json`
 - `outputs/linkedin/YYYY-MM-DD-your-topic-slug-linkedin.md`
 - `outputs/codegen/YYYY-MM-DD-your-topic-slug-codegen.json`
+- `outputs/quality_history.json` (appended each run)
 
 ## 🔌 Add New Trend Sources (Recommended)
 Use a config-first workflow:
@@ -175,17 +192,17 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.1.8` (see `VERSION`)
+- Current version: `0.1.9` (see `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
 ### Release process
-1. Update `VERSION` and `CHANGELOG.md`.
+1. Update `VERSION`, `CHANGELOG.md`, and `pyproject.toml` version field.
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.1.8
-git push origin v0.1.8
+git tag v0.1.9
+git push origin v0.1.9
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 
@@ -202,6 +219,7 @@ Workflow steps:
    - `outputs/trends/`
    - `outputs/linkedin/`
    - `outputs/codegen/`
+   - `outputs/quality_history.json`
 
 Required repository secret:
 - `OPENAI_API_KEY`
