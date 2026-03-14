@@ -140,14 +140,17 @@ def _article_teaser(body: str, max_chars: int = 400) -> str:
 
 
 def _safe_format(template: str, **kwargs: str) -> str:
-    """Format a prompt template.
+    """Replace {key} placeholders using plain string substitution.
 
-    str.format() does not re-scan replacement values for {} patterns, so values
-    containing Swift braces are substituted literally without any escaping.
-    The only protection needed is against literal {} in the template that are NOT
-    placeholders — those must be escaped as {{ }} in the template file itself.
+    Unlike str.format(), this only touches the exact {key} tokens that are in
+    kwargs, leaving all other braces — inline code examples, prose, backtick
+    snippets — completely untouched. No escaping of {{ or }} is ever needed
+    in the template file.
     """
-    return template.format(**kwargs)
+    result = template
+    for key, value in kwargs.items():
+        result = result.replace(f"{{{key}}}", value)
+    return result
 
 
 # ---------------------------------------------------------------------------

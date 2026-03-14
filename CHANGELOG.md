@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-03-14
+
+### Fixed
+- `_safe_format` in `newsletter_agent.py` now uses plain `str.replace` per placeholder instead of `str.format(**kwargs)`. This eliminates `KeyError` crashes when the prompt template contains literal `{…}` patterns (inline code examples, prose, backtick snippets) that `str.format` misinterprets as format keys. No template escaping (`{{`/`}}`) is ever required now.
+
 ## [0.3.3] - 2026-03-14
 
 ### Fixed
