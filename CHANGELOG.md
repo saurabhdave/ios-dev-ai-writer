@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-03-14
+
+### Fixed
+- Newsletter `Community Picks` no longer includes off-topic items (hardware news, general programming) from HackerNews or Reddit. `_pick_community_links` in `newsletter_agent.py` now requires each candidate signal to contain at least one iOS/Apple keyword (`ios`, `swift`, `swiftui`, `xcode`, `apple`, `app store`, etc.) before it can appear in the section.
+- `fetch_reddit_iosprogramming_trends` in `trend_scanner.py` now applies the same `_is_topic_related` keyword filter used by all other source fetchers, preventing off-topic r/iOSProgramming posts from entering the pipeline.
+- Corrected `pyproject.toml` version — it was stuck at `0.2.0` and never bumped when v0.3.0 shipped.
+
 ## [0.3.0] - 2026-03-14
 
 ### Added

@@ -345,6 +345,8 @@ def fetch_reddit_iosprogramming_trends(
             continue
         if _is_low_signal_title(title):
             continue
+        if not _is_topic_related(title):
+            continue
 
         score = float(data.get("ups", 0)) + float(data.get("num_comments", 0)) * 0.35
         created_utc = float(data.get("created_utc", 0) or 0)

@@ -27,6 +27,13 @@ PROMPT_PATH = Path("prompts/newsletter_prompt.txt")
 # Sources treated as community picks (non-Apple-docs, developer community)
 _COMMUNITY_SOURCE_KEYWORDS = {"reddit", "dev.to", "hackernews", "medium", "hn"}
 
+# Minimum keywords required in a signal's title/summary to qualify as iOS/Apple relevant
+_IOS_TOPIC_KEYWORDS = {
+    "ios", "swift", "swiftui", "xcode", "apple tv", "appkit", "uikit",
+    "macos", "watchos", "visionos", "iphone", "ipad", "app store",
+    "testflight", "swiftdata", "widgetkit", "apple", "wwdc",
+}
+
 
 # ---------------------------------------------------------------------------
 # Issue number persistence
@@ -61,16 +68,27 @@ def _pick_top_trends(trends: list["TrendSignal"], max_items: int = 5) -> list["T
     return ranked[:max_items]
 
 
+def _is_ios_relevant(signal: "TrendSignal") -> bool:
+    """Return True if the signal title/summary contains at least one iOS/Apple keyword."""
+    text = f"{signal.title} {signal.summary}".lower()
+    return any(kw in text for kw in _IOS_TOPIC_KEYWORDS)
+
+
 def _pick_community_links(
     trends: list["TrendSignal"], max_items: int = 3
 ) -> list["TrendSignal"]:
-    """Pick community picks from non-Apple-docs sources (reddit, dev.to, medium, hackernews)."""
+    """Pick community picks from non-Apple-docs sources (reddit, dev.to, medium, hackernews).
+
+    Only signals that mention an iOS/Apple topic keyword are eligible, to prevent
+    off-topic items (hardware news, general programming, etc.) from appearing.
+    """
     community = [
         t
         for t in trends
         if t.url
         and t.url.startswith("http")
         and any(kw in t.source.lower() for kw in _COMMUNITY_SOURCE_KEYWORDS)
+        and _is_ios_relevant(t)
     ]
     return sorted(community, key=lambda t: t.score, reverse=True)[:max_items]
 
