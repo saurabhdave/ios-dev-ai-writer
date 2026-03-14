@@ -1,12 +1,12 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.2.0-brightgreen)
+![Version](https://img.shields.io/badge/version-0.3.0-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About
 `ios-dev-ai-writer` is an open-source Python agent pipeline that generates weekly Medium-style Apple-platform engineering articles.
-It discovers trends, creates a topic, builds an outline, writes the article body, generates Swift/SwiftUI code, creates a LinkedIn promo post, and saves output automatically.
+It discovers trends, creates a topic, builds an outline, writes the article body, generates Swift/SwiftUI code, creates a LinkedIn promo post, assembles a weekly developer newsletter, and saves output automatically.
 
 ## ✨ Features
 - Automatic iOS trend discovery from:
@@ -36,12 +36,15 @@ It discovers trends, creates a topic, builds an outline, writes the article body
 - Trust-first reference publication from vetted technical domains
 - Code generation observability metadata (`direct|repaired|omitted` path + repair attempts)
 - Snippet-safe code validation mode with Swift-book-guided typo/unknown-symbol repairs
+- **Weekly newsletter assembly** — SwiftTribune-style developer newsletter with six sections (Opening hook, This Week's Big Story, Trend Signals, Swift Snippet of the Week, Community Picks, Closing CTA), output as both Markdown and email-safe HTML (inline styles, max-width 600px). Issue number auto-increments across runs.
 - Structured JSON logging for local runs and GitHub Actions (`agent_name`, token usage, timing, step status)
 - Output generated locally to `outputs/` (gitignored) and auto-published to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles):
   - `outputs/articles/{date}-{slug}.md`
   - `outputs/trends/{timestamp}-trend-signals.json`
   - `outputs/linkedin/{date}-{slug}-linkedin.md`
   - `outputs/codegen/{date}-{slug}-codegen.json`
+  - `outputs/newsletter/{date}-issue-N.md`
+  - `outputs/newsletter/{date}-issue-N.html`
   - `outputs/quality_history.json` (append-only quality record per run)
 - GitHub Actions automation 3 days/week (Monday, Wednesday, Friday at 10:00 UTC)
 
@@ -55,6 +58,7 @@ ios-dev-ai-writer/
 │   ├── editor_agent.py
 │   ├── code_agent.py
 │   ├── linkedin_agent.py
+│   ├── newsletter_agent.py
 │   └── review_agent.py
 ├── scanners/
 │   ├── trend_scanner.py
@@ -71,12 +75,14 @@ ios-dev-ai-writer/
 │   ├── code_prompt.txt
 │   ├── linkedin_prompt.txt
 │   ├── linkedin_factuality_prompt.txt
+│   ├── newsletter_prompt.txt
 │   └── review_prompt.txt
 ├── outputs/                  # gitignored — published to ios-ai-articles
 │   ├── articles/
 │   ├── trends/
 │   ├── linkedin/
 │   ├── codegen/
+│   ├── newsletter/
 │   └── quality_history.json
 ├── ios-ai-articles/          # seed config for content repo
 │   └── _config.yml
@@ -111,6 +117,7 @@ flowchart TD
     C --> G[editor_agent.polish_article]
     C --> H[code_agent.generate_code]
     C --> L[linkedin_agent.generate_linkedin_post]
+    C --> NL[newsletter_agent.generate_newsletter]
     C --> R[review_agent.review_article]
     D --> API[OpenAI API]
     E --> API
@@ -118,16 +125,19 @@ flowchart TD
     G --> API
     H --> API
     L --> API
+    NL --> API
     R --> API
     C --> I[Markdown Composer]
     I --> J[outputs/articles/date-slug.md]
     C --> K[outputs/trends/timestamp-trend-signals.json]
     C --> M[outputs/linkedin/date-slug-linkedin.md]
     C --> N[outputs/codegen/date-slug-codegen.json]
+    NL --> NW[outputs/newsletter/date-issue-N.md + .html]
     R --> O[outputs/quality_history.json]
     J --> P[saurabhdave/ios-ai-articles]
     M --> P
     N --> P
+    NW --> P
 ```
 
 ## ⚙️ Setup
@@ -159,6 +169,9 @@ export TOPIC_INTERESTS="Swift async await patterns,Structured Concurrency,SwiftU
 export TOPIC_MODE="ios_only"                                       # optional; normalized to ios_only
 export LINKEDIN_POST_ENABLED="true"                                # optional
 export LINKEDIN_CODE_SNIPPET_MODE="auto"                           # optional: auto|always|never
+export NEWSLETTER_ENABLED="true"                                   # optional
+export NEWSLETTER_NAME="iOS Dev Weekly"                            # optional
+export NEWSLETTER_ISSUE_FILE="outputs/newsletter/.issue_number"    # optional: persistent issue counter
 export SWIFT_LANGUAGE_VERSION="6.2.4"                              # optional
 export SWIFT_COMPILER_LANGUAGE_MODE="6"                            # optional; maps to swiftc -swift-version
 export CODEGEN_FAILURE_MODE="omit"                                 # optional: omit|error
@@ -173,16 +186,18 @@ export PIPELINE_LOG_LEVEL="INFO"                                   # optional: D
 python main.py
 ```
 
-The CLI now emits structured JSON log lines to stdout so GitHub Actions logs show pipeline steps, agent calls, token usage, and elapsed time.
+The CLI emits structured JSON log lines to stdout so GitHub Actions logs show pipeline steps, agent calls, token usage, and elapsed time.
 
 Generated outputs (written to `outputs/` locally — gitignored, not committed to this repo):
 - `outputs/articles/YYYY-MM-DD-your-topic-slug.md`
 - `outputs/trends/YYYY-MM-DDTHH-MM-SSZ-trend-signals.json`
 - `outputs/linkedin/YYYY-MM-DD-your-topic-slug-linkedin.md`
 - `outputs/codegen/YYYY-MM-DD-your-topic-slug-codegen.json`
+- `outputs/newsletter/YYYY-MM-DD-issue-N.md`
+- `outputs/newsletter/YYYY-MM-DD-issue-N.html`
 - `outputs/quality_history.json` (appended each run)
 
-When run via GitHub Actions, articles, LinkedIn posts, and codegen artifacts are automatically pushed to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles).
+When run via GitHub Actions, all outputs are automatically pushed to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles).
 
 ## 🔌 Add New Trend Sources (Recommended)
 Use a config-first workflow:
@@ -199,17 +214,17 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.2.0` (see `VERSION`)
+- Current version: `0.3.0` (see `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
 ### Release process
-1. Update `VERSION`, `CHANGELOG.md`, and `pyproject.toml` version field.
+1. Update `VERSION`, `CHANGELOG.md`, and `README.md` version badge.
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.3.0
+git push origin v0.3.0
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 
@@ -221,7 +236,7 @@ Workflow steps:
 2. Set up Python 3.11
 3. Install dependencies from `pyproject.toml`
 4. Run `python main.py`
-5. Publish `outputs/articles/`, `outputs/linkedin/`, and `outputs/codegen/` to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles) via `DEPLOY_TOKEN`
+5. Publish `outputs/articles/`, `outputs/linkedin/`, `outputs/codegen/`, and `outputs/newsletter/` to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles) via `DEPLOY_TOKEN`
 6. Commit and push any remaining changes (e.g. `outputs/trends/`) to this repo
 
 Required repository secrets:
