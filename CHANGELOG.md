@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-03-14
+
+### Fixed
+- `_swift_parse_validate` and `_swift_compile_validate` in `code_agent.py` now catch `subprocess.TimeoutExpired` and return `(False, "[validation:...] swiftc timed out — snippet skipped.")` instead of propagating the exception. Previously a slow `swiftc` parse on GitHub Actions would crash the entire pipeline run.
+
 ## [0.3.2] - 2026-03-14
 
 ### Fixed

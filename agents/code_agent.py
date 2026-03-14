@@ -155,67 +155,70 @@ def _swift_compile_validate(code: str) -> tuple[bool, str]:
         source_path = Path(temp_dir) / "GeneratedArticleCode.swift"
         source_path.write_text(code, encoding="utf-8")
 
-        xcrun_bin = shutil.which("xcrun")
-        if xcrun_bin:
-            sdk_result = subprocess.run(
-                [xcrun_bin, "--sdk", "iphonesimulator", "--show-sdk-path"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-                check=False,
-            )
-            sdk_path = sdk_result.stdout.strip()
-            if sdk_result.returncode == 0 and sdk_path:
-                result = subprocess.run(
-                    _swift_typecheck_command(
-                        swiftc_bin=swiftc_bin,
-                        source_path=source_path,
-                        sdk_path=sdk_path,
-                        module_cache=Path(temp_dir) / "ModuleCache",
-                    ),
+        try:
+            xcrun_bin = shutil.which("xcrun")
+            if xcrun_bin:
+                sdk_result = subprocess.run(
+                    [xcrun_bin, "--sdk", "iphonesimulator", "--show-sdk-path"],
                     capture_output=True,
                     text=True,
-                    timeout=22,
+                    timeout=10,
                     check=False,
                 )
-                if result.returncode != 0 and _is_unsupported_swift_version_diagnostic(result.stderr):
+                sdk_path = sdk_result.stdout.strip()
+                if sdk_result.returncode == 0 and sdk_path:
                     result = subprocess.run(
                         _swift_typecheck_command(
                             swiftc_bin=swiftc_bin,
                             source_path=source_path,
                             sdk_path=sdk_path,
                             module_cache=Path(temp_dir) / "ModuleCache",
-                            include_language_mode=False,
                         ),
                         capture_output=True,
                         text=True,
                         timeout=22,
                         check=False,
                     )
-                return result.returncode == 0, result.stderr.strip()[-4000:]
+                    if result.returncode != 0 and _is_unsupported_swift_version_diagnostic(result.stderr):
+                        result = subprocess.run(
+                            _swift_typecheck_command(
+                                swiftc_bin=swiftc_bin,
+                                source_path=source_path,
+                                sdk_path=sdk_path,
+                                module_cache=Path(temp_dir) / "ModuleCache",
+                                include_language_mode=False,
+                            ),
+                            capture_output=True,
+                            text=True,
+                            timeout=22,
+                            check=False,
+                        )
+                    return result.returncode == 0, result.stderr.strip()[-4000:]
 
-        parse_result = subprocess.run(
-            _swift_frontend_parse_command(swiftc_bin=swiftc_bin, source_path=source_path),
-            capture_output=True,
-            text=True,
-            timeout=12,
-            check=False,
-        )
-        if parse_result.returncode != 0 and _is_unsupported_swift_version_diagnostic(
-            parse_result.stderr
-        ):
             parse_result = subprocess.run(
-                _swift_frontend_parse_command(
-                    swiftc_bin=swiftc_bin,
-                    source_path=source_path,
-                    include_language_mode=False,
-                ),
+                _swift_frontend_parse_command(swiftc_bin=swiftc_bin, source_path=source_path),
                 capture_output=True,
                 text=True,
                 timeout=12,
                 check=False,
             )
-        return parse_result.returncode == 0, parse_result.stderr.strip()[-4000:]
+            if parse_result.returncode != 0 and _is_unsupported_swift_version_diagnostic(
+                parse_result.stderr
+            ):
+                parse_result = subprocess.run(
+                    _swift_frontend_parse_command(
+                        swiftc_bin=swiftc_bin,
+                        source_path=source_path,
+                        include_language_mode=False,
+                    ),
+                    capture_output=True,
+                    text=True,
+                    timeout=12,
+                    check=False,
+                )
+            return parse_result.returncode == 0, parse_result.stderr.strip()[-4000:]
+        except subprocess.TimeoutExpired:
+            return False, "[validation:compile] swiftc timed out — snippet skipped."
 
 
 def _swift_parse_validate(code: str) -> tuple[bool, str]:
@@ -234,28 +237,31 @@ def _swift_parse_validate(code: str) -> tuple[bool, str]:
         source_path = Path(temp_dir) / "GeneratedArticleCode.swift"
         source_path.write_text(code, encoding="utf-8")
 
-        parse_result = subprocess.run(
-            _swift_frontend_parse_command(swiftc_bin=swiftc_bin, source_path=source_path),
-            capture_output=True,
-            text=True,
-            timeout=12,
-            check=False,
-        )
-        if parse_result.returncode != 0 and _is_unsupported_swift_version_diagnostic(
-            parse_result.stderr
-        ):
+        try:
             parse_result = subprocess.run(
-                _swift_frontend_parse_command(
-                    swiftc_bin=swiftc_bin,
-                    source_path=source_path,
-                    include_language_mode=False,
-                ),
+                _swift_frontend_parse_command(swiftc_bin=swiftc_bin, source_path=source_path),
                 capture_output=True,
                 text=True,
                 timeout=12,
                 check=False,
             )
-        return parse_result.returncode == 0, parse_result.stderr.strip()[-4000:]
+            if parse_result.returncode != 0 and _is_unsupported_swift_version_diagnostic(
+                parse_result.stderr
+            ):
+                parse_result = subprocess.run(
+                    _swift_frontend_parse_command(
+                        swiftc_bin=swiftc_bin,
+                        source_path=source_path,
+                        include_language_mode=False,
+                    ),
+                    capture_output=True,
+                    text=True,
+                    timeout=12,
+                    check=False,
+                )
+            return parse_result.returncode == 0, parse_result.stderr.strip()[-4000:]
+        except subprocess.TimeoutExpired:
+            return False, "[validation:snippet] swiftc timed out — snippet skipped."
 
 
 def _normalize_validation_mode() -> str:
