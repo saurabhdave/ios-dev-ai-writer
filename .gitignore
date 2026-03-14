@@ -18,6 +18,10 @@ __pycache__/
 # Personal editor settings
 .vscode/
 
+# Claude Code local tooling
+.claude/
+memory/
+
 # Generated outputs (published to saurabhdave/ios-ai-articles)
 outputs/
 outputs/newsletter/
