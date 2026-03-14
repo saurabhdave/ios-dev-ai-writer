@@ -4,11 +4,6 @@
 ![Version](https://img.shields.io/badge/version-0.3.3-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-## 🆕 What's New — v0.3.3
-- **swiftc timeout no longer crashes the pipeline** — `TimeoutExpired` is now caught in both validators and treated as a recoverable failure; the pipeline publishes without a code snippet rather than failing the GitHub Actions run.
-- **Newsletter quality fixes (v0.3.2)** — off-topic Trend Signals filtered out, Swift code blocks no longer render double-escaped braces (`{{`), snippets capped at 25 lines, Community Picks require proper markdown hyperlinks, Big Story enforced to exactly 3 sentences.
-- **Newsletter Community Picks topic filter (v0.3.1)** — non-iOS/Apple items (hardware news, general programming) can no longer appear in the Community Picks or Trend Signals sections.
-
 ## 🚀 About
 `ios-dev-ai-writer` is an open-source Python agent pipeline that generates weekly Medium-style Apple-platform engineering articles.
 It discovers trends, creates a topic, builds an outline, writes the article body, generates Swift/SwiftUI code, creates a LinkedIn promo post, assembles a weekly developer newsletter, and saves output automatically.
