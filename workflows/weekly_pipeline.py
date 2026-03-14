@@ -21,8 +21,10 @@ from agents.editor_agent import (
     reinforce_medium_layout,
 )
 from agents.linkedin_agent import generate_linkedin_post
+from agents.newsletter_agent import generate_newsletter
 from agents.outline_agent import generate_outline
 from agents.topic_agent import generate_topic
+import config as _config_module
 from config import (
     EDITOR_PASS_ENABLED,
     FACT_GROUNDING_ENABLED,
@@ -30,9 +32,11 @@ from config import (
     MEDIUM_LAYOUT_MAX_REPAIR_PASSES,
     MEDIUM_LAYOUT_MIN_SCORE,
     MEDIUM_LAYOUT_REINFORCEMENT_ENABLED,
+    NEWSLETTER_ENABLED,
     OUTPUT_ARTICLES_DIR,
     OUTPUT_CODEGEN_DIR,
     OUTPUT_LINKEDIN_DIR,
+    OUTPUT_NEWSLETTER_DIR,
     OUTPUT_QUALITY_HISTORY_PATH,
     LINKEDIN_POST_ENABLED,
     SELF_REVIEW_ENABLED,
@@ -445,6 +449,19 @@ def _save_linkedin_post(title: str, post_text: str) -> Path:
     return output_path
 
 
+def _save_newsletter(title: str, markdown: str, html_content: str, issue_number: int) -> tuple[Path, Path]:
+    """Persist newsletter to outputs/newsletter/{date}-issue-N.{md,html}."""
+    OUTPUT_NEWSLETTER_DIR.mkdir(parents=True, exist_ok=True)
+
+    date_prefix = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    stem = f"{date_prefix}-issue-{issue_number}"
+    md_path = OUTPUT_NEWSLETTER_DIR / f"{stem}.md"
+    html_path = OUTPUT_NEWSLETTER_DIR / f"{stem}.html"
+    md_path.write_text(markdown.strip() + "\n", encoding="utf-8")
+    html_path.write_text(html_content, encoding="utf-8")
+    return md_path, html_path
+
+
 def _save_codegen_metadata(title: str, metadata: dict[str, str | int]) -> Path:
     """Persist code generation metadata for observability."""
     OUTPUT_CODEGEN_DIR.mkdir(parents=True, exist_ok=True)
@@ -637,6 +654,7 @@ def run_weekly_pipeline() -> Path:
             article_path = _save_markdown(topic, markdown)
             step["output_path"] = str(article_path)
 
+        linkedin_post = ""
         if LINKEDIN_POST_ENABLED:
             with timed_step(LOGGER, "generate_linkedin_post", topic=topic):
                 linkedin_post = generate_linkedin_post(
@@ -651,6 +669,29 @@ def run_weekly_pipeline() -> Path:
                 _save_linkedin_post(topic, linkedin_post)
         else:
             log_event(LOGGER, "linkedin_post_skipped", topic=topic, reason="LINKEDIN_POST_ENABLED=false")
+
+        if NEWSLETTER_ENABLED:
+            with timed_step(LOGGER, "generate_newsletter", topic=topic) as step:
+                newsletter_result = generate_newsletter(
+                    article={"title": topic, "body": polished_article},
+                    trends=trends,
+                    codegen={"code": code, "path": code_result.path},
+                    linkedin_post=linkedin_post,
+                    config=_config_module,
+                )
+                step["issue_number"] = newsletter_result["issue_number"]
+
+            with timed_step(LOGGER, "save_newsletter", topic=topic) as step:
+                nl_md_path, nl_html_path = _save_newsletter(
+                    topic,
+                    newsletter_result["markdown"],
+                    newsletter_result["html"],
+                    newsletter_result["issue_number"],
+                )
+                step["md_path"] = str(nl_md_path)
+                step["html_path"] = str(nl_html_path)
+        else:
+            log_event(LOGGER, "newsletter_skipped", topic=topic, reason="NEWSLETTER_ENABLED=false")
 
         log_event(
             LOGGER,

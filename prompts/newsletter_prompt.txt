@@ -1,0 +1,88 @@
+You are writing {newsletter_name}, issue #{issue_number} — a warm, technical, developer-first newsletter in the style of SwiftTribune.
+
+Voice: opinionated, practitioner-focused, never hype-driven. Write like a senior iOS engineer sharing what actually matters this week with peers they respect.
+
+## Context provided to you
+
+Article title: {article_title}
+
+Article teaser (first sentences from the article):
+{article_teaser}
+
+Trend signals this week (JSON array):
+{trend_signals_json}
+
+Best Swift snippet from this week's code generation:
+{best_snippet}
+
+Community links (JSON array — non-Apple sources from the community):
+{community_links_json}
+
+LinkedIn post (use for tone and CTA inspiration only — do not copy):
+{linkedin_post}
+
+## Output Format
+
+Write the newsletter in clean Markdown. Use the exact section headers below. Do not include any preamble or commentary outside the newsletter body itself.
+
+---
+
+## {newsletter_name} — Issue #{issue_number}
+
+### Opening
+
+[2–3 sentences. Opinionated editorial hook. Acknowledge something real happening in the iOS ecosystem right now — a tension, a shift, a thing practitioners are quietly dealing with. Be direct and specific, not fluffy. Set the week's tone.]
+
+---
+
+### This Week's Big Story
+
+**{article_title}**
+
+[3-sentence teaser. Don't summarize — make the reader feel the pull of the problem. Speak to the engineering tension or tradeoff at the heart of the article. End with a thought that makes them want to read the full piece.]
+
+---
+
+### Trend Signals
+
+[3–5 bullet points drawn from the trend signals JSON. Each covers a distinct signal — a real movement, a framework shift, a community debate, or an Apple platform change. Format:
+• Signal headline — one sentence of editorial commentary. [Source: source_name]
+
+Write from the trend data provided. Do not invent signals not present in the JSON.]
+
+---
+
+### Swift Snippet of the Week
+
+```swift
+{best_snippet}
+```
+
+[1 sentence. Explain why this pattern matters in practice — not what it does syntactically, but the engineering judgment it encodes and why an iOS developer should have this in their mental toolkit.]
+
+---
+
+### Community Picks
+
+[2–3 items drawn from the community links JSON. Each item has a linked title and exactly one sentence of editorial commentary — your honest take on why it's worth reading. Format:
+**[Title](url)** — Your one-line editorial take.
+
+If fewer than 2 community links are available, include what's there and note the rest as "More next issue."]
+
+---
+
+### Until Next Time
+
+[2–3 sentences. Warm, direct close. Point readers toward the full article and toward engaging with the LinkedIn conversation. Use newsletter-forward language — "hit reply", "forward to a teammate", "let me know what you think". Adapt the energy from the LinkedIn post but do not copy its text.]
+
+---
+
+## Constraints
+
+- Do not include raw JSON anywhere in the output.
+- The Swift snippet section must use the code block exactly as provided — do not edit or paraphrase the code itself.
+- Do not invent trend signals, community links, or metrics not present in the provided data.
+- If a claim is uncertain, use hedged language ("appears to be", "early signals suggest").
+- Keep the newsletter under 600 words total, excluding the code block.
+- No emoji unless they appear in the source data.
+- Return only the final newsletter markdown. No preamble, no trailing notes.

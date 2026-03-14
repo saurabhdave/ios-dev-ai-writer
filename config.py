@@ -62,6 +62,7 @@ OUTPUT_ARTICLES_DIR = Path("outputs/articles")
 OUTPUT_TRENDS_DIR = Path("outputs/trends")
 OUTPUT_LINKEDIN_DIR = Path("outputs/linkedin")
 OUTPUT_CODEGEN_DIR = Path("outputs/codegen")
+OUTPUT_NEWSLETTER_DIR = Path("outputs/newsletter")
 
 # Trend discovery configuration.
 TREND_DISCOVERY_ENABLED = os.getenv("TREND_DISCOVERY_ENABLED", "true").lower() in {
@@ -125,6 +126,18 @@ TOPIC_INTERESTS = [
 # Topic composition policy is now Apple-platform programming only.
 # `TOPIC_MODE` remains for backward compatibility and is normalized to `ios_only`.
 TOPIC_MODE = "ios_only"
+
+# Newsletter assembly.
+NEWSLETTER_ENABLED = os.getenv("NEWSLETTER_ENABLED", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+NEWSLETTER_NAME = os.getenv("NEWSLETTER_NAME", "iOS Dev Weekly").strip()
+NEWSLETTER_ISSUE_FILE = Path(
+    os.getenv("NEWSLETTER_ISSUE_FILE", "outputs/newsletter/.issue_number")
+)
 
 # LinkedIn post generation.
 LINKEDIN_POST_ENABLED = os.getenv("LINKEDIN_POST_ENABLED", "true").lower() in {

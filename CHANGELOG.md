@@ -6,6 +6,18 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-14
+
+### Added
+- Added `agents/newsletter_agent.py` — new `generate_newsletter()` function that assembles a weekly SwiftTribune-style developer newsletter from pipeline outputs. Selects top 5 trend signals (URL-bearing items ranked first), picks the best codegen snippet (prefers `direct` validation path), identifies 2–3 community picks from reddit/dev.to/hackernews/medium sources, calls the LLM with a structured prompt, and returns `{"markdown", "html", "issue_number"}`.
+- Added `prompts/newsletter_prompt.txt` — newsletter prompt template with six sections: Opening hook, This Week's Big Story, Trend Signals, Swift Snippet of the Week, Community Picks, and Closing CTA. Placeholders: `{newsletter_name}`, `{issue_number}`, `{article_title}`, `{article_teaser}`, `{trend_signals_json}`, `{best_snippet}`, `{community_links_json}`, `{linkedin_post}`.
+- Added `NEWSLETTER_ENABLED` (default `true`), `NEWSLETTER_NAME` (default `"iOS Dev Weekly"`), `NEWSLETTER_ISSUE_FILE` (default `outputs/newsletter/.issue_number`), and `OUTPUT_NEWSLETTER_DIR` to `config.py`.
+
+### Changed
+- `workflows/weekly_pipeline.py` — added `generate_newsletter` + `save_newsletter` steps after the LinkedIn step, writing `outputs/newsletter/YYYY-MM-DD-issue-N.md` and `.html`. Issue number is auto-incremented from a persistent counter file.
+- `.github/workflows/weekly.yml` — publish step now copies `outputs/newsletter/` to `ios-ai-articles` content repo alongside articles, linkedin, and codegen outputs.
+- `.gitignore` — added explicit `outputs/newsletter/` entry.
+
 ## [0.2.0] - 2026-03-13
 
 ### Changed

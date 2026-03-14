@@ -20,6 +20,7 @@ __pycache__/
 
 # Generated outputs (published to saurabhdave/ios-ai-articles)
 outputs/
+outputs/newsletter/
 
 # Temp content repo clone used by CI publish step
 _content/
