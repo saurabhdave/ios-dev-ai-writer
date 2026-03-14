@@ -1,8 +1,13 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.3.0-brightgreen)
+![Version](https://img.shields.io/badge/version-0.3.3-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
+
+## 🆕 What's New — v0.3.3
+- **swiftc timeout no longer crashes the pipeline** — `TimeoutExpired` is now caught in both validators and treated as a recoverable failure; the pipeline publishes without a code snippet rather than failing the GitHub Actions run.
+- **Newsletter quality fixes (v0.3.2)** — off-topic Trend Signals filtered out, Swift code blocks no longer render double-escaped braces (`{{`), snippets capped at 25 lines, Community Picks require proper markdown hyperlinks, Big Story enforced to exactly 3 sentences.
+- **Newsletter Community Picks topic filter (v0.3.1)** — non-iOS/Apple items (hardware news, general programming) can no longer appear in the Community Picks or Trend Signals sections.
 
 ## 🚀 About
 `ios-dev-ai-writer` is an open-source Python agent pipeline that generates weekly Medium-style Apple-platform engineering articles.
@@ -214,17 +219,17 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.3.0` (see `VERSION`)
+- Current version: `0.3.3` (see `pyproject.toml` / `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
 ### Release process
-1. Update `VERSION`, `CHANGELOG.md`, and `README.md` version badge.
+1. Update `pyproject.toml`, `VERSION`, `CHANGELOG.md`, and `README.md` version badge.
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.3.0
-git push origin v0.3.0
+git tag v0.3.3
+git push origin v0.3.3
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 
