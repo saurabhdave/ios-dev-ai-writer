@@ -60,9 +60,10 @@ def _read_and_increment_issue(issue_file: Path) -> int:
 
 
 def _pick_top_trends(trends: list["TrendSignal"], max_items: int = 5) -> list["TrendSignal"]:
-    """Select top trend signals, preferring those that carry a source URL."""
-    with_url = [t for t in trends if t.url and t.url.startswith("http")]
-    without_url = [t for t in trends if not (t.url and t.url.startswith("http"))]
+    """Select top iOS-relevant trend signals, preferring those that carry a source URL."""
+    relevant = [t for t in trends if _is_ios_relevant(t)]
+    with_url = [t for t in relevant if t.url and t.url.startswith("http")]
+    without_url = [t for t in relevant if not (t.url and t.url.startswith("http"))]
     ranked = sorted(with_url, key=lambda t: t.score, reverse=True)
     ranked += sorted(without_url, key=lambda t: t.score, reverse=True)
     return ranked[:max_items]
@@ -93,13 +94,35 @@ def _pick_community_links(
     return sorted(community, key=lambda t: t.score, reverse=True)[:max_items]
 
 
+_SNIPPET_MAX_LINES = 25
+
+
 def _pick_best_snippet(codegen: dict) -> str:
-    """Return the best validated Swift snippet, preferring the direct validation path."""
+    """Return the best validated Swift snippet, capped at _SNIPPET_MAX_LINES lines.
+
+    Prefers the direct validation path (snippet compiled without a wrapper).
+    Truncates long snippets so the newsletter stays scannable.
+    """
     code = codegen.get("code", "").strip()
-    # "direct" path means the snippet compiled without a wrapper — cleanest form
-    if codegen.get("path") == "direct" and code:
+    if not code:
         return code
+    lines = code.splitlines()
+    if len(lines) > _SNIPPET_MAX_LINES:
+        code = "\n".join(lines[:_SNIPPET_MAX_LINES]) + "\n// ... (truncated for newsletter)"
     return code
+
+
+def _unescape_code_blocks(markdown: str) -> str:
+    """Fix double-escaped braces inside fenced code blocks.
+
+    Some LLMs output {{ and }} inside code blocks as if escaping Python format
+    strings. Split on ``` fences; odd-indexed parts are inside a code fence and
+    get their {{ → { and }} → } normalized.
+    """
+    parts = markdown.split("```")
+    for i in range(1, len(parts), 2):
+        parts[i] = parts[i].replace("{{", "{").replace("}}", "}")
+    return "```".join(parts)
 
 
 def _article_teaser(body: str, max_chars: int = 400) -> str:
@@ -354,7 +377,7 @@ def generate_newsletter(
         **openai_generation_kwargs(min(OPENAI_TEMPERATURE, 0.5)),
     )
 
-    newsletter_markdown = response.output_text.strip()
+    newsletter_markdown = _unescape_code_blocks(response.output_text.strip())
     if not newsletter_markdown:
         raise RuntimeError("Newsletter generation returned empty output.")
 

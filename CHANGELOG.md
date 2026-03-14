@@ -6,6 +6,16 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-03-14
+
+### Fixed
+- `_pick_top_trends` in `newsletter_agent.py` now applies the same `_is_ios_relevant` keyword filter as `_pick_community_links`, preventing off-topic signals (hardware news, general programming) from appearing in the **Trend Signals** section.
+- Added `_unescape_code_blocks()` post-processor: normalises `{{` → `{` and `}}` → `}` inside fenced code blocks after LLM generation, fixing unreadable/non-compilable Swift snippets caused by the model double-escaping curly braces.
+- `_pick_best_snippet` now caps snippets at 25 lines (adds `// ... (truncated for newsletter)` marker), preventing 100+ line article snippets from flooding the newsletter format.
+- Newsletter prompt: strengthened **This Week's Big Story** to require exactly 3 sentences (was routinely producing 2).
+- Newsletter prompt: **Community Picks** now explicitly requires `**[Title](url)**` markdown hyperlinks; plain bold titles without links are rejected.
+- Newsletter prompt: added explicit constraint that Swift braces must be single `{` `}` characters, never `{{` `}}`.
+
 ## [0.3.1] - 2026-03-14
 
 ### Fixed
