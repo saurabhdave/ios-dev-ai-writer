@@ -186,5 +186,5 @@ IMAGE_GENERATION_ENABLED = os.getenv("IMAGE_GENERATION_ENABLED", "true").lower()
     "yes",
     "on",
 }
-IMAGEN_MODEL = os.getenv("IMAGEN_MODEL", "gemini-2.5-flash-image")
+IMAGEN_MODEL = os.getenv("IMAGEN_MODEL", "gemini-3.1-flash-image-preview")
 OUTPUT_IMAGES_DIR = Path("outputs/images")
