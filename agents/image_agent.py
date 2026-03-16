@@ -1,9 +1,10 @@
-"""Image generation agent: produces a cover image for each article using Google Imagen 3."""
+"""Image generation agent: produces a cover image for each article using Google Gemini/Imagen."""
 
 from __future__ import annotations
 
 import logging
 import re
+import time
 from pathlib import Path
 
 import config
@@ -91,39 +92,62 @@ def generate_cover_image(
 
         client = genai.Client(api_key=config.GOOGLE_API_KEY)
 
-        if config.IMAGEN_MODEL.startswith("imagen-"):
-            # Dedicated Imagen model — use generate_images endpoint
-            response = client.models.generate_images(
-                model=config.IMAGEN_MODEL,
-                prompt=prompt,
-                config=genai_types.GenerateImagesConfig(
-                    number_of_images=1,
-                    aspect_ratio="16:9",
-                    safety_filter_level="BLOCK_LOW_AND_ABOVE",
-                    person_generation="DONT_ALLOW",
-                ),
-            )
-            if not response.generated_images:
-                LOGGER.warning("Imagen returned no images — skipping cover image")
-                return None
-            image_bytes = response.generated_images[0].image.image_bytes
-        else:
-            # Gemini multimodal model — use generate_content with IMAGE modality
-            response = client.models.generate_content(
-                model=config.IMAGEN_MODEL,
-                contents=prompt,
-                config=genai_types.GenerateContentConfig(
-                    response_modalities=["IMAGE", "TEXT"]
-                ),
-            )
-            image_bytes = None
-            for part in response.candidates[0].content.parts:
-                if part.inline_data is not None:
-                    image_bytes = part.inline_data.data
-                    break
-            if image_bytes is None:
-                LOGGER.warning("Gemini image model returned no image parts — skipping cover image")
-                return None
+        image_bytes: bytes | None = None
+        last_exc: Exception | None = None
+
+        for attempt in range(1, 4):  # up to 3 attempts
+            try:
+                if config.IMAGEN_MODEL.startswith("imagen-"):
+                    # Dedicated Imagen model — use generate_images endpoint
+                    response = client.models.generate_images(
+                        model=config.IMAGEN_MODEL,
+                        prompt=prompt,
+                        config=genai_types.GenerateImagesConfig(
+                            number_of_images=1,
+                            aspect_ratio="16:9",
+                            safety_filter_level="BLOCK_LOW_AND_ABOVE",
+                            person_generation="DONT_ALLOW",
+                        ),
+                    )
+                    if not response.generated_images:
+                        LOGGER.warning("Imagen returned no images — skipping cover image")
+                        return None
+                    image_bytes = response.generated_images[0].image.image_bytes
+                else:
+                    # Gemini multimodal model — pure image request, no tools/grounding
+                    response = client.models.generate_content(
+                        model=config.IMAGEN_MODEL,
+                        contents=prompt,
+                        config=genai_types.GenerateContentConfig(
+                            response_modalities=["IMAGE", "TEXT"],
+                            tools=[],  # disable grounding/tools for a clean image request
+                        ),
+                    )
+                    for part in response.candidates[0].content.parts:
+                        if part.inline_data is not None:
+                            image_bytes = part.inline_data.data
+                            break
+                    if image_bytes is None:
+                        LOGGER.warning("Gemini image model returned no image parts — skipping cover image")
+                        return None
+                break  # success — exit retry loop
+
+            except Exception as exc:  # noqa: BLE001
+                last_exc = exc
+                error_str = str(exc)
+                if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+                    retry_delay = 5 * attempt  # 5s, 10s, 15s
+                    LOGGER.warning(
+                        "Cover image rate-limited (attempt %d/3) — retrying in %ds: %s",
+                        attempt, retry_delay, error_str[:120],
+                    )
+                    time.sleep(retry_delay)
+                else:
+                    break  # non-retryable error
+
+        if image_bytes is None:
+            LOGGER.warning("Cover image generation failed: %s — continuing without image", last_exc)
+            return None
 
         PilImage.open(io.BytesIO(image_bytes)).save(str(out_path))
         LOGGER.info("Cover image saved to %s", out_path)
