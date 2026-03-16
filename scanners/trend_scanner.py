@@ -459,6 +459,30 @@ def fetch_platform_rss_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[T
     return signals[:limit]
 
 
+_WEBSEARCH_QUERIES = [
+    "top 10 trending topics in iOS development",
+    "top trending iOS Swift topics 2026",
+    "most popular iOS development topics developers",
+]
+
+
+def fetch_websearch_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
+    """Discover iOS trends via targeted web search queries (Google News RSS)."""
+    per_query_limit = max(limit // max(len(_WEBSEARCH_QUERIES), 1), 1)
+    signals: list[TrendSignal] = []
+
+    for query in _WEBSEARCH_QUERIES:
+        signals.extend(
+            _fetch_google_news_query(
+                query=query,
+                source_name="WebSearch",
+                limit=per_query_limit,
+            )
+        )
+
+    return signals[:limit]
+
+
 def fetch_custom_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
     """Fetch user-defined trend sources from scanners/custom_trends.json."""
     custom = _load_custom_trend_config()
@@ -537,6 +561,7 @@ SOURCE_FETCHERS: dict[str, Callable[[int], list[TrendSignal]]] = {
     "social": fetch_social_web_trends,
     "platforms": fetch_platform_rss_trends,
     "custom": fetch_custom_trends,
+    "websearch": fetch_websearch_trends,
 }
 
 

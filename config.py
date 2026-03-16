@@ -81,7 +81,7 @@ TREND_SOURCES = tuple(
     source.strip().lower()
     for source in os.getenv(
         "TREND_SOURCES",
-        "hackernews,reddit,apple,wwdc,viral,social,platforms,custom",
+        "hackernews,reddit,apple,wwdc,viral,social,platforms,custom,websearch",
     ).split(",")
     if source.strip()
 )

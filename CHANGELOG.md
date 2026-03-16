@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-03-16
+
+### Added
+- **WebSearch trend source** (`scanners/trend_scanner.py`): New `fetch_websearch_trends()` source runs targeted Google News RSS queries ("top 10 trending topics in iOS development", "top trending iOS Swift topics 2025", "most popular iOS development topics developers") and contributes up to `TREND_MAX_ITEMS_PER_SOURCE` signals tagged as `WebSearch`. Registered as the `websearch` key in `SOURCE_FETCHERS` and enabled by default in `TREND_SOURCES`.
+
 ## [0.6.0] - 2026-03-16
 
 ### Added

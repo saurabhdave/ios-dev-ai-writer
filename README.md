@@ -1,7 +1,7 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.6.0-brightgreen)
+![Version](https://img.shields.io/badge/version-0.7.0-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About
@@ -15,6 +15,7 @@ It discovers trends, creates a topic, builds an outline, writes the article body
   - Apple Developer docs/news release feeds
   - WWDC videos feed
   - Broader web/social sources including `x.com`, `dev.to`, and `medium.com` (query + RSS coverage)
+  - Web search queries ("top 10 trending topics in iOS development" and related) via Google News RSS
 - Priority topic interests for upcoming posts:
   - Swift async/await, Structured Concurrency, Swift 6.3 Macros
   - iOS performance architecture, and boilerplate reduction patterns
@@ -111,6 +112,7 @@ flowchart TD
     S --> S4[WWDC Feed]
     S --> S5[Viral iOS Web/Social]
     S --> S6[Custom Sources JSON]
+    S --> S7[WebSearch top iOS topics]
     C --> D[topic_agent.generate_topic]
     C --> E[outline_agent.generate_outline]
     C --> F[article_agent.generate_article]
@@ -157,7 +159,7 @@ export TREND_DISCOVERY_ENABLED="true"                             # optional
 export TREND_MAX_ITEMS_PER_SOURCE="10"                            # optional
 export TREND_HTTP_TIMEOUT_SECONDS="12"                            # optional
 export REDDIT_USER_AGENT="ios-dev-ai-writer/1.0"                  # optional
-export TREND_SOURCES="hackernews,reddit,apple,wwdc,viral,social,platforms,custom"  # optional
+export TREND_SOURCES="hackernews,reddit,apple,wwdc,viral,social,platforms,custom,websearch"  # optional
 export CUSTOM_TRENDS_FILE="scanners/custom_trends.json"           # optional
 export EDITOR_PASS_ENABLED="true"                                  # optional
 export MEDIUM_LAYOUT_REINFORCEMENT_ENABLED="true"                  # optional

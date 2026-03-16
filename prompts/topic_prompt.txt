@@ -18,14 +18,21 @@ Hard constraints:
 - Max 60 characters.
 - Focus on one clear topic (no "and", no multi-topic mashups).
 - Must be practical and professionally scoped for Apple-platform engineers.
-- Must be clearly about Apple ecosystem programming (Swift, SwiftUI, UIKit, Xcode, iOS, iPadOS, macOS, watchOS, visionOS, App Intents, WidgetKit, etc.).
+- Must be clearly about Apple ecosystem programming (Swift, SwiftUI, UIKit,Apple Intelligence, Xcode, iOS, iPadOS, macOS, watchOS, visionOS, App Intents, WidgetKit, etc.).
 - Strongly prefer these topic families when relevant:
   - Swift async/await and Structured Concurrency,
   - SwiftUI/iOS performance improvements and profiling,
+  - On-Device Personalization/Analytics,
+  - Swift 6 Adoption,
+  - Spatial Computing (ARKit & RealityKit),
   - App Intents and Apple Intelligence APIs on Apple platforms,
   - Swift 6.3 Macros and practical macro adoption patterns,
   - reducing boilerplate in real projects with maintainable Apple-platform patterns,
   - Xcode workflows and debugging/productivity tips,
+  - App Clips & Lightweight Apps,
+  - Server-Driven UI,
+  - Enhanced Privacy & Security,
+  - IoT & Wearable Integration,
   - verified Swift/SwiftUI tips and verified SwiftUI modifiers.
 - Prefer migration-focused titles when possible: deprecated/legacy Apple patterns -> modern Swift 6+ implementations.
 - Favor concrete transitions such as old API/pattern to replacement API/pattern.
