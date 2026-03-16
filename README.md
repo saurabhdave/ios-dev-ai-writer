@@ -1,7 +1,7 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.3.4-brightgreen)
+![Version](https://img.shields.io/badge/version-0.4.0-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About
@@ -37,6 +37,7 @@ It discovers trends, creates a topic, builds an outline, writes the article body
 - Code generation observability metadata (`direct|repaired|omitted` path + repair attempts)
 - Snippet-safe code validation mode with Swift-book-guided typo/unknown-symbol repairs
 - **Weekly newsletter assembly** — SwiftTribune-style developer newsletter with six sections (Opening hook, This Week's Big Story, Trend Signals, Swift Snippet of the Week, Community Picks, Closing CTA), output as both Markdown and email-safe HTML (inline styles, max-width 600px). Issue number auto-increments across runs.
+- **Google Imagen 3 cover image generation** — each run generates a 16:9 abstract tech illustration for the article topic using Google Imagen 3. Saved to `outputs/images/` and referenced via YAML frontmatter (`cover_image: images/...`) in the article markdown.
 - Structured JSON logging for local runs and GitHub Actions (`agent_name`, token usage, timing, step status)
 - Output generated locally to `outputs/` (gitignored) and auto-published to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles):
   - `outputs/articles/{date}-{slug}.md`
@@ -45,8 +46,9 @@ It discovers trends, creates a topic, builds an outline, writes the article body
   - `outputs/codegen/{date}-{slug}-codegen.json`
   - `outputs/newsletter/{date}-issue-N.md`
   - `outputs/newsletter/{date}-issue-N.html`
+  - `outputs/images/{date}-{slug}.png`
   - `outputs/quality_history.json` (append-only quality record per run)
-- GitHub Actions automation 3 days/week (Monday, Wednesday, Friday at 10:00 UTC)
+- GitHub Actions automation 2 days/week (Monday and Thursday at 10:00 UTC)
 
 ## 🧱 Project Structure
 ```text
@@ -57,6 +59,7 @@ ios-dev-ai-writer/
 │   ├── article_agent.py
 │   ├── editor_agent.py
 │   ├── code_agent.py
+│   ├── image_agent.py
 │   ├── linkedin_agent.py
 │   ├── newsletter_agent.py
 │   └── review_agent.py
@@ -82,6 +85,7 @@ ios-dev-ai-writer/
 │   ├── trends/
 │   ├── linkedin/
 │   ├── codegen/
+│   ├── images/
 │   ├── newsletter/
 │   └── quality_history.json
 ├── ios-ai-articles/          # seed config for content repo
@@ -115,6 +119,7 @@ flowchart TD
     C --> E[outline_agent.generate_outline]
     C --> F[article_agent.generate_article]
     C --> G[editor_agent.polish_article]
+    C --> IMG[image_agent.generate_cover_image]
     C --> H[code_agent.generate_code]
     C --> L[linkedin_agent.generate_linkedin_post]
     C --> NL[newsletter_agent.generate_newsletter]
@@ -127,17 +132,20 @@ flowchart TD
     L --> API
     NL --> API
     R --> API
+    IMG --> GAPI[Google Imagen 3 API]
     C --> I[Markdown Composer]
     I --> J[outputs/articles/date-slug.md]
     C --> K[outputs/trends/timestamp-trend-signals.json]
     C --> M[outputs/linkedin/date-slug-linkedin.md]
     C --> N[outputs/codegen/date-slug-codegen.json]
+    IMG --> IM[outputs/images/date-slug.png]
     NL --> NW[outputs/newsletter/date-issue-N.md + .html]
     R --> O[outputs/quality_history.json]
     J --> P[saurabhdave/ios-ai-articles]
     M --> P
     N --> P
     NW --> P
+    IM --> P
 ```
 
 ## ⚙️ Setup
@@ -179,6 +187,9 @@ export CODEGEN_VALIDATION_MODE="snippet"                           # optional: s
 export SELF_REVIEW_ENABLED="true"                                  # optional: run LLM self-review after generation
 export OUTPUT_QUALITY_HISTORY_PATH="outputs/quality_history.json"  # optional: path for per-run quality metrics
 export PIPELINE_LOG_LEVEL="INFO"                                   # optional: DEBUG|INFO|WARNING|ERROR
+export GOOGLE_API_KEY="your_google_api_key"                        # optional: enables Imagen 3 cover image generation
+export IMAGE_GENERATION_ENABLED="true"                             # optional: set to false to skip image generation
+export IMAGEN_MODEL="imagen-3.0-generate-001"                      # optional: Imagen model name
 ```
 
 ## ▶️ Run Locally
@@ -195,6 +206,7 @@ Generated outputs (written to `outputs/` locally — gitignored, not committed t
 - `outputs/codegen/YYYY-MM-DD-your-topic-slug-codegen.json`
 - `outputs/newsletter/YYYY-MM-DD-issue-N.md`
 - `outputs/newsletter/YYYY-MM-DD-issue-N.html`
+- `outputs/images/YYYY-MM-DD-your-topic-slug.png`
 - `outputs/quality_history.json` (appended each run)
 
 When run via GitHub Actions, all outputs are automatically pushed to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles).
@@ -214,7 +226,7 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.3.4` (see `pyproject.toml` / `VERSION`)
+- Current version: `0.4.0` (see `pyproject.toml` / `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
@@ -223,25 +235,26 @@ LinkedIn query example:
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.3.4
-git push origin v0.3.4
+git tag v0.4.0
+git push origin v0.4.0
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 
 ## 🤖 GitHub Automation
-The workflow `.github/workflows/weekly.yml` runs every Monday, Wednesday, and Friday at 10:00 UTC.
+The workflow `.github/workflows/weekly.yml` runs every Monday and Thursday at 10:00 UTC.
 
 Workflow steps:
 1. Checkout repository
 2. Set up Python 3.11
-3. Install dependencies from `pyproject.toml`
+3. Install dependencies (`openai`, `google-generativeai`, and others)
 4. Run `python main.py`
-5. Publish `outputs/articles/`, `outputs/linkedin/`, `outputs/codegen/`, and `outputs/newsletter/` to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles) via `DEPLOY_TOKEN`
+5. Publish `outputs/articles/`, `outputs/linkedin/`, `outputs/codegen/`, `outputs/newsletter/`, and `outputs/images/` to [`saurabhdave/ios-ai-articles`](https://github.com/saurabhdave/ios-ai-articles) via `DEPLOY_TOKEN`
 6. Commit and push any remaining changes (e.g. `outputs/trends/`) to this repo
 
 Required repository secrets:
 - `OPENAI_API_KEY`
 - `DEPLOY_TOKEN` — GitHub PAT with `contents: write` on `saurabhdave/ios-ai-articles`
+- `GOOGLE_API_KEY` — Google AI Studio API key for Imagen 3 cover image generation
 
 ## 📄 License
 MIT License. See `LICENSE`.
