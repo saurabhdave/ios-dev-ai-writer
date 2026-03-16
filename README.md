@@ -215,7 +215,7 @@ LinkedIn query example:
 ```
 
 ## 🏷️ Versioning
-- Current version: `0.4.0` (see `pyproject.toml` / `VERSION`)
+- Current version: `0.5.0` (see `pyproject.toml` / `VERSION`)
 - Versioning scheme: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 - Release notes source: `CHANGELOG.md`
 
@@ -224,8 +224,8 @@ LinkedIn query example:
 2. Commit changes.
 3. Create and push a version tag:
 ```bash
-git tag v0.4.0
-git push origin v0.4.0
+git tag v0.5.0
+git push origin v0.5.0
 ```
 4. GitHub Action `.github/workflows/release.yml` creates a GitHub Release automatically.
 
