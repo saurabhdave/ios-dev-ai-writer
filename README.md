@@ -189,7 +189,7 @@ export OUTPUT_QUALITY_HISTORY_PATH="outputs/quality_history.json"  # optional: p
 export PIPELINE_LOG_LEVEL="INFO"                                   # optional: DEBUG|INFO|WARNING|ERROR
 export GOOGLE_API_KEY="your_google_api_key"                        # optional: enables Imagen 3 cover image generation
 export IMAGE_GENERATION_ENABLED="true"                             # optional: set to false to skip image generation
-export IMAGEN_MODEL="imagen-3.0-generate-001"                      # optional: Imagen model name
+export IMAGEN_MODEL="gemini-2.5-flash-image"                       # optional: Gemini image model (default) or imagen-4.0-generate-001 (requires paid plan)
 ```
 
 ## ▶️ Run Locally

@@ -69,9 +69,10 @@ def generate_cover_image(
     Returns the saved Path on success, or None if image generation is skipped or fails.
     """
     try:
-        import google.generativeai as genai  # noqa: PLC0415
+        from google import genai  # noqa: PLC0415
+        from google.genai import types as genai_types  # noqa: PLC0415
     except ImportError:
-        LOGGER.warning("google-generativeai not installed — skipping cover image generation")
+        LOGGER.warning("google-genai not installed — skipping cover image generation")
         return None
 
     if not config.GOOGLE_API_KEY:
@@ -85,20 +86,46 @@ def generate_cover_image(
     LOGGER.info("Generating cover image for topic=%r model=%s", topic, config.IMAGEN_MODEL)
 
     try:
-        genai.configure(api_key=config.GOOGLE_API_KEY)
-        model = genai.ImageGenerationModel(config.IMAGEN_MODEL)
-        result = model.generate_images(
-            prompt=prompt,
-            number_of_images=1,
-            aspect_ratio="16:9",
-            safety_filter_level="block_few",
-            person_generation="dont_allow",
-        )
-        if not result.images:
-            LOGGER.warning("Imagen returned no images — skipping cover image")
-            return None
+        import io  # noqa: PLC0415
+        from PIL import Image as PilImage  # noqa: PLC0415
 
-        result.images[0]._pil_image.save(str(out_path))
+        client = genai.Client(api_key=config.GOOGLE_API_KEY)
+
+        if config.IMAGEN_MODEL.startswith("imagen-"):
+            # Dedicated Imagen model — use generate_images endpoint
+            response = client.models.generate_images(
+                model=config.IMAGEN_MODEL,
+                prompt=prompt,
+                config=genai_types.GenerateImagesConfig(
+                    number_of_images=1,
+                    aspect_ratio="16:9",
+                    safety_filter_level="BLOCK_LOW_AND_ABOVE",
+                    person_generation="DONT_ALLOW",
+                ),
+            )
+            if not response.generated_images:
+                LOGGER.warning("Imagen returned no images — skipping cover image")
+                return None
+            image_bytes = response.generated_images[0].image.image_bytes
+        else:
+            # Gemini multimodal model — use generate_content with IMAGE modality
+            response = client.models.generate_content(
+                model=config.IMAGEN_MODEL,
+                contents=prompt,
+                config=genai_types.GenerateContentConfig(
+                    response_modalities=["IMAGE", "TEXT"]
+                ),
+            )
+            image_bytes = None
+            for part in response.candidates[0].content.parts:
+                if part.inline_data is not None:
+                    image_bytes = part.inline_data.data
+                    break
+            if image_bytes is None:
+                LOGGER.warning("Gemini image model returned no image parts — skipping cover image")
+                return None
+
+        PilImage.open(io.BytesIO(image_bytes)).save(str(out_path))
         LOGGER.info("Cover image saved to %s", out_path)
         return out_path
 
