@@ -6,6 +6,20 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-03-16
+
+### Added
+- **Brace-balance diagnostic in code repair loop** (`agents/code_agent.py`): Added `_brace_balance_diagnostic()` helper that counts `{}`, `[]`, `()` open/close pairs and emits a human-readable message (e.g. "Unbalanced `{}`: 5 opens, 3 closes (2 extra opens)") when mismatched. Injected into the repair loop's combined diagnostics so the repair model has a precise, actionable target instead of cryptic swiftc parse errors.
+- **Article-grounded code generation** (`agents/code_agent.py`, `workflows/weekly_pipeline.py`, `prompts/code_prompt.txt`): `generate_code_with_metadata` now accepts an `article_body` parameter. Added `_article_excerpt()` helper that extracts `### Implementation Pattern` subsections (or falls back to plain truncation at 1200 chars) and injects them into the code prompt as "Article context". Pipeline passes `polished_article` so the snippet illustrates the article's actual patterns rather than guessing from the title alone.
+
+### Fixed
+- **`@Bindable`-inside-`@Observable` repair reliability** (`agents/code_agent.py`, `prompts/code_prompt.txt`): The repair model was moving `@Bindable` around rather than removing it from the model. Fixed by:
+  - Replacing the abstract one-line rule in the repair prompt with a concrete `WRONG`/`CORRECT` before-after example
+  - Upgrading `_observation_style_diagnostics` to extract and name the specific offending properties (e.g. "Remove `@Bindable` from model properties (`rating`, `label`)...")
+  - Adding a concrete `WRONG`/`CORRECT` example block directly in `code_prompt.txt`
+- **`str.format()` crash on Swift code in article body** (`agents/code_agent.py`): Article prose containing `{` and `}` (Swift format strings, closure syntax) caused `KeyError` when injected via `.format()`. Fixed with a two-step substitution: `.format()` uses a sentinel `__ARTICLE_CTX__` for the article slot, then a plain `str.replace()` injects the raw excerpt after format has run.
+- **Literal `{ }` in prompt template** (`prompts/code_prompt.txt`): The brace-balance reminder line contained `{ }` which Python's `str.format()` parsed as a format placeholder. Escaped to `{{ }}`.
+
 ## [0.8.0] - 2026-03-16
 
 ### Changed

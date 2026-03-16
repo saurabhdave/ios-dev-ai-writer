@@ -27,6 +27,8 @@ from utils.openai_logging import create_openai_client, responses_create_logged
 
 PROMPT_PATH = Path("prompts/code_prompt.txt")
 LOGGER = get_logger("pipeline.code")
+_IMPL_PATTERN_RE = re.compile(r"###\s+Implementation Pattern\b", re.IGNORECASE)
+_ARTICLE_EXCERPT_MAX_CHARS = 1200
 IOS_SIMULATOR_TARGET = "arm64-apple-ios16.0-simulator"
 SWIFT_BOOK_ABOUT_URL = (
     "https://docs.swift.org/swift-book/documentation/the-swift-programming-language/aboutswift/"
@@ -65,6 +67,19 @@ class CodeGenerationResult:
 def _load_prompt_template() -> str:
     """Load the code generation prompt template."""
     return PROMPT_PATH.read_text(encoding="utf-8")
+
+
+def _article_excerpt(body: str, max_chars: int = _ARTICLE_EXCERPT_MAX_CHARS) -> str:
+    """Extract the most codeable section from the article body for prompt grounding."""
+    sections: list[str] = []
+    for match in _IMPL_PATTERN_RE.finditer(body):
+        start = match.start()
+        next_heading = re.search(r"\n##", body[start + 1:])
+        end = start + 1 + next_heading.start() if next_heading else len(body)
+        sections.append(body[start:end].strip())
+    if sections:
+        return "\n\n".join(sections)[:max_chars]
+    return body[:max_chars]
 
 
 def _clean_generated_code(raw: str) -> str:
@@ -316,12 +331,35 @@ def _observation_style_diagnostics(code: str) -> str:
             break
 
     if re.search(OBSERVABLE_BINDABLE_MISUSE_PATTERN, code):
+        bindable_vars = re.findall(r"@Bindable\s+var\s+(\w+)", code)
+        names = ", ".join(f"`{n}`" for n in bindable_vars[:5]) if bindable_vars else "one or more properties"
         issues.append(
-            "Do not use `@Bindable` on properties inside an `@Observable` type; "
-            "use plain stored properties in models."
+            f"Remove `@Bindable` from model properties ({names}) inside `@Observable` — "
+            "keep them as plain stored properties. "
+            "Move `@Bindable` to the SwiftUI View that holds a reference to this model: "
+            "`struct MyView: View { @Bindable var model: MyModel }`."
         )
 
     return "\n".join(dict.fromkeys(issues))
+
+
+_BRACE_PAIRS = {"(": ")", "[": "]", "{": "}"}
+
+
+def _brace_balance_diagnostic(code: str) -> str:
+    """Return a human-readable message when brace/bracket/paren pairs are unbalanced."""
+    issues: list[str] = []
+    for open_ch, close_ch in _BRACE_PAIRS.items():
+        opens = code.count(open_ch)
+        closes = code.count(close_ch)
+        if opens != closes:
+            diff = opens - closes
+            direction = "extra opens" if diff > 0 else "extra closes"
+            issues.append(
+                f"Unbalanced `{open_ch}{close_ch}`: {opens} opens, {closes} closes "
+                f"({abs(diff)} {direction})."
+            )
+    return "\n".join(issues)
 
 
 def _unknown_api_diagnostics(code: str) -> str:
@@ -367,8 +405,12 @@ def _repair_code(
         "`@EnvironmentObject` unless this snippet is explicitly about legacy migration.\n"
         "- For owned observable instances in SwiftUI views, prefer `@State`.\n"
         "- Use `@Bindable` only where `$` bindings are needed.\n"
-        "- Do not annotate properties inside an `@Observable` type with `@Bindable`.\n"
+        "- CRITICAL `@Bindable` fix: NEVER put `@Bindable` on properties inside an `@Observable` type.\n"
+        "  WRONG:   @Observable class M { @Bindable var x: Int = 0 }\n"
+        "  CORRECT: @Observable class M { var x: Int = 0 }   // plain stored property\n"
+        "           struct V: View { @Bindable var m: M }     // @Bindable only in the View\n"
         "- Keep comments concise and useful.\n"
+        "- Count all `{`, `}`, `[`, `]`, `(`, `)` pairs and ensure they are balanced before returning.\n"
         "- Keep it practical for a Medium article.\n"
         "- Avoid undefined placeholder model types unless you define them.\n"
         "- Remove unresolved placeholders such as <# ... #>.\n"
@@ -387,17 +429,30 @@ def _repair_code(
     return _clean_generated_code(response.output_text)
 
 
-def generate_code_with_metadata(topic: str) -> CodeGenerationResult:
+def generate_code_with_metadata(topic: str, article_body: str = "") -> CodeGenerationResult:
     """Generate Swift code and return validation-path metadata."""
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set.")
 
     client = create_openai_client()
-    prompt = _load_prompt_template().format(
+    article_context = ""
+    if article_body.strip():
+        excerpt = _article_excerpt(article_body)
+        article_context = (
+            "Article context — implement one of the concrete patterns described below:\n"
+            f"{excerpt}\n\n"
+        )
+    # Two-step substitution: .format() handles safe scalar fields first (sentinel keeps
+    # the article_context slot intact so Swift braces in the excerpt never reach .format()).
+    # Step 1: substitute topic/version fields; article_context slot becomes the sentinel.
+    base = _load_prompt_template().format(
         topic=topic,
+        article_context="__ARTICLE_CTX__",
         swift_language_version=SWIFT_LANGUAGE_VERSION,
         swift_language_mode=SWIFT_COMPILER_LANGUAGE_MODE,
     )
+    # Step 2: replace sentinel with raw article context (may contain unescaped braces).
+    prompt = base.replace("__ARTICLE_CTX__", article_context)
 
     response = responses_create_logged(
         client,
@@ -429,10 +484,16 @@ def generate_code_with_metadata(topic: str) -> CodeGenerationResult:
             diagnostics_excerpt=(diagnostics or style_diagnostics)[-500:],
             has_style_diagnostics=bool(style_diagnostics),
         )
+        brace_diag = _brace_balance_diagnostic(code)
         combined_diagnostics = diagnostics
+        extra_parts = []
         if style_diagnostics:
+            extra_parts.append(f"Observation style diagnostics:\n{style_diagnostics}")
+        if brace_diag:
+            extra_parts.append(f"Brace balance diagnostics:\n{brace_diag}")
+        if extra_parts:
             combined_diagnostics = (
-                f"{combined_diagnostics}\n\nObservation style diagnostics:\n{style_diagnostics}"
+                combined_diagnostics + "\n\n" + "\n\n".join(extra_parts)
             ).strip()
         repaired_code = _repair_code(
             client=client,
@@ -523,6 +584,6 @@ def generate_code_with_metadata(topic: str) -> CodeGenerationResult:
     )
 
 
-def generate_code(topic: str) -> str:
+def generate_code(topic: str, article_body: str = "") -> str:
     """Backward-compatible code-only API."""
-    return generate_code_with_metadata(topic).code
+    return generate_code_with_metadata(topic, article_body=article_body).code

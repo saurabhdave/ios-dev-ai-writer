@@ -680,7 +680,7 @@ def run_weekly_pipeline() -> Path:
             polished_article = _sanitize_body_urls(polished_article)
 
         with timed_step(LOGGER, "generate_code", topic=topic) as step:
-            code_result = generate_code_with_metadata(topic)
+            code_result = generate_code_with_metadata(topic, article_body=polished_article)
             code = code_result.code
             step["code_path"] = code_result.path
             step["repair_attempts"] = code_result.repair_attempts

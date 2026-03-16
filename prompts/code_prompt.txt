@@ -3,6 +3,7 @@ You are a senior iOS engineer.
 Topic:
 "{topic}"
 
+{article_context}
 Generate one production-quality Swift/SwiftUI example that matches the topic.
 
 Requirements:
@@ -15,8 +16,12 @@ Requirements:
   - use plain stored properties instead of `@Published`,
   - use `@State` for owned observable instances in views,
   - use `@Bindable` only when bindings (`$`) are required.
-- Do not annotate properties inside an `@Observable` type with `@Bindable`; keep model properties plain.
-- Use `@Bindable` in SwiftUI `View` consumers only (for non-owned observable inputs requiring `$` bindings).
+- CRITICAL — @Bindable/@Observable placement (violating this causes validation failure):
+  WRONG — never put @Bindable on properties inside @Observable:
+      @Observable class MyModel { @Bindable var count: Int = 0 }
+  CORRECT — plain stored properties in the model; @Bindable only in the View:
+      @Observable class MyModel { var count: Int = 0 }
+      struct MyView: View { @Bindable var model: MyModel }
 - Do not use `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`
   unless the topic is explicitly demonstrating legacy migration from those patterns.
 - Include `import Observation` when using `@Observable`.
@@ -28,5 +33,6 @@ Requirements:
 - Do not include `@main` app entry point unless the topic explicitly requires it.
 - Include all required imports for used APIs.
 - Do not reference undefined generated model classes (e.g., placeholder Core ML types) unless you define them in the snippet.
+- Ensure all {{ }} [ ] ( ) pairs are balanced — complex closures and TaskGroup bodies are common sources of mismatches.
 - Follow Swift language syntax and conventions from the official Swift book:
   https://docs.swift.org/swift-book/documentation/the-swift-programming-language/aboutswift/
