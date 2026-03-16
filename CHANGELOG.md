@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-03-16
+
+### Removed
+- **Cover image generation** (`agents/image_agent.py`) removed entirely. `GOOGLE_API_KEY`, `IMAGE_GENERATION_ENABLED`, `IMAGEN_MODEL`, and `OUTPUT_IMAGES_DIR` config vars dropped. `google-genai` and `pillow` removed from GitHub Actions install step. `outputs/images/` directory and all YAML frontmatter `cover_image` fields removed from the pipeline.
+
 ## [0.4.0] - 2026-03-16
 
 ### Added
