@@ -1,7 +1,7 @@
 # ios-dev-ai-writer ✍️📱
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-0.5.0-brightgreen)
+![Version](https://img.shields.io/badge/version-0.6.0-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ## 🚀 About

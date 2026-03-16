@@ -14,7 +14,7 @@ Rewrite this draft into a polished, professional Medium-ready article body.
 
 Hard constraints:
 - Keep markdown format with clear ## and ### headings.
-- Capitalize section headings (avoid lowercase-only headings like `## why ...`).
+- Use title case for section headings (e.g., `## Why This Matters For iOS Teams`, NOT `## WHY THIS MATTERS`). Never use all-uppercase headings.
 - Ensure core sections use numbered `##` headings (`## 1. ...`, `## 2. ...`).
 - Keep paragraphs short (2-4 lines max).
 - Keep tone senior, practical, and precise.
@@ -35,6 +35,7 @@ Hard constraints:
   - a concrete Apple API/tool/framework callout,
   - a decision criterion ("when to choose this vs alternatives"),
   - at least one operational/testing/observability note.
+- Ensure ALL Swift API names, types, methods, and properties in prose use inline backtick formatting: `withCheckedThrowingContinuation`, `@Observable`, `URLSession.data(for:)`, `TaskGroup`, `actor`, etc. If any API name appears without backticks, add them.
 - Strengthen real-world perspective: mention rollout, failure modes, backward compatibility, debugging, or maintainability where relevant.
 - Ensure recommendations are verifiable and defensible for senior engineers; avoid unsupported certainty.
 - Where uncertainty exists, rewrite with explicit assumptions or limits.

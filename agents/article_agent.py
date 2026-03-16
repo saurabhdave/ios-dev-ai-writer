@@ -12,6 +12,48 @@ from utils.openai_logging import create_openai_client, responses_create_logged
 
 PROMPT_PATH = Path("prompts/article_prompt.txt")
 LOGGER = get_logger("pipeline.article")
+
+# Regex that matches common Swift API names NOT already wrapped in backticks.
+# Splitting on fenced code blocks first keeps the replacements in prose only.
+_SWIFT_API_RE = re.compile(
+    r"(?<!`)"
+    r"("
+    # @ attributes
+    r"@(?:Observable|MainActor|Sendable|Published|StateObject|ObservedObject"
+    r"|EnvironmentObject|Bindable|State\b|Binding\b|Environment\b"
+    r"|discardableResult|objc\b)"
+    # Swift Concurrency
+    r"|withCheckedThrowingContinuation\b"
+    r"|withCheckedContinuation\b"
+    r"|withUnsafeThrowingContinuation\b"
+    r"|withUnsafeContinuation\b"
+    r"|withThrowingTaskGroup\b"
+    r"|withTaskGroup\b"
+    r"|AsyncStream\b|AsyncThrowingStream\b|AsyncSequence\b"
+    r"|AsyncIteratorProtocol\b|CheckedContinuation\b|CancellationError\b"
+    r"|Task\.isCancelled\b|Task\.cancel\b|Task\.detached\b|Task\.sleep\b"
+    r"|TaskGroup\b|DiscardingTaskGroup\b"
+    # URLSession
+    r"|URLSession\.data\(for:\)|URLSession\.bytes\(from:\)"
+    r"|URLSession\.shared\b|URLSessionTaskMetrics\b|URLProtocol\b"
+    # Common SwiftUI / Foundation
+    r"|NavigationStack\b|LazyVStack\b|LazyHStack\b"
+    r"|DispatchQueue\.main\b|DispatchQueue\.global\b"
+    r")"
+)
+_CODE_FENCE_RE = re.compile(r"(```[\s\S]*?```)", re.MULTILINE)
+
+
+def apply_swift_backticks(markdown: str) -> str:
+    """Wrap known Swift API names in inline backticks, skipping fenced code blocks."""
+    parts = _CODE_FENCE_RE.split(markdown)
+    result = []
+    for i, part in enumerate(parts):
+        if i % 2 == 1:  # inside a fenced code block — leave untouched
+            result.append(part)
+        else:
+            result.append(_SWIFT_API_RE.sub(r"`\1`", part))
+    return "".join(result)
 APPLE_SPECIFIC_SIGNALS = (
     "swiftui",
     "uikit",
@@ -84,6 +126,7 @@ def _normalize_article(markdown: str) -> str:
         article = "\n".join(article.splitlines()[1:]).strip()
     article = _remove_reference_sections(article)
     article = _remove_unapproved_links(article)
+    article = apply_swift_backticks(article)
     return article
 
 

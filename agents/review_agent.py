@@ -61,14 +61,20 @@ def review_article(topic: str, article: str) -> dict:
     prompt_template = PROMPT_PATH.read_text(encoding="utf-8")
     prompt = prompt_template.format(topic=topic, article=article)
 
-    response = responses_create_logged(
-        client,
-        agent_name="review_agent",
-        operation="review_article",
-        model=OPENAI_MODEL,
-        max_output_tokens=600,
-        input=prompt,
-        **openai_generation_kwargs(min(OPENAI_TEMPERATURE, 0.3)),
-    )
+    for attempt in range(2):
+        response = responses_create_logged(
+            client,
+            agent_name="review_agent",
+            operation="review_article",
+            model=OPENAI_MODEL,
+            max_output_tokens=900,
+            input=prompt,
+            **openai_generation_kwargs(min(OPENAI_TEMPERATURE, 0.3)),
+        )
+        result = _parse_review_json(response.output_text or "")
+        # Retry once if the first attempt produced a parse error (truncated JSON)
+        if attempt == 0 and result.get("overall_quality", 0) == 0 and result.get("issues") and str(result["issues"][0]).startswith("parse_error:"):
+            continue
+        return result
 
-    return _parse_review_json(response.output_text or "")
+    return result

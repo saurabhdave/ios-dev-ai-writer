@@ -10,6 +10,7 @@ from openai import OpenAI
 
 from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
 from utils.openai_logging import create_openai_client, responses_create_logged
+from agents.article_agent import apply_swift_backticks
 
 PROMPT_PATH = Path("prompts/editor_prompt.txt")
 LAYOUT_REPAIR_PROMPT_PATH = Path("prompts/layout_repair_prompt.txt")
@@ -61,7 +62,7 @@ def _render_model_response(
     text = response.output_text.strip()
     if text.startswith("# "):
         text = "\n".join(text.splitlines()[1:]).strip()
-    return text
+    return apply_swift_backticks(text)
 
 
 @dataclass(frozen=True)
@@ -200,7 +201,9 @@ def assess_medium_layout(article: str, min_score: int = 7) -> LayoutAssessment:
     if _contains_blockquote(body):
         score += 1
     else:
-        issues.append("Add one short pull-quote style insight using markdown blockquote.")
+        message = "Add one short pull-quote style insight using markdown blockquote."
+        issues.append(message)
+        required_issues.append(message)
 
     sentence_counts = [_sentence_count(paragraph) for paragraph in paragraphs if paragraph]
     average_sentences = sum(sentence_counts) / len(sentence_counts) if sentence_counts else 0

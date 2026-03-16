@@ -16,8 +16,10 @@ Score each dimension from 1 (poor) to 10 (excellent) using these criteria:
 - actionability: Are decision criteria explicit ("use X when...", "avoid Y when...")? Are concrete Apple tools and frameworks called out by name? Can a reader act on this advice immediately in a real project?
 
 Also provide:
-- issues: A list of specific, concrete problems found (e.g., "Closing takeaway is plain text, not under a ## heading", "No concrete decision criteria in section 2"). Empty list if none.
-- strengths: A list of specific things done well (e.g., "Clear withCheckedContinuation vs AsyncStream decision matrix"). Empty list if none.
+- issues: A list of specific, concrete problems found (e.g., "Closing takeaway is plain text, not under a ## heading", "No concrete decision criteria in section 2"). Empty list if none. Keep each item under 20 words.
+- strengths: A list of specific things done well (e.g., "Clear withCheckedContinuation vs AsyncStream decision matrix"). Empty list if none. Keep each item under 20 words.
 
-Return exactly this JSON shape:
+Important: A Swift code block is appended separately after the article body — do NOT flag missing inline code as an issue if the article uses inline backtick API references (e.g., `withCheckedThrowingContinuation`) in prose.
+
+Return exactly this JSON shape with no extra text, no markdown fences:
 {{"overall_quality": 0, "technical_depth": 0, "actionability": 0, "issues": [], "strengths": []}}

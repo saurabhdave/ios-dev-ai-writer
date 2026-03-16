@@ -119,6 +119,75 @@ LOW_SIGNAL_TITLE_PATTERNS = [
 
 LOGGER = get_logger("pipeline.workflow")
 
+# Static Apple/Swift documentation seeds.
+# Each entry: (topic_keywords, source_label, link_title, url)
+# Keywords are matched case-insensitively as substrings of the article topic.
+_APPLE_DOC_SEEDS: list[tuple[frozenset[str], str, str, str]] = [
+    (frozenset({"concurr", "async", "await", "task", "actor", "continuation", "structured concurr"}),
+     "Apple Documentation", "Swift Concurrency",
+     "https://developer.apple.com/documentation/swift/concurrency"),
+    (frozenset({"asyncsequence", "asyncstream", "asynciterator"}),
+     "Apple Documentation", "AsyncSequence",
+     "https://developer.apple.com/documentation/swift/asyncsequence"),
+    (frozenset({"urlsession", "networking", "network", "http request", "completion handler"}),
+     "Apple Documentation", "URLSession",
+     "https://developer.apple.com/documentation/foundation/urlsession"),
+    (frozenset({"swiftui", "swiftui view", "navigationstack", "lazyvstack"}),
+     "Apple Documentation", "SwiftUI",
+     "https://developer.apple.com/documentation/swiftui"),
+    (frozenset({"observable", "observation", "@observable"}),
+     "Apple Documentation", "Observation",
+     "https://developer.apple.com/documentation/observation"),
+    (frozenset({"app intent", "siri", "shortcuts", "appintent"}),
+     "Apple Documentation", "App Intents",
+     "https://developer.apple.com/documentation/appintents"),
+    (frozenset({"delegate", "uikit", "uiviewcontroller", "uitableview", "uikit delegate"}),
+     "Apple Documentation", "UIKit",
+     "https://developer.apple.com/documentation/uikit"),
+    (frozenset({"combine", "publisher", "subscriber", "passthrough"}),
+     "Apple Documentation", "Combine",
+     "https://developer.apple.com/documentation/combine"),
+    (frozenset({"kvo", "key-value", "key value observ", "nsobject"}),
+     "Apple Documentation", "Key-Value Observing",
+     "https://developer.apple.com/documentation/swift/using-key-value-observing-in-swift"),
+    (frozenset({"notificationcenter", "nsnotification", "notification observer"}),
+     "Apple Documentation", "NotificationCenter",
+     "https://developer.apple.com/documentation/foundation/notificationcenter"),
+    (frozenset({"instruments", "metrickit", "os_signpost", "signpost", "profil", "time profiler"}),
+     "Apple Documentation", "Instruments Help",
+     "https://developer.apple.com/documentation/xcode/gathering-information-for-debugging"),
+    (frozenset({"macro", "swift macro", "@attached", "@freestanding"}),
+     "Apple Documentation", "Swift Macros",
+     "https://developer.apple.com/documentation/swift/macros"),
+    (frozenset({"widgetkit", "widget", "home screen widget"}),
+     "Apple Documentation", "WidgetKit",
+     "https://developer.apple.com/documentation/widgetkit"),
+    (frozenset({"swiftdata", "swift data", "persistenc", "core data"}),
+     "Apple Documentation", "SwiftData",
+     "https://developer.apple.com/documentation/swiftdata"),
+]
+
+_SWIFT_ORG_SEED = ("Swift.org", "Swift Documentation", "https://www.swift.org/documentation/")
+
+
+def _seed_reference_items(topic: str) -> list[tuple[str, str, str]]:
+    """Return (source, title, url) tuples for Apple/Swift docs relevant to the topic."""
+    lowered = topic.lower()
+    results: list[tuple[str, str, str]] = []
+    seen_urls: set[str] = set()
+
+    for keywords, source, title, url in _APPLE_DOC_SEEDS:
+        if url not in seen_urls and any(kw in lowered for kw in keywords):
+            results.append((source, title, url))
+            seen_urls.add(url)
+
+    # Always include the general Swift docs page as a stable foundation reference.
+    swift_url = _SWIFT_ORG_SEED[2]
+    if swift_url not in seen_urls:
+        results.append(_SWIFT_ORG_SEED)
+
+    return results
+
 REFERENCE_EXCLUSION_PATTERNS = [
     r"\bai\b",
     r"\bagent(s)?\b",
@@ -375,9 +444,18 @@ def _references_for_prompt(
     if not lines and topic:
         # Fallback so generation never has empty context when strict matching yields no hits.
         lines = _collect(apply_topic_filter=False)
+
+    # Always append static Apple/Swift doc seeds so agents have stable grounding anchors.
+    if topic:
+        seen_in_lines = {line.split("| ")[-1].strip() for line in lines if "| http" in line}
+        for source, title_str, url in _seed_reference_items(topic):
+            if url not in seen_in_lines:
+                lines.append(f"- [{source}] {title_str} | {url}")
+                seen_in_lines.add(url)
+
     if not lines:
         return "- None"
-    return "\n".join(lines)
+    return "\n".join(lines[:max_items])
 
 
 def _compose_markdown(
@@ -387,7 +465,12 @@ def _compose_markdown(
     trends: list[TrendSignal],
 ) -> str:
     """Compose final Medium-ready markdown output."""
-    references = _reference_items(trends, topic=title, max_items=10)
+    trend_refs = _reference_items(trends, topic=title, max_items=8)
+    seed_refs = _seed_reference_items(title)
+    # Merge: trend-sourced refs first, then seeds not already present
+    seen_urls = {url for _, _, url in trend_refs}
+    merged_refs = trend_refs + [(s, t, u) for s, t, u in seed_refs if u not in seen_urls]
+    references = merged_refs[:10]
     references_block = (
         "\n".join(f"- [{ref_title}]({ref_url})" for _, ref_title, ref_url in references)
         if references
@@ -631,7 +714,7 @@ def run_weekly_pipeline() -> Path:
 
         with timed_step(LOGGER, "append_quality_history", topic=topic):
             slug = _slugify(topic)
-            has_refs = bool(_reference_items(trends, topic=topic, max_items=1))
+            has_refs = bool(_reference_items(trends, topic=topic, max_items=1)) or bool(_seed_reference_items(topic))
             quality_record = {
                 "date": datetime.now(timezone.utc).date().isoformat(),
                 "slug": slug,

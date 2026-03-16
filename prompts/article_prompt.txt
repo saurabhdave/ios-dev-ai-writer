@@ -17,7 +17,7 @@ Hard requirements:
 - Audience: intermediate to senior iOS developers.
 - Tone: professional, practical, and precise.
 - Use clear ## and ### headings, following the outline order.
-- Capitalize section headings (avoid lowercase-only headings like `## why ...`).
+- Use title case for section headings (e.g., `## Why This Matters For iOS Teams`, NOT `## WHY THIS MATTERS`). Never use all-uppercase headings.
 - Format core sections as numbered `##` headings (for example: `## 1. ...`, `## 2. ...`).
 - Keep paragraphs short and readable (prefer 2-4 sentences each).
 - Start with a concise hook intro before the first `##` heading.
@@ -36,7 +36,9 @@ Hard requirements:
   - one concrete Apple API/tool/framework name,
   - one architecture decision criterion ("choose X when..., choose Y when..."),
   - one production concern (testing, observability, rollout, migration, or failure handling).
-- Include at least one section that covers validation/operations (XCTest strategy, Instruments, logging, monitoring, rollout gates).
+- Always format Swift API names, types, methods, and properties using inline backtick code: write `withCheckedThrowingContinuation`, NOT withCheckedThrowingContinuation. Write `@Observable`, NOT @Observable. Write `URLSession.data(for:)`, NOT URLSession.data(for:). Every API name mentioned in prose MUST use backtick formatting.
+- Include at least one section that covers validation/operations (XCTest async expectations, Instruments Time Profiler/Allocations template, os_signpost for marking async boundaries, MetricKit for post-release signals, os_log structured logging, rollout gates).
+- For any Swift language feature or framework API introduced after iOS 15 / Swift 5.5, state the minimum Swift version or iOS deployment target in the relevant section (e.g., "requires iOS 17+ / Swift 5.9").
 - Prefer specific implementation details over abstract principles.
 - Avoid generic phrases like "best practices", "in today's fast-paced world", "it is important to", "leverage", or "game-changer".
 - Keep recommendations verifiable: tie concrete guidance to Apple APIs/tools, known engineering constraints, or allowed references.

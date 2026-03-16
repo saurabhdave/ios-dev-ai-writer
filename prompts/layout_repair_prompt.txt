@@ -17,6 +17,7 @@ Rewrite the article body so it satisfies the feedback while preserving technical
 
 Hard constraints:
 - Keep markdown only. No top-level `#` title.
+- Use title case for section headings (e.g., `## Why This Matters`, NOT `## WHY THIS MATTERS`). Never use all-uppercase headings.
 - No URLs or markdown links in the body.
 - No code fences in the body.
 - Keep a strong Medium-style flow:

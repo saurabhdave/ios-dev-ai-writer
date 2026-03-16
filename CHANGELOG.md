@@ -6,6 +6,19 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-03-16
+
+### Added
+- **Deterministic Swift API backtick formatting** (`agents/article_agent.py`): `apply_swift_backticks()` post-processor regex-wraps ~25 known Swift API names (`withCheckedThrowingContinuation`, `@Observable`, `AsyncStream`, `URLSession.data(for:)`, etc.) in inline backticks. Skips fenced code blocks and never double-wraps already-formatted names. Applied in `_normalize_article()` and after every editor pass in `_render_model_response()`.
+- **Static Apple/Swift doc reference seeding** (`workflows/weekly_pipeline.py`): `_APPLE_DOC_SEEDS` table (14 topic→URL mappings) and `_seed_reference_items(topic)` function inject relevant `developer.apple.com` and `swift.org` doc URLs into both agent grounding context and the published References section. Articles now always include at least 2–4 verified Apple documentation links.
+
+### Changed
+- `article_prompt.txt`: backtick rule promoted to standalone hard requirement with explicit wrong/right examples; no longer buried as a sub-bullet.
+- `editor_prompt.txt`: added explicit backtick enforcement instruction to the polish pass.
+- `_compose_markdown`: merges trend-sourced refs with seeded Apple docs (seeds fill gaps, max 10 total).
+- `_references_for_prompt`: appends seed refs after trend refs so agents always have stable Apple doc anchors.
+- `has_references` quality metric now returns `true` whenever topic-matched seeds exist.
+
 ## [0.5.0] - 2026-03-16
 
 ### Removed
