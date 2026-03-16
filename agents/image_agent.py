@@ -1,0 +1,107 @@
+"""Image generation agent: produces a cover image for each article using Google Imagen 3."""
+
+from __future__ import annotations
+
+import logging
+import re
+from pathlib import Path
+
+import config
+from utils.observability import get_logger
+
+LOGGER = get_logger(__name__)
+
+# Technical nouns to strip from keyword extraction (too generic to be useful in prompts).
+_STOP_WORDS = frozenset(
+    {
+        "the", "a", "an", "and", "or", "in", "of", "to", "for", "with", "on", "at",
+        "by", "from", "is", "are", "was", "were", "be", "been", "being", "have",
+        "has", "had", "do", "does", "did", "will", "would", "could", "should",
+        "may", "might", "must", "that", "this", "these", "those", "it", "its",
+        "your", "our", "their", "we", "you", "they", "he", "she", "which",
+        "what", "how", "when", "where", "why", "all", "each", "every", "some",
+        "any", "more", "most", "other", "into", "through", "during", "before",
+        "after", "above", "below", "between", "out", "off", "over", "under",
+        "then", "once", "here", "there", "while", "although", "because", "since",
+        "until", "whether", "about", "against", "also", "so", "but", "if",
+        "use", "using", "used", "new", "make", "can", "just", "not", "no",
+        "than", "too", "very", "as", "up", "get", "let", "set",
+    }
+)
+
+
+def _extract_keywords(article_body: str, max_keywords: int = 5) -> list[str]:
+    """Extract technical nouns from article body for prompt enrichment."""
+    # Prefer capitalised technical terms (e.g. SwiftUI, Observable, Concurrency)
+    capitalised = re.findall(r"\b[A-Z][a-zA-Z]{3,}\b", article_body)
+    seen: dict[str, int] = {}
+    for word in capitalised:
+        if word.lower() not in _STOP_WORDS:
+            seen[word] = seen.get(word, 0) + 1
+
+    # Sort by frequency, deduplicate, and return top N
+    ranked = sorted(seen.items(), key=lambda x: x[1], reverse=True)
+    return [w for w, _ in ranked[:max_keywords]]
+
+
+def _build_prompt(topic: str, article_body: str) -> str:
+    """Build a descriptive image generation prompt."""
+    keywords = _extract_keywords(article_body)
+    keyword_phrase = ", ".join(keywords) if keywords else "Swift programming"
+    return (
+        f"Abstract minimalist cover illustration for an Apple iOS developer blog post titled '{topic}'. "
+        f"Concepts: {keyword_phrase}. "
+        "Modern flat design with clean geometric shapes, Apple-inspired color palette "
+        "(white, light silver, vibrant blue, subtle gradients). "
+        "No text, no typography, no letters, no words. "
+        "Professional tech blog aesthetic, 16:9 landscape orientation."
+    )
+
+
+def generate_cover_image(
+    topic: str,
+    article_body: str,
+    slug: str,
+    date_str: str,
+) -> Path | None:
+    """Generate a cover image for the article and save it to outputs/images/.
+
+    Returns the saved Path on success, or None if image generation is skipped or fails.
+    """
+    try:
+        import google.generativeai as genai  # noqa: PLC0415
+    except ImportError:
+        LOGGER.warning("google-generativeai not installed — skipping cover image generation")
+        return None
+
+    if not config.GOOGLE_API_KEY:
+        LOGGER.warning("GOOGLE_API_KEY not set — skipping cover image generation")
+        return None
+
+    config.OUTPUT_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = config.OUTPUT_IMAGES_DIR / f"{date_str}-{slug}.png"
+
+    prompt = _build_prompt(topic, article_body)
+    LOGGER.info("Generating cover image for topic=%r model=%s", topic, config.IMAGEN_MODEL)
+
+    try:
+        genai.configure(api_key=config.GOOGLE_API_KEY)
+        model = genai.ImageGenerationModel(config.IMAGEN_MODEL)
+        result = model.generate_images(
+            prompt=prompt,
+            number_of_images=1,
+            aspect_ratio="16:9",
+            safety_filter_level="block_few",
+            person_generation="dont_allow",
+        )
+        if not result.images:
+            LOGGER.warning("Imagen returned no images — skipping cover image")
+            return None
+
+        result.images[0]._pil_image.save(str(out_path))
+        LOGGER.info("Cover image saved to %s", out_path)
+        return out_path
+
+    except Exception as exc:  # noqa: BLE001
+        LOGGER.warning("Cover image generation failed: %s — continuing without image", exc)
+        return None

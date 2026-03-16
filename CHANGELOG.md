@@ -6,6 +6,17 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-03-16
+
+### Added
+- **Google Imagen 3 cover image generation** (`agents/image_agent.py`): each pipeline run now generates a 16:9 cover image based on the article topic and extracted technical keywords. Images are saved to `outputs/images/` and referenced via YAML frontmatter (`cover_image: images/...`) in the article markdown.
+- `IMAGE_GENERATION_ENABLED`, `GOOGLE_API_KEY`, `IMAGEN_MODEL`, `OUTPUT_IMAGES_DIR` config vars. Image generation is skipped gracefully when `GOOGLE_API_KEY` is unset.
+- `google-generativeai` added to the GitHub Actions install step; `GOOGLE_API_KEY` secret wired in.
+- Generated images are copied to `ios-ai-articles/images/` in the publish step and committed alongside articles.
+
+### Changed
+- Pipeline schedule changed from Mon/Wed/Fri to **Mon/Thu** (`0 10 * * 1,4`).
+
 ## [0.3.4] - 2026-03-14
 
 ### Fixed

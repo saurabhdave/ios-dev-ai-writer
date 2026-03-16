@@ -177,3 +177,14 @@ SELF_REVIEW_ENABLED = os.getenv("SELF_REVIEW_ENABLED", "true").lower() in {
 OUTPUT_QUALITY_HISTORY_PATH = Path(
     os.getenv("OUTPUT_QUALITY_HISTORY_PATH", "outputs/quality_history.json")
 )
+
+# Google Imagen cover image generation.
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+IMAGE_GENERATION_ENABLED = os.getenv("IMAGE_GENERATION_ENABLED", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+IMAGEN_MODEL = os.getenv("IMAGEN_MODEL", "imagen-3.0-generate-001")
+OUTPUT_IMAGES_DIR = Path("outputs/images")

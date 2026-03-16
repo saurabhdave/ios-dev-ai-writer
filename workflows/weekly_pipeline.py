@@ -12,6 +12,7 @@ from uuid import uuid4
 
 from agents.article_agent import generate_article
 from agents.code_agent import generate_code_with_metadata
+from agents.image_agent import generate_cover_image
 from agents.review_agent import review_article
 from agents.editor_agent import (
     LayoutAssessment,
@@ -38,7 +39,10 @@ from config import (
     OUTPUT_LINKEDIN_DIR,
     OUTPUT_NEWSLETTER_DIR,
     OUTPUT_QUALITY_HISTORY_PATH,
+    IMAGE_GENERATION_ENABLED,
+    GOOGLE_API_KEY,
     LINKEDIN_POST_ENABLED,
+    OUTPUT_IMAGES_DIR,
     SELF_REVIEW_ENABLED,
     SWIFT_COMPILER_LANGUAGE_MODE,
     SWIFT_LANGUAGE_VERSION,
@@ -379,7 +383,13 @@ def _references_for_prompt(
     return "\n".join(lines)
 
 
-def _compose_markdown(title: str, article: str, code: str, trends: list[TrendSignal]) -> str:
+def _compose_markdown(
+    title: str,
+    article: str,
+    code: str,
+    trends: list[TrendSignal],
+    image_path: Path | None = None,
+) -> str:
     """Compose final Medium-ready markdown output."""
     references = _reference_items(trends, topic=title, max_items=10)
     references_block = (
@@ -410,7 +420,18 @@ def _compose_markdown(title: str, article: str, code: str, trends: list[TrendSig
         )
     )
 
-    return "\n".join(
+    parts: list[str] = []
+    if image_path is not None:
+        parts.extend(
+            [
+                "---",
+                f"cover_image: images/{image_path.name}",
+                "---",
+                "",
+            ]
+        )
+
+    parts.extend(
         [
             f"# {title}",
             "",
@@ -423,6 +444,8 @@ def _compose_markdown(title: str, article: str, code: str, trends: list[TrendSig
             "",
         ]
     )
+
+    return "\n".join(parts)
 
 
 def _save_markdown(title: str, markdown: str) -> Path:
@@ -587,6 +610,13 @@ def run_weekly_pipeline() -> Path:
         with timed_step(LOGGER, "sanitize_article", topic=topic):
             polished_article = _sanitize_body_urls(polished_article)
 
+        image_path: Path | None = None
+        with timed_step(LOGGER, "generate_cover_image", topic=topic, enabled=IMAGE_GENERATION_ENABLED):
+            if IMAGE_GENERATION_ENABLED and GOOGLE_API_KEY:
+                _date_prefix = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                _slug = _slugify(topic)
+                image_path = generate_cover_image(topic, polished_article, _slug, _date_prefix)
+
         with timed_step(LOGGER, "generate_code", topic=topic) as step:
             code_result = generate_code_with_metadata(topic)
             code = code_result.code
@@ -648,7 +678,7 @@ def run_weekly_pipeline() -> Path:
             )
 
         with timed_step(LOGGER, "compose_markdown", topic=topic):
-            markdown = _compose_markdown(topic, polished_article, code, trends)
+            markdown = _compose_markdown(topic, polished_article, code, trends, image_path)
 
         with timed_step(LOGGER, "save_article", topic=topic) as step:
             article_path = _save_markdown(topic, markdown)
