@@ -33,9 +33,11 @@ Hard constraints:
   - Server-Driven UI,
   - Enhanced Privacy & Security,
   - IoT & Wearable Integration,
-  - verified Swift/SwiftUI tips and verified SwiftUI modifiers.
-- Prefer migration-focused titles when possible: deprecated/legacy Apple patterns -> modern Swift 6+ implementations.
-- Favor concrete transitions such as old API/pattern to replacement API/pattern.
+  - verified Swift/SwiftUI tips and verified SwiftUI modifiers,
+  - Accessibility and VoiceOver in SwiftUI,
+  - Modular iOS architecture with Swift Package Manager.
+- Draw from the topic themes listed in "Priority interest themes" above — do not default to migration framing unless a migration theme is explicitly listed.
+- Favor titles about new patterns, features, tooling, or concrete engineering techniques over old→new transitions.
 - Do not use generic AI/ML framing or terms (AI, ML, LLM, agentic, generative, prompt, inference, automation, Core ML, machine learning), except explicit Apple Intelligence API context.
 - Avoid hype words and generic phrases.
 - Do not include fake product/version claims.

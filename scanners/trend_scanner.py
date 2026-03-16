@@ -91,9 +91,10 @@ DEFAULT_VIRAL_QUERIES = [
     "App Intents Apple Intelligence APIs iOS",
     "iOS SwiftUI Swift Concurrency architecture app development",
     "Xcode performance debugging Instruments iOS apps",
-    "SwiftData Core Data migration Apple platforms",
-    "Swift 6 strict concurrency migration deprecated iOS APIs",
+    "SwiftUI accessibility VoiceOver custom components iOS",
+    "Swift Testing framework XCTest replacement iOS Xcode",
     "UIKit to SwiftUI migration patterns Apple platforms",
+    "Swift 6 Adoption",
     "WidgetKit App Intents iOS development",
     "site:linkedin.com/posts iOS SwiftUI",
 ]
@@ -101,15 +102,15 @@ DEFAULT_VIRAL_QUERIES = [
 SOCIAL_WEB_QUERY_SOURCES = [
     (
         "X.com iOS SwiftUI",
-        "site:x.com iOS SwiftUI OR Swift async await OR Structured Concurrency OR Swift 6 migration",
+        "site:x.com iOS SwiftUI OR Swift async await OR Structured Concurrency OR Swift Testing OR visionOS",
     ),
     (
         "dev.to iOS SwiftUI",
-        "site:dev.to iOS SwiftUI OR verified modifiers OR Xcode tips OR deprecated API migration",
+        "site:dev.to iOS SwiftUI OR verified modifiers OR Xcode tips OR accessibility SwiftUI",
     ),
     (
         "Medium iOS SwiftUI",
-        "site:medium.com iOS SwiftUI OR App Intents OR Apple Intelligence API OR Swift 6 migration",
+        "site:medium.com iOS SwiftUI OR App Intents OR Apple Intelligence API OR Swift Testing OR UIKit migration",
     ),
 ]
 

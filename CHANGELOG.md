@@ -6,6 +6,18 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-03-16
+
+### Changed
+- **Topic diversity: removed migration bias** (`agents/topic_agent.py`, `prompts/topic_prompt.txt`, `config.py`, `scanners/trend_scanner.py`): Articles were 100% migration-focused due to four compounding biases. Fixed by:
+  - Removed explicit "Prefer migration-focused titles" instruction from `topic_prompt.txt`
+  - Replaced `MIGRATION_INTEREST_DEFAULTS` auto-injection logic with a `TOPIC_FAMILIES` rotation system (8 families: architecture, performance, concurrency, SwiftUI features, tooling/debugging, frameworks/APIs, accessibility/design, migration)
+  - Added `_sample_topic_family()` — history-aware weighted sampler that de-weights recently used families; migration family gets 0.5× weight multiplier
+  - Rewrote `_filtered_interests()` to sample a topic family per run, supplemented by non-migration items from config
+  - Diversified fallback candidates to one per family (migration is 1 of 8)
+  - Removed 3 migration-specific entries from `TOPIC_INTERESTS` default in `config.py`; replaced with accessibility, Swift Testing, and SwiftUI animations
+  - Replaced 3 migration-focused viral queries in `trend_scanner.py` with accessibility/testing/architecture queries; removed migration keywords from `SOCIAL_WEB_QUERY_SOURCES`
+
 ## [0.7.0] - 2026-03-16
 
 ### Added

@@ -118,7 +118,7 @@ TOPIC_INTERESTS = [
     item.strip()
     for item in os.getenv(
         "TOPIC_INTERESTS",
-        "Swift async await patterns,Structured Concurrency,SwiftUI architecture,iOS performance improvements,Xcode tips and debugging workflows,UIKit interoperability,SwiftData persistence,App Intents,Apple Intelligence APIs,WidgetKit,verified Swift tips and tricks,verified SwiftUI modifiers,Swift 6.3 Macros,Reducing Boilerplate in Real Projects,visionOS development,Swift 6 migration and strict concurrency,Deprecated Apple API migration playbooks,Legacy UIKit patterns to modern SwiftUI",
+        "Swift async await patterns,Structured Concurrency,SwiftUI architecture,Swift 6 Adoption,iOS performance improvements,Xcode tips and debugging workflows,UIKit interoperability,SwiftData persistence,App Intents,Apple Intelligence APIs,WidgetKit,verified Swift tips and tricks,verified SwiftUI modifiers,Swift 6.3 Macros,Reducing Boilerplate in Real Projects,visionOS development,accessibility in SwiftUI,Swift Testing framework,SwiftUI animations and transitions,UIKit to SwiftUI migration patterns",
     ).split(",")
     if item.strip()
 ]
