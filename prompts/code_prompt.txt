@@ -28,8 +28,14 @@ Requirements:
 - Use clear naming and practical structure.
 - Include concise comments only where they add clarity.
 - Keep code realistic for a Medium technical article.
+- Maximum 35 lines total. Ideal target: 15–25 lines that fit inline in a Medium article.
+- If the topic requires multiple concepts, demonstrate only the core pattern; omit boilerplate.
 - Ensure the snippet is syntactically complete and article-ready.
 - Prefer focused examples (types/functions/views) over full app bootstrapping.
+- In Swift 6 language mode, properties of @Observable types accessed from async contexts
+  must be isolated to the main actor. Mark the type with `@MainActor` when state is
+  view-facing, or access properties only from @MainActor-isolated code.
+- Prefer simple, flat structures over deeply nested closures inside TaskGroup/withTaskGroup bodies.
 - Do not include `@main` app entry point unless the topic explicitly requires it.
 - Include all required imports for used APIs.
 - Do not reference undefined generated model classes (e.g., placeholder Core ML types) unless you define them in the snippet.

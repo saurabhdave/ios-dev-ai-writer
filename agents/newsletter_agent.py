@@ -97,13 +97,33 @@ def _pick_community_links(
 _SNIPPET_MAX_LINES = 25
 
 
-def _pick_best_snippet(codegen: dict) -> str:
+def _extract_article_code_block(article_body: str, max_lines: int = 20) -> str:
+    """Extract the first fenced code block from the article as a newsletter fallback snippet."""
+    in_fence = False
+    lines: list[str] = []
+    for line in article_body.splitlines():
+        if line.startswith("```"):
+            if in_fence:
+                break  # end of first block
+            in_fence = True
+            continue
+        if in_fence:
+            lines.append(line)
+    if not lines:
+        return ""
+    return "\n".join(lines[:max_lines])
+
+
+def _pick_best_snippet(codegen: dict, article_body: str = "") -> str:
     """Return the best validated Swift snippet, capped at _SNIPPET_MAX_LINES lines.
 
     Prefers the direct validation path (snippet compiled without a wrapper).
+    Falls back to the first fenced code block in the article body when codegen produced no snippet.
     Truncates long snippets so the newsletter stays scannable.
     """
     code = codegen.get("code", "").strip()
+    if not code and article_body:
+        code = _extract_article_code_block(article_body)
     if not code:
         return code
     lines = code.splitlines()
@@ -333,7 +353,7 @@ def generate_newsletter(
 
     top_trends = _pick_top_trends(trends, max_items=5)
     community_picks = _pick_community_links(trends, max_items=3)
-    best_snippet = _pick_best_snippet(codegen)
+    best_snippet = _pick_best_snippet(codegen, article_body=article.get("body", ""))
 
     trend_signals_json = json.dumps(
         [

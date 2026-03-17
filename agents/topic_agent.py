@@ -270,7 +270,7 @@ def _is_semantically_repetitive(
     candidate: str,
     recent_titles: list[str],
     client: object,
-    threshold: float = 0.88,
+    threshold: float = 0.80,
 ) -> bool:
     """Check semantic similarity via embeddings — catches near-duplicates that word overlap misses.
 
@@ -294,6 +294,24 @@ def _is_semantically_repetitive(
                 return True
     except Exception:
         pass
+    return False
+
+
+_MIGRATION_PATTERNS = re.compile(
+    r"\b(completion handler|callback|delegate|kvo|nsnotification|urlsession|combine|uikit)\b",
+    re.IGNORECASE,
+)
+
+
+def _shares_migration_target(candidate: str, recent_titles: Iterable[str]) -> bool:
+    """Reject migration topics that duplicate a recent migration source API."""
+    candidate_targets = set(_MIGRATION_PATTERNS.findall(candidate.lower()))
+    if not candidate_targets:
+        return False
+    for prev in recent_titles:
+        prev_targets = set(_MIGRATION_PATTERNS.findall(prev.lower()))
+        if candidate_targets & prev_targets:
+            return True
     return False
 
 
@@ -374,6 +392,7 @@ def generate_topic(
             and _is_apple_programming_topic(candidate)
             and not _is_repetitive(candidate, recent_titles)
             and not _is_semantically_repetitive(candidate, recent_titles, client)
+            and not _shares_migration_target(candidate, recent_titles)
         ):
             return candidate
 

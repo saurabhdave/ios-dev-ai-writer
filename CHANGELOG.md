@@ -6,6 +6,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-03-16
+
+### Fixed
+- **Code gen line-length overflow** (`prompts/code_prompt.txt`): Added explicit 35-line maximum (ideal 15–25) to prevent the LLM from generating full ViewModel implementations that then fail brace-balance and Swift 6 data-race validation. Also added `@MainActor` guidance and a note to prefer flat structures in `TaskGroup` bodies.
+- **Code repair loop: simplify on failure** (`agents/code_agent.py`): The repair prompt now instructs the model to simplify the snippet when it exceeds 35 lines or has deeply nested closures. Also added explicit `@MainActor` guidance for Swift 6 race-statement errors, so the repair model resolves sendability violations rather than reshuffling code.
+- **Topic clustering: same-API migration dedup** (`agents/topic_agent.py`): Added `_shares_migration_target()` helper that detects when a candidate topic targets the same legacy API (completion handler, callback, delegate, KVO, NSNotification, URLSession, Combine, UIKit) as a recently published article, and rejects the candidate. Also lowered the semantic embedding similarity threshold from 0.88 → 0.80 to catch near-duplicate topics that previously passed the cosine check.
+- **Newsletter missing snippet fallback** (`agents/newsletter_agent.py`): Added `_extract_article_code_block()` helper that extracts the first fenced code block from the article body. `_pick_best_snippet()` now uses this as a fallback when codegen produced no validated snippet, so the "Swift Snippet of the Week" section is never empty.
+
 ## [0.9.0] - 2026-03-16
 
 ### Added
