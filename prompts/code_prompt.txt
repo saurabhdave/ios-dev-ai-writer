@@ -18,10 +18,10 @@ Requirements:
   - use `@Bindable` only when bindings (`$`) are required.
 - CRITICAL — @Bindable/@Observable placement (violating this causes validation failure):
   WRONG — never put @Bindable on properties inside @Observable:
-      @Observable class MyModel { @Bindable var count: Int = 0 }
+      @Observable class MyModel {{ @Bindable var count: Int = 0 }}
   CORRECT — plain stored properties in the model; @Bindable only in the View:
-      @Observable class MyModel { var count: Int = 0 }
-      struct MyView: View { @Bindable var model: MyModel }
+      @Observable class MyModel {{ var count: Int = 0 }}
+      struct MyView: View {{ @Bindable var model: MyModel }}
 - Do not use `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`
   unless the topic is explicitly demonstrating legacy migration from those patterns.
 - Include `import Observation` when using `@Observable`.
