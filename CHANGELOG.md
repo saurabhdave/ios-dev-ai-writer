@@ -6,6 +6,22 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-03-18
+
+### Added
+- **Deterministic article post-processor** (`utils/article_repair.py`): New pure-Python module that runs on every pipeline execution after `medium_layout_reinforcement`, before `sanitize_article`. `repair_malformed_backticks()` regex-fixes the common `` `with`Word`` `` split-backtick pattern (e.g. `` `with`TaskGroup`` `` → `` `withTaskGroup` ``) with zero LLM cost. `audit_missing_version_callouts()` logs a structured warning when a tracked API (`withTaskGroup`, `@Observable`, `AsyncSequence`, etc.) appears without its deployment target. Both results are emitted as structured pipeline log events (`backtick_fixes_applied`, `version_callouts_missing`).
+- **`deterministic_repair` pipeline step** (`workflows/weekly_pipeline.py`): Calls `utils/article_repair.repair_article()` between layout reinforcement and sanitize. Fix and warning counts are recorded in step metadata.
+
+### Fixed
+- **Python 3.9 compatibility: `dataclass(slots=True)`** (`agents/code_agent.py`, `agents/editor_agent.py`, `agents/review_agent.py`, `agents/topic_agent.py`, `scanners/trend_scanner.py`): `slots=True` requires Python 3.10+. Removed the kwarg from all five dataclasses so the pipeline runs on the project's Python 3.9 venv.
+- **`str.format()` crash on Swift code in prompts and article bodies** (all agents): Prompt templates contain Swift code examples with literal `{` / `}` braces (closure syntax, JSON examples). Python's `str.format()` mis-parsed these as format placeholders, raising `KeyError` or `IndexError`. Replaced all `.format(topic=…, article=…, …)` calls in every agent with chained `.replace("{placeholder}", value)` calls, which perform literal substitution and are immune to brace content.
+- **Literal `{}` in `prompts/code_prompt.txt`**: The brace-balance reminder line contained bare `{}` that broke the (now-removed) `str.format()` path. No longer needed with the `.replace()` fix; reverted to readable `{}`.
+
+### Improved
+- **Editor prompt: backtick corruption guard** (`prompts/editor_prompt.txt`): Added an explicit "Backtick Corruption Guard" rule listing the high-frequency malformed patterns the model must scan for and fix before returning output.
+- **Editor prompt: mandatory per-API version callouts** (`prompts/editor_prompt.txt`): Expanded the "Version Statements" rule with a concrete table mapping each key API (`withTaskGroup`, `@Observable`, `AsyncStream`, etc.) to its minimum deployment target. Prevents the recurring "no version stated" review flag.
+- **Editor prompt: opening hook specificity rule** (`prompts/editor_prompt.txt`): Added "Opening Hook Specificity" rule requiring the hook to name a concrete runtime symptom or failure mode rather than a generic technology statement. Includes a ✅/❌ example pair.
+
 ## [1.0.0] - 2026-03-16
 
 ### Fixed

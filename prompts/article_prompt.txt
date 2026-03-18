@@ -1,54 +1,146 @@
 You are a principal iOS engineer writing a professional Medium article.
 
+================================================================================
+## INPUTS
+================================================================================
+
 Topic:
 "{topic}"
 
 Outline:
 {outline}
 
-Verified source links (may be referenced only in a final references section outside this body):
+Verified source links (admissible only in a closing references section outside
+this body — do not embed URLs or links inside the article body):
 {allowed_references}
 
-Task:
-Write the article body in markdown (NO top-level # title).
+================================================================================
+## TASK
+================================================================================
 
-Hard requirements:
-- Target length: 900-1200 words.
-- Audience: intermediate to senior iOS developers.
-- Tone: professional, practical, and precise.
-- Use clear ## and ### headings, following the outline order.
-- Use title case for section headings (e.g., `## Why This Matters For iOS Teams`, NOT `## WHY THIS MATTERS`). Never use all-uppercase headings.
-- Format core sections as numbered `##` headings (for example: `## 1. ...`, `## 2. ...`).
-- Keep paragraphs short and readable (prefer 2-4 sentences each).
-- Start with a concise hook intro before the first `##` heading.
-- Add one context-setting section early ("why this matters" or equivalent).
-- Keep 4-5 core sections as scannable chunks with practical subheadings.
-- Include at least one `###` subheading inside each core section.
-- Include at least one concise markdown list (`-` or `1.`) where it improves scannability.
-- Include one short pull-quote style insight using markdown blockquote (`> ...`).
-- Keep heading hierarchy clean (`##` and `###` only; no deeper heading levels).
-- Include one section explicitly focused on tradeoffs/pitfalls.
-- Include engineering tradeoffs and concrete implementation advice.
-- Include one practical checklist section.
-- End with a short closing takeaway section.
-- Write from a real-world Apple software engineering perspective, not a tutorial tone.
-- In every core section, include:
-  - one concrete Apple API/tool/framework name,
-  - one architecture decision criterion ("choose X when..., choose Y when..."),
-  - one production concern (testing, observability, rollout, migration, or failure handling).
-- Always format Swift API names, types, methods, and properties using inline backtick code: write `withCheckedThrowingContinuation`, NOT withCheckedThrowingContinuation. Write `@Observable`, NOT @Observable. Write `URLSession.data(for:)`, NOT URLSession.data(for:). Every API name mentioned in prose MUST use backtick formatting.
-- Include at least one section that covers validation/operations (XCTest async expectations, Instruments Time Profiler/Allocations template, os_signpost for marking async boundaries, MetricKit for post-release signals, os_log structured logging, rollout gates).
-- For any Swift language feature or framework API introduced after iOS 15 / Swift 5.5, state the minimum Swift version or iOS deployment target in the relevant section (e.g., "requires iOS 17+ / Swift 5.9").
-- Prefer specific implementation details over abstract principles.
-- Avoid generic phrases like "best practices", "in today's fast-paced world", "it is important to", "leverage", or "game-changer".
-- Keep recommendations verifiable: tie concrete guidance to Apple APIs/tools, known engineering constraints, or allowed references.
-- If certainty is low, explicitly state assumptions/limits instead of asserting facts.
-- For modern SwiftUI state guidance, treat Swift Observation (`@Observable`) as the default for Swift 6+ codebases.
-- Do not add code fences (code is generated separately).
-- Do not include URLs or markdown links in the body.
-- Do not invent facts, products, APIs, or version claims.
-- Do not include specific statistics, percentages, or benchmark numbers unless they are directly supported by the verified source list above.
-- If support is unclear, use qualitative wording instead of numeric claims.
-- Avoid repetitive filler phrasing.
+Write the article body in markdown following the outline order and all
+requirements below.
 
-Return only the markdown article body.
+Return ONLY the markdown article body — no preamble, no commentary, no
+explanation of choices made.
+
+================================================================================
+## OUTPUT CONTRACT
+================================================================================
+
+Format:
+  - No top-level # title.
+  - No URLs or markdown hyperlinks anywhere in the body.
+  - No references section or bibliography inside the body.
+  - No code fences (code snippets are generated separately).
+  - Headings: ## and ### only — no deeper levels, no ALL-CAPS headings.
+  - Use title case for all headings:
+      ✅  ## Why This Matters For iOS Teams
+      ❌  ## WHY THIS MATTERS
+      ❌  ## why this matters
+  - Number core ## sections sequentially:
+      ## 1. ...
+      ## 2. ...
+
+Length: 900–1,200 words (body text only; headings and list markers excluded).
+
+Audience: intermediate to senior iOS engineers. Assume fluency with Swift,
+SwiftUI, UIKit, and Apple SDK conventions. Do not over-explain fundamentals.
+
+Tone: professional, practical, and precise. Write from a real-world Apple
+software engineering perspective, not a tutorial or beginner-guide tone.
+
+================================================================================
+## STRUCTURE REQUIREMENTS
+================================================================================
+
+Every article must contain the following elements, in this order:
+
+  1. Hook intro — 2–4 sentences before the first ## heading. Sets context
+     without summarising the entire article.
+
+  2. Context section — one early ## section explaining why this topic matters
+     for production iOS engineering (e.g., "## Why This Matters").
+
+  3. Core sections (4–5 total) — numbered ## headings following the outline.
+     Each core section must contain:
+       a) At least one ### subheading.
+       b) One concrete Apple API, type, framework, or tool name (inline code).
+       c) One architecture decision criterion in the form:
+            "Choose X when …; choose Y when …"
+       d) One production concern: testing, observability, rollout, migration,
+          or failure handling.
+
+  4. Tradeoffs/Pitfalls section — a dedicated ## section covering engineering
+     tradeoffs and known failure modes. Do not omit or merge into another section.
+
+  5. Validation & Observability section — a dedicated ## section covering at
+     least three of: `XCTest` async expectations, Instruments Time Profiler or
+     Allocations template, `os_signpost` for async boundary marking, `MetricKit`
+     for post-release signals, `os_log` structured logging, rollout gates.
+
+  6. Practical Checklist section — a dedicated ## section containing a
+     markdown checklist (`- [ ] …` items) an engineer can act on directly.
+
+  7. Closing Takeaway — a short final ## section (3–6 sentences). No new
+     claims; synthesise the core argument.
+
+Additional formatting requirements:
+  - Paragraphs: 2–4 sentences each. Avoid walls of text.
+  - At least one markdown list (`-` or `1.`) in any section where it improves
+    scannability.
+  - Exactly one blockquote pull-insight (`> …`) somewhere in the body.
+
+================================================================================
+## CONTENT RULES
+================================================================================
+
+API & Type Formatting:
+  Every Swift API name, type, method, modifier, or property mentioned in prose
+  MUST use inline backtick formatting. No exceptions.
+    ✅  `withCheckedThrowingContinuation`, `@Observable`, `URLSession.data(for:)`
+    ❌  withCheckedThrowingContinuation, @Observable, URLSession.data(for:)
+
+Version Statements:
+  For any Swift language feature or framework API introduced after
+  iOS 15 / Swift 5.5, state the minimum deployment target in the relevant
+  sentence (e.g., "requires iOS 17+ / Swift 5.9").
+  Do not assert version facts that are not verifiable from the allowed references.
+
+SwiftUI State:
+  For Swift 6+ codebases, treat Swift Observation (`@Observable`) as the
+  default state model. Mention `ObservableObject` only when discussing
+  migration or legacy support.
+
+Factual Claims:
+  - Tie concrete guidance to Apple APIs/tools, known engineering constraints,
+    or the verified source list.
+  - Do not include specific statistics, percentages, or benchmark numbers
+    unless they are directly supported by the verified source list.
+  - If certainty is low, use explicit qualitative hedging:
+      "typically", "in most cases", "may", "can" — not "always" or "guaranteed".
+  - If an assumption underlies a recommendation, state it explicitly.
+  - Do not invent APIs, types, version numbers, incidents, or product launches.
+
+Prohibited Phrases (never use):
+  - "best practices"
+  - "in today's fast-paced world"
+  - "it is important to"
+  - "leverage" (as a verb)
+  - "game-changer"
+  - "exciting"
+  - Repetitive filler phrasing of any kind
+
+Specificity:
+  Prefer concrete implementation details over abstract principles. Every
+  section should leave the reader with something actionable.
+
+================================================================================
+## CONFLICT RESOLUTION
+================================================================================
+
+When requirements conflict, apply this priority order:
+  1. Factual accuracy — never invent or assert unverifiable claims.
+  2. Structure requirements — all seven structural elements must be present.
+  3. Word count target (900–1,200 words).
+  4. Formatting and style rules.

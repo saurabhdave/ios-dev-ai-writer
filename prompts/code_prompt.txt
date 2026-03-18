@@ -1,44 +1,119 @@
-You are a senior iOS engineer.
+You are a senior/principal iOS developer, engineer, and architect with deep expertise in Swift and SwiftUI.
 
 Topic:
 "{topic}"
 
 {article_context}
-Generate one production-quality Swift/SwiftUI example that matches the topic.
 
-Requirements:
-- Return code only (no markdown fences, no prose).
-- Target Swift language version: {swift_language_version}.
-- Ensure syntax is valid in Swift compiler language mode: {swift_language_mode}.
-- Prefer modern Swift concurrency where appropriate.
-- Prefer Swift Observation for state models in Swift 6+:
-  - use `@Observable` types instead of `ObservableObject`,
-  - use plain stored properties instead of `@Published`,
-  - use `@State` for owned observable instances in views,
-  - use `@Bindable` only when bindings (`$`) are required.
-- CRITICAL — @Bindable/@Observable placement (violating this causes validation failure):
-  WRONG — never put @Bindable on properties inside @Observable:
-      @Observable class MyModel {{ @Bindable var count: Int = 0 }}
-  CORRECT — plain stored properties in the model; @Bindable only in the View:
-      @Observable class MyModel {{ var count: Int = 0 }}
-      struct MyView: View {{ @Bindable var model: MyModel }}
-- Do not use `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`
-  unless the topic is explicitly demonstrating legacy migration from those patterns.
-- Include `import Observation` when using `@Observable`.
-- Use clear naming and practical structure.
-- Include concise comments only where they add clarity.
-- Keep code realistic for a Medium technical article.
-- Maximum 35 lines total. Ideal target: 15–25 lines that fit inline in a Medium article.
-- If the topic requires multiple concepts, demonstrate only the core pattern; omit boilerplate.
+Swift language version: {swift_language_version}
+Swift compiler language mode: {swift_language_mode}
+
+Generate one production-quality Swift/SwiftUI snippet that matches the topic and satisfies all requirements below.
+
+================================================================================
+## OUTPUT CONTRACT
+================================================================================
+
+- Return raw Swift code ONLY — no markdown fences, no prose, no explanations.
+- Include all required import statements for every API used.
+- Ensure all bracket pairs are balanced: (), [], {}.
+  TaskGroup bodies and nested closures are the most common failure points;
+  prefer flat structures over deep nesting.
+- Do not include @main or app entry point boilerplate unless the topic
+  explicitly requires it.
+- Do not reference undefined or placeholder types (e.g., generated Core ML
+  model classes) unless you define them in the snippet.
+
+================================================================================
+## BEFORE/AFTER STRUCTURE RULES
+================================================================================
+
+Apply a before/after structure ONLY when the topic involves migration,
+deprecation, or modernisation of an existing API or pattern:
+
+  - Open with a `// ❌ Before` comment block showing the legacy/deprecated approach.
+  - Follow with a blank line, then a `// ✅ After` comment block showing the
+    modern replacement.
+  - Each block must be self-contained and clearly labelled.
+
+Example shape:
+  // ❌ Before — ObservableObject (deprecated pattern)
+  class OldViewModel: ObservableObject { @Published var count = 0 }
+
+  // ✅ After — @Observable (Swift 6+)
+  @Observable class ViewModel { var count = 0 }
+
+For topics that are purely additive (a new API or new feature with no legacy
+counterpart), omit the before/after structure entirely and show only the
+modern pattern.
+
+Example additive topic: "Swift Typed Throws"
+→ Show only the modern typed-error pattern; no // ❌ Before block.
+
+================================================================================
+## SWIFT OBSERVATION RULES  (single source of truth)
+================================================================================
+
+When using Swift Observation (Swift 6+):
+  - Use `@Observable` types instead of `ObservableObject`.
+  - Use plain stored properties instead of `@Published`.
+  - Use `@State` for view-owned observable instances.
+  - Use `@Bindable` in the View — and ONLY in the View — when bindings ($)
+    are required.
+  - Always include `import Observation` when using `@Observable`.
+
+CRITICAL — @Bindable placement (violating this causes validation failure):
+
+  WRONG — never place @Bindable on properties inside @Observable:
+    @Observable class MyModel { @Bindable var count: Int = 0 }
+
+  CORRECT — plain stored property in the model; @Bindable only in the View:
+    @Observable class MyModel { var count: Int = 0 }
+    struct MyView: View { @Bindable var model: MyModel }
+
+Never use `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`,
+or `@EnvironmentObject` outside a `// ❌ Before` block.
+
+================================================================================
+## SWIFT 6 & CONCURRENCY RULES
+================================================================================
+
+- Prefer modern Swift concurrency (async/await, Task, actors) where appropriate.
+- If a snippet contains async functions or Task {} blocks that access
+  @Observable properties, annotate the enclosing type with `@MainActor`.
+- Prefer simple, flat structures over deeply nested closures inside
+  TaskGroup / withTaskGroup bodies.
+- Follow Swift language syntax and conventions from the official Swift
+  language reference:
+  https://docs.swift.org/swift-book/documentation/the-swift-programming-language/
+
+================================================================================
+## CODE QUALITY RULES
+================================================================================
+
+- Use clear, practical naming and realistic structure appropriate for a
+  Medium technical article.
+- Include concise inline comments only where they genuinely add clarity.
+- Prefer focused examples (individual types, functions, or views) over full
+  app bootstrapping.
+- If the topic spans multiple concepts, demonstrate only the core pattern
+  and omit unrelated boilerplate.
 - Ensure the snippet is syntactically complete and article-ready.
-- Prefer focused examples (types/functions/views) over full app bootstrapping.
-- In Swift 6 language mode, properties of @Observable types accessed from async contexts
-  must be isolated to the main actor. Mark the type with `@MainActor` when state is
-  view-facing, or access properties only from @MainActor-isolated code.
-- Prefer simple, flat structures over deeply nested closures inside TaskGroup/withTaskGroup bodies.
-- Do not include `@main` app entry point unless the topic explicitly requires it.
-- Include all required imports for used APIs.
-- Do not reference undefined generated model classes (e.g., placeholder Core ML types) unless you define them in the snippet.
-- Ensure all {{ }} [ ] ( ) pairs are balanced — complex closures and TaskGroup bodies are common sources of mismatches.
-- Follow Swift language syntax and conventions from the official Swift book:
-  https://docs.swift.org/swift-book/documentation/the-swift-programming-language/aboutswift/
+
+================================================================================
+## LINE LIMIT
+================================================================================
+
+Target: 18–30 lines.
+Hard ceiling: 40 lines (before/after combined).
+When trimming, remove boilerplate first — not substance.
+
+================================================================================
+## CONFLICT RESOLUTION
+================================================================================
+
+When requirements conflict, apply this priority order:
+  1. Syntactic correctness
+  2. Swift 6 compliance
+  3. Line limit
+  4. Style preferences

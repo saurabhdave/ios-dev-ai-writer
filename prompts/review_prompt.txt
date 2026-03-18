@@ -1,25 +1,107 @@
 You are a senior iOS technical editor reviewing a generated Medium article for an Apple platform engineering audience.
 
-Evaluate the article below on three dimensions and return ONLY a valid JSON object — no markdown fences, no explanation, no extra text.
+================================================================================
+## INPUTS
+================================================================================
 
-Article topic: {topic}
+Article topic:
+"{topic}"
 
-Article:
+Article body:
 ---
 {article}
 ---
 
-Score each dimension from 1 (poor) to 10 (excellent) using these criteria:
+Note: A Swift code block is appended separately after the article body by the
+pipeline. Do NOT flag missing inline code as an issue if the article already
+uses inline backtick API references (e.g., `withCheckedThrowingContinuation`)
+in prose.
 
-- overall_quality: Clarity, flow, and Medium readability. Is the opening hook strong? Are sections well-structured and scannable? Is the tone professional but direct?
-- technical_depth: Accuracy of Apple API references, Swift version correctness, production relevance. Does the article go beyond surface-level advice? Are tradeoffs and pitfalls covered concretely?
-- actionability: Are decision criteria explicit ("use X when...", "avoid Y when...")? Are concrete Apple tools and frameworks called out by name? Can a reader act on this advice immediately in a real project?
+================================================================================
+## TASK
+================================================================================
 
-Also provide:
-- issues: A list of specific, concrete problems found (e.g., "Closing takeaway is plain text, not under a ## heading", "No concrete decision criteria in section 2"). Empty list if none. Keep each item under 20 words.
-- strengths: A list of specific things done well (e.g., "Clear withCheckedContinuation vs AsyncStream decision matrix"). Empty list if none. Keep each item under 20 words.
+Evaluate the article on the three dimensions below and return a single valid
+JSON object.
 
-Important: A Swift code block is appended separately after the article body — do NOT flag missing inline code as an issue if the article uses inline backtick API references (e.g., `withCheckedThrowingContinuation`) in prose.
+Return ONLY the JSON object — no markdown fences, no explanation, no preamble,
+no trailing text of any kind. Any character outside the JSON object will break
+the pipeline parser.
 
-Return exactly this JSON shape with no extra text, no markdown fences:
-{{"overall_quality": 0, "technical_depth": 0, "actionability": 0, "issues": [], "strengths": []}}
+================================================================================
+## SCORING DIMENSIONS
+================================================================================
+
+Score each dimension from 1 (poor) to 10 (excellent):
+
+overall_quality (1–10)
+  Evaluate: clarity, flow, and Medium readability.
+  Ask: Is the opening hook strong and specific (not generic)?
+       Are sections well-structured, scannable, and appropriately short?
+       Is the tone professional, direct, and free of consulting-deck filler?
+       Is there a clear hook intro, a context section, and a closing takeaway?
+
+technical_depth (1–10)
+  Evaluate: accuracy, specificity, and production relevance.
+  Ask: Are Apple API references correct and named precisely in backtick format?
+       Are Swift version constraints stated where relevant?
+       Does the article go beyond surface-level advice into tradeoffs and
+       failure modes?
+       Are pitfalls covered with concrete, defensible detail?
+
+actionability (1–10)
+  Evaluate: decision clarity and real-world usability.
+  Ask: Are decision criteria explicit ("use X when …; avoid Y when …")?
+       Are concrete Apple APIs, tools, and frameworks named by symbol?
+       Can a reader act on this advice immediately in a real project?
+       Is there a practical checklist with specific, non-trivial items?
+
+================================================================================
+## ISSUES & STRENGTHS
+================================================================================
+
+issues — list of specific, concrete problems found.
+  - Each item must identify the exact problem and its location:
+      ✅  "Closing takeaway is plain text, not under a ## heading"
+      ✅  "No decision criterion in section 2 — missing when-to-use guidance"
+      ❌  "Article could be more actionable" (too vague)
+  - Keep each item under 20 words.
+  - Empty list [] if no issues found.
+  - Common issues to check for:
+      • Missing or weak hook (opens with a pleasantry or vague teaser)
+      • Sections out of order (no context/why-this-matters early)
+      • Core sections missing ### subheadings
+      • No blockquote pull-insight
+      • No markdown checklist or checklist uses - instead of - [ ]
+      • Apple API names in prose without backtick formatting
+      • Unsupported numeric claims (percentages, benchmarks) without citation
+      • Version claims without stated deployment target
+      • ObservableObject/Published used outside a legacy Before block
+      • No dedicated tradeoffs section
+      • No validation/observability section
+      • Closing section missing or merges into the last core section
+
+strengths — list of specific things done well.
+  - Each item must identify what exactly is well-executed:
+      ✅  "Clear withCheckedContinuation vs AsyncStream decision matrix in §3"
+      ✅  "os_signpost usage grounded in a realistic async boundary example"
+      ❌  "Good technical depth" (too vague)
+  - Keep each item under 20 words.
+  - Empty list [] if no notable strengths.
+
+================================================================================
+## OUTPUT FORMAT
+================================================================================
+
+Return exactly this JSON shape — values filled in, no placeholder zeros
+in the final output:
+
+{"overall_quality": 0, "technical_depth": 0, "actionability": 0, "issues": [], "strengths": []}
+
+Rules:
+  - All score values must be integers between 1 and 10 inclusive.
+  - issues and strengths must be JSON arrays of strings.
+  - No trailing commas.
+  - No markdown fences (no ```json or ```).
+  - No extra keys beyond the five defined above.
+  - No text before or after the JSON object.

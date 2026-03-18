@@ -12,6 +12,7 @@ from uuid import uuid4
 
 from agents.article_agent import generate_article
 from agents.code_agent import generate_code_with_metadata
+from utils.article_repair import repair_article as _repair_article
 
 from agents.review_agent import review_article
 from agents.editor_agent import (
@@ -674,6 +675,21 @@ def run_weekly_pipeline() -> Path:
             else:
                 layout_assessment = assess_medium_layout(
                     polished_article, min_score=MEDIUM_LAYOUT_MIN_SCORE
+                )
+
+        with timed_step(LOGGER, "deterministic_repair", topic=topic) as step:
+            polished_article, repair_report = _repair_article(polished_article)
+            step["backtick_fixes"] = len(repair_report["backtick_fixes"])
+            step["version_warnings"] = len(repair_report["version_warnings"])
+            if repair_report["backtick_fixes"]:
+                LOGGER.info(
+                    "backtick_fixes_applied",
+                    **{"fixes": repair_report["backtick_fixes"]},
+                )
+            if repair_report["version_warnings"]:
+                LOGGER.warning(
+                    "version_callouts_missing",
+                    **{"warnings": repair_report["version_warnings"]},
                 )
 
         with timed_step(LOGGER, "sanitize_article", topic=topic):

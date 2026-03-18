@@ -18,15 +18,27 @@
     },
     {
       "name": "Swift 6 Migration Topics",
-      "query": "site:medium.com OR site:dev.to Swift 6 migration deprecated iOS API"
+      "query": "site:medium.com Swift 6 migration deprecated iOS API"
+    },
+    {
+      "name": "Swift 6 Migration Topics (dev.to)",
+      "query": "site:dev.to Swift 6 migration deprecated iOS API"
     },
     {
       "name": "Swift 6.3 Macros Topics",
-      "query": "site:medium.com OR site:dev.to Swift 6.3 Macros iOS SwiftUI"
+      "query": "site:medium.com Swift 6.3 Macros iOS SwiftUI"
+    },
+    {
+      "name": "Swift 6.3 Macros Topics (dev.to)",
+      "query": "site:dev.to Swift 6.3 Macros iOS SwiftUI"
     },
     {
       "name": "Boilerplate Reduction Topics",
-      "query": "site:medium.com OR site:dev.to reducing boilerplate iOS SwiftUI real projects"
+      "query": "site:medium.com reducing boilerplate iOS SwiftUI real projects"
+    },
+    {
+      "name": "Boilerplate Reduction Topics (dev.to)",
+      "query": "site:dev.to reducing boilerplate iOS SwiftUI real projects"
     }
   ],
   "rss_feeds": [
@@ -36,14 +48,54 @@
       "topic_filter": true
     },
     {
+      "name": "dev.to Swift Tag",
+      "url": "https://dev.to/feed/tag/swift",
+      "topic_filter": true
+    },
+    {
+      "name": "dev.to SwiftUI Tag",
+      "url": "https://dev.to/feed/tag/swiftui",
+      "topic_filter": true
+    },
+    {
       "name": "Medium iOS Tag",
       "url": "https://medium.com/feed/tag/ios",
       "topic_filter": true
     },
     {
-      "name": "SwiftLee",
+      "name": "Medium Swift Tag",
+      "url": "https://medium.com/feed/tag/swift",
+      "topic_filter": true
+    },
+    {
+      "name": "Medium SwiftUI Tag",
+      "url": "https://medium.com/feed/tag/swiftui",
+      "topic_filter": true
+    },
+    {
+      "name": "SwiftLee (Antoine van der Lee)",
       "url": "https://www.avanderlee.com/feed/",
       "topic_filter": true
+    },
+    {
+      "name": "Swift by Sundell",
+      "url": "https://www.swiftbysundell.com/rss",
+      "topic_filter": true
+    },
+    {
+      "name": "Hacking with Swift",
+      "url": "https://www.hackingwithswift.com/articles/rss",
+      "topic_filter": true
+    },
+    {
+      "name": "Swift.org Blog",
+      "url": "https://swift.org/atom.xml",
+      "topic_filter": false
+    },
+    {
+      "name": "Apple Developer News",
+      "url": "https://developer.apple.com/news/rss/news.rss",
+      "topic_filter": false
     }
   ],
   "manual_signals": []

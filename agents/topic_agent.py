@@ -1,96 +1,115 @@
-"""Topic agent: generate a trending Apple-platform development topic."""
+"""Topic agent: generate a trending Apple-platform development topic.
+
+Design principles
+-----------------
+- All constants are typed ``Final``; magic numbers have named homes.
+- ``random`` is imported at the top level, not inside a function.
+- ``_sample_topic_family`` uses a ``WeightedFamily`` dataclass instead of
+  parallel lists joined by index arithmetic.
+- ``_is_semantically_repetitive`` documents its fallback contract and avoids
+  a bare ``except Exception: pass`` — logs a debug warning instead.
+- The generation retry loop is annotated clearly with per-step logging.
+- ``OPENAI_API_KEY`` check removed — key validation belongs in
+  ``create_openai_client()``.
+- Structured logging on success, fallback, and constraint-violation paths.
+"""
 
 from __future__ import annotations
 
+import logging
+import random
 import re
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Final, Iterable
 
-from config import OPENAI_API_KEY, OPENAI_MODEL, OPENAI_TEMPERATURE, TOPIC_INTERESTS, openai_generation_kwargs
+from config import OPENAI_MODEL, OPENAI_TEMPERATURE, TOPIC_INTERESTS, openai_generation_kwargs
+from utils.observability import get_logger, log_event
 from utils.openai_logging import create_openai_client, responses_create_logged
 
-PROMPT_PATH = Path("prompts/topic_prompt.txt")
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
 
+PROMPT_PATH: Final[Path] = Path("prompts/topic_prompt.txt")
+MAX_OUTPUT_TOKENS: Final[int] = 220
+MAX_GENERATION_ATTEMPTS: Final[int] = 5
+RECENT_TITLES_DISPLAY_LIMIT: Final[int] = 15
+SUPPLEMENTAL_INTERESTS_LIMIT: Final[int] = 4
 
-def _load_prompt_template() -> str:
-    """Load the prompt template for topic generation."""
-    return PROMPT_PATH.read_text(encoding="utf-8")
+# Topic novelty thresholds.
+WORD_OVERLAP_THRESHOLD: Final[float] = 0.60
+SEMANTIC_SIMILARITY_THRESHOLD: Final[float] = 0.80
 
+# Title length constraints.
+TITLE_MAX_CHARS: Final[int] = 60
+TITLE_MAX_WORDS: Final[int] = 10
 
-def _word_set(text: str) -> set[str]:
-    """Build a normalized word set for overlap checks."""
-    words = re.findall(r"[a-z0-9]+", text.lower())
-    stop_words = {
-        "the",
-        "a",
-        "an",
-        "for",
-        "and",
-        "with",
-        "to",
-        "in",
-        "on",
-        "of",
-        "apple",
-        "ios",
-        "swift",
-        "swiftui",
-    }
-    return {word for word in words if len(word) > 2 and word not in stop_words}
+# Weight multiplier that de-prioritises migration topics.
+MIGRATION_FAMILY_WEIGHT_FACTOR: Final[float] = 0.5
+BASE_WEIGHT: Final[float] = 4.0
+WEIGHT_PENALTY_PER_MATCH: Final[float] = 1.5
 
+# Embedding model used for semantic deduplication.
+EMBEDDING_MODEL: Final[str] = "text-embedding-3-small"
 
-APPLE_WORD_PATTERNS = [
-    r"\bapple\b",
-    r"\bios\b",
-    r"\bipados\b",
-    r"\bmacos\b",
-    r"\bwatchos\b",
-    r"\bvisionos\b",
-    r"\bswift\b",
-    r"\bswiftui\b",
-    r"\buikit\b",
-    r"\bappkit\b",
-    r"\bxcode\b",
-    r"\bcombine\b",
-    r"\bswiftdata\b",
-    r"\bcore\s?data\b",
-    r"\bwidgetkit\b",
-    r"\bapp\sintents?\b",
-    r"\basync\s*/\s*await\b",
-    r"\bstructured concurrency\b",
-    r"\bmodifier(s)?\b",
-    r"\bperformance\b",
-    r"\binstruments?\b",
-    r"\bapple intelligence\b",
-    r"\bfoundation models?\b",
-    r"\bmacro(s)?\b",
-    r"\bswift\s*6\.?3\b",
+LOGGER = get_logger("pipeline.topic")
+
+# ---------------------------------------------------------------------------
+# Regex patterns — compiled once
+# ---------------------------------------------------------------------------
+
+_WHITESPACE_RE: Final[re.Pattern[str]] = re.compile(r"\s+")
+_LEADING_NUMBERING_RE: Final[re.Pattern[str]] = re.compile(r"^\s*\d+[\.)]\s*")
+_MIGRATION_TARGET_RE: Final[re.Pattern[str]] = re.compile(
+    r"\b(completion handler|callback|delegate|kvo|nsnotification|urlsession|combine|uikit)\b",
+    re.IGNORECASE,
+)
+
+_TRAILING_STOP_WORDS: Final[frozenset[str]] = frozenset(
+    {"for", "to", "with", "and", "or", "of", "in", "on"}
+)
+_TITLE_STRIP_CHARS: Final[str] = ".,:;-"
+
+# ---------------------------------------------------------------------------
+# Keyword pattern tables
+# ---------------------------------------------------------------------------
+
+APPLE_WORD_PATTERNS: Final[list[str]] = [
+    r"\bapple\b", r"\bios\b", r"\bipados\b", r"\bmacos\b",
+    r"\bwatchos\b", r"\bvisionos\b", r"\bswift\b", r"\bswiftui\b",
+    r"\buikit\b", r"\bappkit\b", r"\bxcode\b", r"\bcombine\b",
+    r"\bswiftdata\b", r"\bcore\s?data\b", r"\bwidgetkit\b",
+    r"\bapp\sintents?\b", r"\basync\s*/\s*await\b",
+    r"\bstructured concurrency\b", r"\bmodifier(s)?\b",
+    r"\bperformance\b", r"\binstruments?\b", r"\bapple intelligence\b",
+    r"\bfoundation models?\b", r"\bmacro(s)?\b", r"\bswift\s*6\.?3\b",
     r"\bboilerplate\b",
 ]
 
-AI_WORD_PATTERNS = [
-    r"\bai\b",
-    r"\bagentic\b",
-    r"\bagent(s)?\b",
-    r"\bgenerative\b",
-    r"\bllm(s)?\b",
-    r"\bprompt(s)?\b",
-    r"\binference\b",
-    r"\bautomation\b",
-    r"\bmachine learning\b",
-    r"\bcore\s?ml\b",
+AI_WORD_PATTERNS: Final[list[str]] = [
+    r"\bai\b", r"\bagentic\b", r"\bagent(s)?\b", r"\bgenerative\b",
+    r"\bllm(s)?\b", r"\bprompt(s)?\b", r"\binference\b",
+    r"\bautomation\b", r"\bmachine learning\b", r"\bcore\s?ml\b",
 ]
 
-MIGRATION_WORD_PATTERNS = [
-    r"\bmigration\b",
-    r"\bmigrate\b",
-    r"\bdeprecated?\b",
-    r"\blegacy\b",
-    r"\bswift\s*6\b",
-    r"\bstrict concurrency\b",
+MIGRATION_WORD_PATTERNS: Final[list[str]] = [
+    r"\bmigration\b", r"\bmigrate\b", r"\bdeprecated?\b",
+    r"\blegacy\b", r"\bswift\s*6\b", r"\bstrict concurrency\b",
 ]
 
-TOPIC_FAMILIES: list[tuple[str, list[str]]] = [
+APPLE_INTELLIGENCE_ALLOWLIST: Final[list[str]] = [
+    r"\bapple intelligence\b",
+    r"\bapple intelligence api(s)?\b",
+    r"\bfoundation models?\b",
+    r"\bapp\sintents?\b",
+]
+
+# ---------------------------------------------------------------------------
+# Topic families
+# ---------------------------------------------------------------------------
+
+TOPIC_FAMILIES: Final[list[tuple[str, list[str]]]] = [
     ("architecture", [
         "Swift architecture patterns for iOS apps",
         "Modular iOS app architecture with Swift packages",
@@ -149,111 +168,63 @@ TOPIC_FAMILIES: list[tuple[str, list[str]]] = [
     ]),
 ]
 
-APPLE_INTELLIGENCE_ALLOWLIST = [
-    r"\bapple intelligence\b",
-    r"\bapple intelligence api(s)?\b",
-    r"\bfoundation models?\b",
-    r"\bapp\sintents?\b",
-]
+# ---------------------------------------------------------------------------
+# Stop-word and word-set helpers
+# ---------------------------------------------------------------------------
+
+_STOP_WORDS: Final[frozenset[str]] = frozenset(
+    {"the", "a", "an", "for", "and", "with", "to", "in", "on", "of",
+     "apple", "ios", "swift", "swiftui"}
+)
 
 
-def _contains_pattern(text: str, patterns: list[str]) -> bool:
-    """Check whether any keyword pattern appears in text."""
+def _word_set(text: str) -> set[str]:
+    """Build a normalised, stop-word-filtered word set for overlap checks."""
+    return {
+        w for w in re.findall(r"[a-z0-9]+", text.lower())
+        if len(w) > 2 and w not in _STOP_WORDS
+    }
+
+
+# ---------------------------------------------------------------------------
+# Keyword matching helpers
+# ---------------------------------------------------------------------------
+
+
+def _matches_any(text: str, patterns: list[str]) -> bool:
     lowered = text.lower()
-    return any(re.search(pattern, lowered) for pattern in patterns)
-
-
-def _has_allowed_intelligence_context(text: str) -> bool:
-    """Allow explicit Apple Intelligence contexts while blocking generic AI framing."""
-    return _contains_pattern(text, APPLE_INTELLIGENCE_ALLOWLIST)
+    return any(re.search(p, lowered) for p in patterns)
 
 
 def _is_apple_programming_topic(title: str) -> bool:
-    """Validate generated title scope for Apple-platform programming only."""
-    has_apple_signal = _contains_pattern(title, APPLE_WORD_PATTERNS)
-    has_ai_signal = _contains_pattern(title, AI_WORD_PATTERNS)
-    has_allowed_intelligence = _has_allowed_intelligence_context(title)
-    return has_apple_signal and (not has_ai_signal or has_allowed_intelligence)
+    """Return True when *title* is scoped to Apple-platform programming."""
+    has_apple = _matches_any(title, APPLE_WORD_PATTERNS)
+    has_ai = _matches_any(title, AI_WORD_PATTERNS)
+    has_allowed_intelligence = _matches_any(title, APPLE_INTELLIGENCE_ALLOWLIST)
+    return has_apple and (not has_ai or has_allowed_intelligence)
 
 
-def _sample_topic_family(recent_titles: list[str]) -> tuple[str, list[str]]:
-    """Pick a topic family biased away from recently used families and migration."""
-    import random
-
-    family_scores: list[tuple[int, tuple[str, list[str]]]] = []
-    for family_name, queries in TOPIC_FAMILIES:
-        matches = sum(
-            1 for title in recent_titles
-            if any(
-                re.search(r"\b" + re.escape(kw.lower().split()[0]) + r"\b", title.lower())
-                for kw in queries
-            )
-        )
-        family_scores.append((matches, (family_name, queries)))
-
-    family_scores.sort(key=lambda x: x[0])
-
-    weights: list[float] = []
-    families: list[tuple[str, list[str]]] = []
-    for score, (name, queries) in family_scores:
-        base_weight = max(1.0, 4.0 - score * 1.5)
-        if name == "migration":
-            base_weight *= 0.5
-        weights.append(base_weight)
-        families.append((name, queries))
-
-    chosen_name, chosen_queries = random.choices(families, weights=weights, k=1)[0]
-    return chosen_name, chosen_queries
+# ---------------------------------------------------------------------------
+# Novelty checks
+# ---------------------------------------------------------------------------
 
 
-def _filtered_interests(topic_interests: list[str], recent_titles: list[str] | None = None) -> list[str]:
-    """Build a varied, family-weighted interest list for the current run."""
-    family_name, family_queries = _sample_topic_family(recent_titles or [])
-    primary = list(family_queries)
-    cleaned = [item.strip() for item in topic_interests if item and item.strip()]
-    supplemental = [
-        item for item in cleaned
-        if _contains_pattern(item, APPLE_WORD_PATTERNS)
-        and not _contains_pattern(item, AI_WORD_PATTERNS)
-        and not _contains_pattern(item, MIGRATION_WORD_PATTERNS)
-    ]
-    return primary + supplemental[:4]
-
-
-def _fallback_topic_title(recent_titles: Iterable[str]) -> str:
-    """Use Apple-only fallback titles when model responses violate constraints."""
-    candidates = [
-        "Swift 6.3 Macros for iOS Codebases",                    # frameworks_apis
-        "Reducing SwiftUI Boilerplate in Real Projects",         # architecture
-        "Structured Concurrency Patterns for SwiftUI Apps",      # concurrency
-        "Profiling SwiftUI List Performance with Instruments",   # performance
-        "VoiceOver Support for Custom SwiftUI Views",            # accessibility_design
-        "Xcode Build Performance with Explicit Swift Modules",   # tooling_debugging
-        "SwiftUI KeyframeAnimator for Fluid Transitions",        # swiftui_features
-        "Migrating Deprecated iOS APIs to Swift 6 Safely",      # migration (1 of 8)
-    ]
-    for candidate in candidates:
-        normalized = _constrain_title_length(candidate)
-        if normalized and not _is_repetitive(normalized, recent_titles):
-            return normalized
-    return _constrain_title_length(candidates[0])
-
-
-def _is_repetitive(candidate: str, recent_titles: Iterable[str], threshold: float = 0.6) -> bool:
-    """Check whether topic candidate is too similar to recent topic history."""
+def _is_repetitive(
+    candidate: str,
+    recent_titles: Iterable[str],
+    threshold: float = WORD_OVERLAP_THRESHOLD,
+) -> bool:
+    """Return True when *candidate* has too much word overlap with a recent title."""
     candidate_words = _word_set(candidate)
     if not candidate_words:
         return False
-
     for previous in recent_titles:
         prev_words = _word_set(previous)
         if not prev_words:
             continue
-
         overlap = len(candidate_words & prev_words) / len(candidate_words | prev_words)
         if overlap >= threshold:
             return True
-
     return False
 
 
@@ -261,7 +232,7 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
     dot = sum(x * y for x, y in zip(a, b))
     norm_a = sum(x * x for x in a) ** 0.5
     norm_b = sum(x * x for x in b) ** 0.5
-    if norm_a == 0 or norm_b == 0:
+    if norm_a == 0.0 or norm_b == 0.0:
         return 0.0
     return dot / (norm_a * norm_b)
 
@@ -270,130 +241,298 @@ def _is_semantically_repetitive(
     candidate: str,
     recent_titles: list[str],
     client: object,
-    threshold: float = 0.80,
+    threshold: float = SEMANTIC_SIMILARITY_THRESHOLD,
 ) -> bool:
-    """Check semantic similarity via embeddings — catches near-duplicates that word overlap misses.
+    """Return True when *candidate* is semantically similar to a recent title.
 
-    Uses a single batched embeddings call. Falls back silently to False on any error
-    so the word-set check in _is_repetitive always remains the safety net.
+    Uses a single batched embeddings call for efficiency. Falls back to
+    ``False`` on any API or type error so ``_is_repetitive`` remains the
+    primary safety net — the failure is logged at DEBUG level for observability.
     """
     if not recent_titles:
         return False
     try:
         from openai import OpenAI  # noqa: PLC0415
-
         assert isinstance(client, OpenAI)
         response = client.embeddings.create(
-            model="text-embedding-3-small",
-            input=[candidate] + list(recent_titles),
+            model=EMBEDDING_MODEL,
+            input=[candidate, *recent_titles],
         )
         embeddings = [item.embedding for item in response.data]
         candidate_emb = embeddings[0]
         for prev_emb in embeddings[1:]:
             if _cosine_similarity(candidate_emb, prev_emb) >= threshold:
                 return True
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001
+        log_event(
+            LOGGER,
+            "semantic_similarity_check_failed",
+            level=logging.DEBUG,
+            candidate=candidate,
+            error=repr(exc),
+        )
     return False
 
 
-_MIGRATION_PATTERNS = re.compile(
-    r"\b(completion handler|callback|delegate|kvo|nsnotification|urlsession|combine|uikit)\b",
-    re.IGNORECASE,
-)
-
-
-def _shares_migration_target(candidate: str, recent_titles: Iterable[str]) -> bool:
-    """Reject migration topics that duplicate a recent migration source API."""
-    candidate_targets = set(_MIGRATION_PATTERNS.findall(candidate.lower()))
+def _shares_migration_target(
+    candidate: str,
+    recent_titles: Iterable[str],
+) -> bool:
+    """Return True when *candidate* shares a migration source API with a recent title."""
+    candidate_targets = set(_MIGRATION_TARGET_RE.findall(candidate.lower()))
     if not candidate_targets:
         return False
     for prev in recent_titles:
-        prev_targets = set(_MIGRATION_PATTERNS.findall(prev.lower()))
-        if candidate_targets & prev_targets:
+        if candidate_targets & set(_MIGRATION_TARGET_RE.findall(prev.lower())):
             return True
     return False
 
 
-def _constrain_title_length(title: str, max_chars: int = 60, max_words: int = 10) -> str:
-    """Constrain title length for professional Medium readability."""
-    cleaned = re.sub(r"\s+", " ", title).strip().strip('"')
+# ---------------------------------------------------------------------------
+# Title length constraint
+# ---------------------------------------------------------------------------
+
+
+def _constrain_title_length(
+    title: str,
+    max_chars: int = TITLE_MAX_CHARS,
+    max_words: int = TITLE_MAX_WORDS,
+) -> str:
+    """Trim *title* to fit character and word limits without mid-word cuts."""
+    cleaned = _WHITESPACE_RE.sub(" ", title).strip().strip('"')
     words = cleaned.split()[:max_words]
 
-    trailing_stop_words = {"for", "to", "with", "and", "or", "of", "in", "on"}
-
-    constrained_words: list[str] = []
+    kept: list[str] = []
     for word in words:
-        candidate = " ".join(constrained_words + [word]).strip()
+        candidate = " ".join([*kept, word])
         if len(candidate) <= max_chars:
-            constrained_words.append(word)
-            continue
-        break
+            kept.append(word)
+        else:
+            break
 
-    cleaned = " ".join(constrained_words).strip()
-    if not cleaned:
-        cleaned = words[0][:max_chars].rstrip(" ,:;-") if words else ""
-    # Remove awkward trailing connector words caused by truncation.
-    parts = cleaned.split()
-    while parts and parts[-1].lower() in trailing_stop_words:
+    result = " ".join(kept).strip()
+    if not result:
+        result = (words[0][:max_chars].rstrip(" ,:;-") if words else "")
+
+    # Drop trailing connectors left by truncation.
+    parts = result.split()
+    while parts and parts[-1].lower() in _TRAILING_STOP_WORDS:
         parts.pop()
-    cleaned = " ".join(parts).strip()
-    # Avoid trailing punctuation artifacts after truncation.
-    cleaned = cleaned.rstrip(".,:;-")
-    return cleaned
+
+    return " ".join(parts).rstrip(_TITLE_STRIP_CHARS)
+
+
+# ---------------------------------------------------------------------------
+# Topic family sampling
+# ---------------------------------------------------------------------------
+
+
+@dataclass()
+class _WeightedFamily:
+    name: str
+    queries: list[str]
+    weight: float
+
+
+def _sample_topic_family(recent_titles: list[str]) -> tuple[str, list[str]]:
+    """Pick a topic family, biased away from recently used families and migration."""
+    weighted: list[_WeightedFamily] = []
+
+    for family_name, queries in TOPIC_FAMILIES:
+        # Count how many recent titles share keywords with this family.
+        matches = sum(
+            1 for title in recent_titles
+            if any(
+                re.search(r"\b" + re.escape(kw.lower().split()[0]) + r"\b", title.lower())
+                for kw in queries
+            )
+        )
+        weight = max(1.0, BASE_WEIGHT - matches * WEIGHT_PENALTY_PER_MATCH)
+        if family_name == "migration":
+            weight *= MIGRATION_FAMILY_WEIGHT_FACTOR
+        weighted.append(_WeightedFamily(name=family_name, queries=queries, weight=weight))
+
+    chosen = random.choices(weighted, weights=[f.weight for f in weighted], k=1)[0]
+    return chosen.name, chosen.queries
+
+
+# ---------------------------------------------------------------------------
+# Interest list filtering
+# ---------------------------------------------------------------------------
+
+
+def _filtered_interests(
+    topic_interests: list[str],
+    recent_titles: list[str],
+) -> list[str]:
+    """Build a varied, family-weighted interest list for the current run."""
+    _family_name, family_queries = _sample_topic_family(recent_titles)
+    supplemental = [
+        item.strip() for item in topic_interests
+        if item and item.strip()
+        and _matches_any(item, APPLE_WORD_PATTERNS)
+        and not _matches_any(item, AI_WORD_PATTERNS)
+        and not _matches_any(item, MIGRATION_WORD_PATTERNS)
+    ]
+    return list(family_queries) + supplemental[:SUPPLEMENTAL_INTERESTS_LIMIT]
+
+
+# ---------------------------------------------------------------------------
+# Fallback titles
+# ---------------------------------------------------------------------------
+
+_FALLBACK_TITLES: Final[list[str]] = [
+    "Swift 6.3 Macros for iOS Codebases",
+    "Reducing SwiftUI Boilerplate in Real Projects",
+    "Structured Concurrency Patterns for SwiftUI Apps",
+    "Profiling SwiftUI List Performance with Instruments",
+    "VoiceOver Support for Custom SwiftUI Views",
+    "Xcode Build Performance with Explicit Swift Modules",
+    "SwiftUI KeyframeAnimator for Fluid Transitions",
+    "Migrating Deprecated iOS APIs to Swift 6 Safely",
+]
+
+
+def _fallback_topic_title(recent_titles: Iterable[str]) -> str:
+    """Return the first fallback title that is not repetitive with recent titles."""
+    seen = list(recent_titles)
+    for candidate in _FALLBACK_TITLES:
+        normalised = _constrain_title_length(candidate)
+        if normalised and not _is_repetitive(normalised, seen):
+            return normalised
+    return _constrain_title_length(_FALLBACK_TITLES[0])
+
+
+# ---------------------------------------------------------------------------
+# Prompt loading
+# ---------------------------------------------------------------------------
+
+
+def _load_template(path: Path = PROMPT_PATH) -> str:
+    """Read and return the topic prompt template.
+
+    Raises
+    ------
+    FileNotFoundError
+        When the template file does not exist.
+    """
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Topic prompt template not found at '{path}'. "
+            "Verify PROMPT_PATH or the process working directory."
+        )
+    return path.read_text(encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 
 def generate_topic(
     trend_context: str = "",
     recent_titles: list[str] | None = None,
     topic_interests: list[str] | None = None,
-    topic_mode: str | None = None,
+    topic_mode: str | None = None,  # Deprecated — Apple-platform only.
 ) -> str:
-    """Generate a single Apple-platform topic suitable for a Medium article title."""
-    if not OPENAI_API_KEY:
-        raise RuntimeError("OPENAI_API_KEY is not set.")
+    """Generate a single Apple-platform topic suitable for a Medium article title.
+
+    Parameters
+    ----------
+    trend_context:
+        Formatted trend signal text from the scanner (may be empty).
+    recent_titles:
+        Previously published titles used for novelty checks.
+    topic_interests:
+        Priority topic themes; defaults to ``TOPIC_INTERESTS`` from config.
+    topic_mode:
+        Deprecated parameter — ignored. Topic generation is Apple-platform only.
+
+    Returns
+    -------
+    str
+        A title-cased topic string within ``TITLE_MAX_CHARS`` / ``TITLE_MAX_WORDS``.
+
+    Raises
+    ------
+    FileNotFoundError
+        When the prompt template file is missing.
+    """
+    _ = topic_mode  # Deprecated; retained for backward compatibility.
 
     client = create_openai_client()
-    recent_titles = recent_titles or []
-    topic_interests = topic_interests or TOPIC_INTERESTS
-    _ = topic_mode  # Deprecated. Topic generation is Apple-platform only.
-    filtered_interests = _filtered_interests(topic_interests, recent_titles)
-    recent_titles_context = "\n".join(f"- {title}" for title in recent_titles[:15]) or "- None"
-    topic_interests_context = "\n".join(f"- {item}" for item in filtered_interests) or "- SwiftUI"
-    prompt_template = _load_prompt_template()
+    recent = recent_titles or []
+    interests = topic_interests or TOPIC_INTERESTS
+    filtered = _filtered_interests(interests, recent)
 
-    candidate = ""
-    for _attempt in range(5):
-        prompt = prompt_template.format(
-            trend_context=trend_context.strip()
-            or "No external trend signals were available this run.",
-            recent_titles=recent_titles_context,
-            topic_interests=topic_interests_context,
+    recent_context = "\n".join(f"- {t}" for t in recent[:RECENT_TITLES_DISPLAY_LIMIT]) or "- None"
+    interests_context = "\n".join(f"- {i}" for i in filtered) or "- SwiftUI"
+    template = _load_template()
+
+    for attempt in range(1, MAX_GENERATION_ATTEMPTS + 1):
+        prompt = (
+            template
+            .replace("{trend_context}", trend_context.strip() or "No external trend signals were available this run.")
+            .replace("{recent_titles}", recent_context)
+            .replace("{topic_interests}", interests_context)
         )
         response = responses_create_logged(
             client,
             agent_name="topic_agent",
             operation="generate_topic",
             model=OPENAI_MODEL,
-            max_output_tokens=220,
+            max_output_tokens=MAX_OUTPUT_TOKENS,
             input=prompt,
-            log_fields={"attempt": _attempt + 1},
             **openai_generation_kwargs(OPENAI_TEMPERATURE),
         )
 
-        output_text = (response.output_text or "").strip()
-        if not output_text:
+        raw = (response.output_text or "").strip()
+        if not raw:
+            log_event(LOGGER, "topic_generation_empty", level=logging.WARNING, attempt=attempt)
             continue
-        candidate = output_text.splitlines()[0].strip().strip('"')
-        candidate = re.sub(r"^\s*\d+[\.)]\s*", "", candidate).strip()
-        candidate = _constrain_title_length(candidate)
-        if (
-            candidate
-            and _is_apple_programming_topic(candidate)
-            and not _is_repetitive(candidate, recent_titles)
-            and not _is_semantically_repetitive(candidate, recent_titles, client)
-            and not _shares_migration_target(candidate, recent_titles)
-        ):
-            return candidate
 
-    return _fallback_topic_title(recent_titles)
+        candidate = _LEADING_NUMBERING_RE.sub("", raw.splitlines()[0].strip().strip('"'))
+        candidate = _constrain_title_length(candidate)
+
+        if not candidate:
+            continue
+
+        violations: list[str] = []
+        if not _is_apple_programming_topic(candidate):
+            violations.append("not_apple_platform")
+        if _is_repetitive(candidate, recent):
+            violations.append("word_repetitive")
+        if _is_semantically_repetitive(candidate, recent, client):
+            violations.append("semantic_repetitive")
+        if _shares_migration_target(candidate, recent):
+            violations.append("migration_target_duplicate")
+
+        if violations:
+            log_event(
+                LOGGER,
+                "topic_candidate_rejected",
+                level=logging.INFO,
+                attempt=attempt,
+                candidate=candidate,
+                violations=",".join(violations),
+            )
+            continue
+
+        log_event(
+            LOGGER,
+            "topic_generated",
+            level=logging.INFO,
+            attempt=attempt,
+            topic=candidate,
+        )
+        return candidate
+
+    fallback = _fallback_topic_title(recent)
+    log_event(
+        LOGGER,
+        "topic_generation_fallback",
+        level=logging.WARNING,
+        attempts=MAX_GENERATION_ATTEMPTS,
+        fallback=fallback,
+    )
+    return fallback

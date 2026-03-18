@@ -1,25 +1,113 @@
 You are a principal iOS architect and technical writer.
 
+================================================================================
+## INPUTS
+================================================================================
+
 Topic:
 "{topic}"
 
-Create a concise markdown outline for a Medium article.
+================================================================================
+## TASK
+================================================================================
 
-Requirements:
-- Keep a clear Medium-style reading flow with short, scannable sections.
-- Use this section order exactly:
-  1) opening hook,
-  2) why this topic matters for iOS teams right now,
-  3) 4-5 core sections,
-  4) tradeoffs/pitfalls,
-  5) implementation checklist,
-  6) closing takeaway.
-- Use `##` for major sections and `###` for sub-points.
-- Format core sections as numbered headings: `## 1. ...`, `## 2. ...`.
-- For each core section, add 2-3 practical sub-points that include:
-  - one concrete Apple API/tool/framework callout,
-  - one "when to use vs when not to use" decision point,
-  - one production caution (failure mode, rollout, or operational risk).
-- Include at least one core section focused on testing/observability (XCTest, Instruments, MetricKit, os_log/signposts, crash monitoring, etc.).
-- Prefer real team concerns: migration strategy, backward compatibility, release risk, incident handling, and maintainability.
-- Keep the outline compact and directly useful for a 900-1200 word article.
+Create a concise markdown outline for a Medium article on the topic above.
+
+Return ONLY the markdown outline — no preamble, no commentary, no explanation
+of choices made.
+
+================================================================================
+## OUTPUT CONTRACT
+================================================================================
+
+Format:
+  - Clean markdown only.
+  - ## for major sections, ### for sub-points — no deeper heading levels.
+  - Number core ## sections sequentially:
+      ## 1. …
+      ## 2. …
+  - Use title case for all headings:
+      ✅  ## Why This Matters For iOS Teams
+      ❌  ## WHY THIS MATTERS
+      ❌  ## why this matters
+  - Sub-points under each section: bullet list (- …), not prose.
+
+Scope: outline only — no article body text, no code, no explanations beyond
+the sub-point bullets. The outline must be compact and directly usable as a
+writing brief for a 900–1,200 word article.
+
+================================================================================
+## STRUCTURE REQUIREMENTS
+================================================================================
+
+Use this exact section order. Do not reorder, merge, or omit any element.
+
+  1. Opening Hook  (##)
+     - One bullet describing the editorial angle: the tension, shift, or
+       real practitioner concern that opens the article.
+     - One bullet on the hook's tone target: direct, specific, no fluff.
+
+  2. Why This Matters  (##)
+     - 2–3 bullets covering the production or team-level stakes of this topic
+       right now: migration pressure, release risk, platform changes, or
+       tooling shifts that make this relevant today.
+
+  3. Core Sections  (## 1. through ## 4. or ## 5.)
+     - 4–5 numbered ## sections following the topic's natural structure.
+     - Each core section must contain exactly three ### sub-points:
+         a) Concrete Apple API/tool/framework callout — name the specific
+            symbol or tool in backtick formatting (e.g., `TaskGroup`,
+            `MetricKit`, `os_signpost`).
+         b) Decision criterion — "Choose X when …; avoid when …" framed
+            as a practical engineering tradeoff.
+         c) Production caution — one real failure mode, rollout risk,
+            backward-compatibility concern, or operational hazard.
+     - At least one core section must focus on testing and observability,
+       drawing from: `XCTest`, Instruments (Time Profiler, Allocations),
+       `os_signpost`, `MetricKit`, `os_log`, crash monitoring, or rollout
+       gates. Label it clearly (e.g., ## 3. Validation & Observability).
+
+  4. Tradeoffs & Pitfalls  (##)
+     - 2–3 bullets covering engineering tradeoffs, known failure modes, and
+       the conditions under which the recommended approach breaks down.
+     - No new APIs here — synthesise tradeoffs from the core sections.
+
+  5. Implementation Checklist  (##)
+     - 4–6 `- [ ] …` checklist items an engineer can act on directly.
+     - Each item must be actionable and specific — not a restatement of
+       section headings.
+
+  6. Closing Takeaway  (##)
+     - 1–2 bullets summarising the core argument and the one thing the
+       reader should walk away ready to do or decide.
+
+================================================================================
+## CONTENT RULES
+================================================================================
+
+Prefer real team concerns throughout:
+  - Migration strategy and backward compatibility.
+  - Release risk and rollout gates.
+  - Incident handling and failure recovery.
+  - Maintainability and long-term operational cost.
+
+API naming:
+  Every Apple API, type, method, or tool named in the outline MUST use inline
+  backtick formatting. No exceptions.
+    ✅  `withCheckedThrowingContinuation`, `@Observable`, `MetricKit`
+    ❌  withCheckedThrowingContinuation, @Observable, MetricKit
+
+No invented claims:
+  Do not invent APIs, version numbers, or platform facts not grounded in
+  stable Apple platform engineering fundamentals.
+
+================================================================================
+## CONFLICT RESOLUTION
+================================================================================
+
+When requirements conflict, apply this priority order:
+  1. Exact section order and all six elements present.
+  2. Three ### sub-points per core section (API, decision, caution).
+  3. At least one observability/testing core section.
+  4. Compact scope — outline only, no body text.
+  5. Formatting and style rules.

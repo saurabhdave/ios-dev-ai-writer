@@ -1,21 +1,36 @@
 """Automatic iOS trend discovery from public sources.
 
-This module collects weak signals from multiple platforms and normalizes them
-into a single ranked list that can be used as context for topic generation.
+Collects weak signals from multiple platforms and normalises them into a
+single ranked, deduplicated list for downstream topic generation.
+
+Design principles
+-----------------
+- Every public function is typed and documented.
+- Network errors are retried with exponential back-off; one source failure
+  never aborts the full pipeline run.
+- All I/O is guarded: invalid JSON, missing keys, and encoding errors are
+  caught at the boundary and logged, not propagated.
+- Structured logging (key=value pairs) throughout for easy ingestion by
+  log aggregators (Datadog, CloudWatch, etc.).
+- Constants live in `config`; nothing is hard-coded here.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime, timezone
 import json
+import logging
 import re
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Final
 from urllib.parse import quote_plus
 
 import feedparser
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from config import (
     CUSTOM_TRENDS_FILE,
@@ -26,8 +41,17 @@ from config import (
     TREND_SOURCES,
 )
 
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
 
-IOS_KEYWORD_PATTERNS = [
+log = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+_IOS_KEYWORD_PATTERNS: Final[list[str]] = [
     r"\bapple\b",
     r"\bios\b",
     r"\bipados\b",
@@ -60,7 +84,7 @@ IOS_KEYWORD_PATTERNS = [
     r"\bwwdc\b",
 ]
 
-TOPIC_EXCLUSION_PATTERNS = [
+_EXCLUSION_PATTERNS: Final[list[str]] = [
     r"\bai\b",
     r"\bagent(s)?\b",
     r"\bagentic\b",
@@ -73,14 +97,24 @@ TOPIC_EXCLUSION_PATTERNS = [
     r"\bcore\s?ml\b",
 ]
 
-APPLE_INTELLIGENCE_ALLOWLIST = [
+# Exclusion exceptions: items matching these are allowed through even if they
+# also match an exclusion pattern (Apple Intelligence is intentional).
+_INTELLIGENCE_ALLOWLIST: Final[list[str]] = [
     r"\bapple intelligence\b",
     r"\bapple intelligence api(s)?\b",
     r"\bfoundation models?\b",
     r"\bapp\sintents?\b",
 ]
 
-DEFAULT_VIRAL_QUERIES = [
+_LOW_SIGNAL_PATTERNS: Final[list[str]] = [
+    r"\bis hiring\b",
+    r"\bjobs?\b",
+    r"\bcareers?\b",
+    r"\bfeedback requested\b",
+    r"#buildinpublic",
+]
+
+_VIRAL_QUERIES: Final[list[str]] = [
     "Reducing boilerplate in real iOS SwiftUI projects",
     "Swift 6.3 Macros iOS SwiftUI practical usage",
     "Swift async await patterns in iOS SwiftUI apps",
@@ -99,7 +133,7 @@ DEFAULT_VIRAL_QUERIES = [
     "site:linkedin.com/posts iOS SwiftUI",
 ]
 
-SOCIAL_WEB_QUERY_SOURCES = [
+_SOCIAL_WEB_QUERIES: Final[list[tuple[str, str]]] = [
     (
         "X.com iOS SwiftUI",
         "site:x.com iOS SwiftUI OR Swift async await OR Structured Concurrency OR Swift Testing OR visionOS",
@@ -114,7 +148,7 @@ SOCIAL_WEB_QUERY_SOURCES = [
     ),
 ]
 
-PLATFORM_RSS_FEEDS = [
+_PLATFORM_RSS_FEEDS: Final[list[tuple[str, str]]] = [
     ("dev.to", "https://dev.to/feed/tag/ios"),
     ("dev.to", "https://dev.to/feed/tag/swift"),
     ("dev.to", "https://dev.to/feed/tag/swiftui"),
@@ -123,114 +157,179 @@ PLATFORM_RSS_FEEDS = [
     ("Medium", "https://medium.com/feed/tag/swiftui"),
 ]
 
-LOW_SIGNAL_TITLE_PATTERNS = [
-    r"\bis hiring\b",
-    r"\bjobs?\b",
-    r"\bcareers?\b",
-    r"\bfeedback requested\b",
-    r"#buildinpublic",
+_WEBSEARCH_QUERIES: Final[list[str]] = [
+    "top 10 trending topics in iOS development",
+    "top trending iOS Swift topics 2026",
+    "most popular iOS development topics developers",
 ]
 
+# Summary truncation length stored in one place so it's easy to adjust.
+_SUMMARY_MAX_CHARS: Final[int] = 240
 
-@dataclass
+# HTTP retry policy applied to all outbound requests.
+_RETRY_POLICY: Final[Retry] = Retry(
+    total=3,
+    backoff_factor=0.5,          # 0.5 s, 1 s, 2 s
+    status_forcelist={429, 500, 502, 503, 504},
+    allowed_methods={"GET"},
+    raise_on_status=False,
+)
+
+# ---------------------------------------------------------------------------
+# Data model
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
 class TrendSignal:
-    """Normalized trend signal used across all upstream sources."""
+    """Immutable, normalised trend signal produced by every upstream fetcher."""
 
     source: str
     title: str
     url: str
     score: float
-    published_at: str
-    summary: str = ""
+    published_at: str           # ISO-8601 UTC string
+    summary: str = field(default="")
+
+    def dedup_key(self) -> str:
+        """Stable key for URL-or-title deduplication."""
+        if self.url.strip():
+            return self.url.strip().lower()
+        return re.sub(r"\s+", " ", self.title.lower()).strip()
 
 
-def _is_topic_related(text: str) -> bool:
-    """Keyword filter to retain Apple-platform programming relevant items."""
+# ---------------------------------------------------------------------------
+# HTTP session factory
+# ---------------------------------------------------------------------------
+
+
+def _build_session(user_agent: str | None = None) -> requests.Session:
+    """Return a Session pre-configured with retry logic and a shared adapter."""
+    session = requests.Session()
+    adapter = HTTPAdapter(max_retries=_RETRY_POLICY)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    if user_agent:
+        session.headers["User-Agent"] = user_agent
+    return session
+
+
+# One shared session for generic requests; Reddit gets its own (custom UA).
+_SESSION: requests.Session = _build_session()
+_REDDIT_SESSION: requests.Session = _build_session(user_agent=REDDIT_USER_AGENT)
+
+# ---------------------------------------------------------------------------
+# Filtering helpers
+# ---------------------------------------------------------------------------
+
+
+def _is_ios_related(text: str) -> bool:
+    """Return True when *text* is Apple-platform programming relevant."""
     normalized = text.lower()
-    has_apple_signal = any(re.search(pattern, normalized) for pattern in IOS_KEYWORD_PATTERNS)
-    has_excluded_signal = any(re.search(pattern, normalized) for pattern in TOPIC_EXCLUSION_PATTERNS)
-    has_allowed_intelligence = any(
-        re.search(pattern, normalized) for pattern in APPLE_INTELLIGENCE_ALLOWLIST
-    )
-    return has_apple_signal and (not has_excluded_signal or has_allowed_intelligence)
+    has_signal = any(re.search(p, normalized) for p in _IOS_KEYWORD_PATTERNS)
+    is_excluded = any(re.search(p, normalized) for p in _EXCLUSION_PATTERNS)
+    is_allowed = any(re.search(p, normalized) for p in _INTELLIGENCE_ALLOWLIST)
+    return has_signal and (not is_excluded or is_allowed)
 
 
-def _iso_now() -> str:
-    """Return UTC timestamp for records that do not include publish time."""
+def _is_low_signal(title: str) -> bool:
+    """Return True for job posts, promos, and other non-editorial noise."""
+    lowered = title.lower()
+    return any(re.search(p, lowered) for p in _LOW_SIGNAL_PATTERNS)
+
+
+# ---------------------------------------------------------------------------
+# Utility helpers
+# ---------------------------------------------------------------------------
+
+
+def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
 def _to_float(value: object, default: float) -> float:
-    """Best-effort numeric parsing helper."""
     try:
-        return float(value)
+        return float(value)  # type: ignore[arg-type]
     except (TypeError, ValueError):
         return default
 
 
-def _is_low_signal_title(title: str) -> bool:
-    """Filter noisy/non-editorial trend items (jobs, generic promos, etc.)."""
-    lowered = title.lower()
-    return any(re.search(pattern, lowered) for pattern in LOW_SIGNAL_TITLE_PATTERNS)
+def _recency_score(published_parsed: tuple | None, base: float = 10.0) -> float:
+    """Decay score by age using a 48-hour half-life."""
+    if not published_parsed:
+        return base
+    try:
+        published = datetime(*published_parsed[:6], tzinfo=timezone.utc)
+    except (TypeError, ValueError, OverflowError):
+        return base
+    age_hours = max((datetime.now(timezone.utc) - published).total_seconds() / 3600.0, 0.0)
+    return round(base / (1.0 + age_hours / 48.0), 3)
 
 
-def _safe_get_json(url: str, headers: dict[str, str] | None = None) -> dict | list:
-    """Perform a guarded JSON GET with timeout and HTTP status validation."""
-    response = requests.get(url, headers=headers, timeout=TREND_HTTP_TIMEOUT_SECONDS)
+def _truncate(text: str, max_chars: int = _SUMMARY_MAX_CHARS) -> str:
+    return text[:max_chars]
+
+
+# ---------------------------------------------------------------------------
+# Network helpers
+# ---------------------------------------------------------------------------
+
+
+def _get_json(
+    url: str,
+    session: requests.Session = _SESSION,
+    timeout: int = TREND_HTTP_TIMEOUT_SECONDS,
+) -> dict | list:
+    """GET *url* and return parsed JSON, raising on HTTP or parse errors."""
+    response = session.get(url, timeout=timeout)
     response.raise_for_status()
     return response.json()
 
 
-def _score_from_recency(published_parsed: tuple | None, base: float = 10.0) -> float:
-    """Derive a soft score from age when explicit engagement metrics are missing."""
-    if not published_parsed:
-        return base
-
-    published = datetime(*published_parsed[:6], tzinfo=timezone.utc)
-    age_hours = max((datetime.now(timezone.utc) - published).total_seconds() / 3600.0, 0.0)
-
-    # A simple half-life style decay keeps newer entries ranked higher.
-    return round(base / (1.0 + age_hours / 48.0), 3)
-
-
-def _parse_feed(
+def _parse_rss_feed(
     feed_url: str,
     source_name: str,
     limit: int,
-    topic_filter: bool = True,
+    apply_topic_filter: bool = True,
 ) -> list[TrendSignal]:
-    """Parse an RSS/Atom feed and normalize entries."""
-    parsed = feedparser.parse(feed_url)
+    """Parse an RSS/Atom feed and return normalised TrendSignal list."""
+    try:
+        parsed = feedparser.parse(feed_url)
+    except Exception as exc:  # feedparser rarely raises, but guard anyway
+        log.warning("feed_parse_error source=%s url=%s error=%r", source_name, feed_url, exc)
+        return []
+
     signals: list[TrendSignal] = []
 
     for entry in parsed.entries:
         title = str(getattr(entry, "title", "") or "").strip()
         url = str(getattr(entry, "link", "") or "").strip()
-        summary = re.sub(r"\s+", " ", str(getattr(entry, "summary", "") or "")).strip()
+        raw_summary = str(getattr(entry, "summary", "") or "")
+        summary = _truncate(re.sub(r"\s+", " ", raw_summary).strip())
 
         if not title:
             continue
-        if _is_low_signal_title(title):
+        if _is_low_signal(title):
+            continue
+        if apply_topic_filter and not _is_ios_related(f"{title} {summary} {url}"):
             continue
 
-        combined = f"{title} {summary} {url}"
-        if topic_filter and not _is_topic_related(combined):
-            continue
+        published_parsed = getattr(entry, "published_parsed", None)
+        published_at = _utc_now_iso()
+        if published_parsed:
+            try:
+                published_at = datetime(*published_parsed[:6], tzinfo=timezone.utc).isoformat()
+            except (TypeError, ValueError, OverflowError):
+                pass
 
-        published_at = _iso_now()
-        if getattr(entry, "published_parsed", None):
-            published = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
-            published_at = published.isoformat()
-
-        score = _score_from_recency(getattr(entry, "published_parsed", None), base=15.0)
         signals.append(
             TrendSignal(
                 source=source_name,
                 title=title,
                 url=url,
-                score=score,
+                score=_recency_score(published_parsed, base=15.0),
                 published_at=published_at,
-                summary=summary[:240],
+                summary=summary,
             )
         )
 
@@ -240,71 +339,57 @@ def _parse_feed(
     return signals
 
 
-def _fetch_google_news_query(query: str, source_name: str, limit: int) -> list[TrendSignal]:
-    """Fetch a Google News RSS query and normalize the result."""
+def _google_news_rss(
+    query: str,
+    source_name: str,
+    limit: int,
+) -> list[TrendSignal]:
+    """Fetch a Google News RSS query and normalise results."""
     encoded = quote_plus(query)
     url = f"https://news.google.com/rss/search?q={encoded}&hl=en-US&gl=US&ceid=US:en"
-    return _parse_feed(feed_url=url, source_name=source_name, limit=limit, topic_filter=True)
+    return _parse_rss_feed(feed_url=url, source_name=source_name, limit=limit)
 
 
-def _load_custom_trend_config(path: Path = CUSTOM_TRENDS_FILE) -> dict[str, list[dict[str, object]]]:
-    """Load user-defined trend sources from JSON for easy extension.
+def _per_item_limit(total_limit: int, num_sources: int) -> int:
+    """Fair per-source limit that always returns at least 1."""
+    return max(total_limit // max(num_sources, 1), 1)
 
-    Expected keys:
-    - google_news_queries: [{"name": "LinkedIn iOS", "query": "site:linkedin.com/posts iOS SwiftUI"}]
-    - rss_feeds: [{"name": "Some Feed", "url": "https://example.com/feed.xml", "topic_filter": true}]
-    - manual_signals: [{"source": "Manual", "title": "...", "url": "...", "score": 60}]
-    """
-    default_payload: dict[str, list[dict[str, object]]] = {
-        "google_news_queries": [],
-        "rss_feeds": [],
-        "manual_signals": [],
-    }
 
-    if not path.exists():
-        return default_payload
-
-    try:
-        loaded = json.loads(path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return default_payload
-
-    if not isinstance(loaded, dict):
-        return default_payload
-
-    normalized = default_payload.copy()
-    for key in normalized:
-        value = loaded.get(key, [])
-        normalized[key] = value if isinstance(value, list) else []
-
-    return normalized
+# ---------------------------------------------------------------------------
+# Source fetchers
+# ---------------------------------------------------------------------------
 
 
 def fetch_hackernews_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
     """Fetch iOS-relevant top stories from Hacker News."""
-    top_story_ids = _safe_get_json("https://hacker-news.firebaseio.com/v0/topstories.json")
+    top_ids: list[int] = _get_json(  # type: ignore[assignment]
+        "https://hacker-news.firebaseio.com/v0/topstories.json"
+    )
 
     signals: list[TrendSignal] = []
-    for story_id in top_story_ids[:80]:
-        item = _safe_get_json(f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json")
+    for story_id in top_ids[:80]:
+        try:
+            item: dict = _get_json(  # type: ignore[assignment]
+                f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
+            )
+        except Exception as exc:
+            log.debug("hn_item_fetch_error id=%s error=%r", story_id, exc)
+            continue
+
         if not isinstance(item, dict):
             continue
 
         title = str(item.get("title", "")).strip()
         url = str(item.get("url", f"https://news.ycombinator.com/item?id={story_id}")).strip()
-        combined = f"{title} {url}"
 
-        if not title or not _is_topic_related(combined):
-            continue
-        if _is_low_signal_title(title):
+        if not title or _is_low_signal(title) or not _is_ios_related(f"{title} {url}"):
             continue
 
-        score = float(item.get("score", 0)) + float(item.get("descendants", 0)) * 0.5
         unix_time = int(item.get("time", 0) or 0)
         published_at = (
             datetime.fromtimestamp(unix_time, tz=timezone.utc).isoformat()
             if unix_time
-            else _iso_now()
+            else _utc_now_iso()
         )
 
         signals.append(
@@ -312,9 +397,12 @@ def fetch_hackernews_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[Tre
                 source="HackerNews",
                 title=title,
                 url=url,
-                score=round(score, 3),
+                score=round(
+                    _to_float(item.get("score"), 0.0)
+                    + _to_float(item.get("descendants"), 0.0) * 0.5,
+                    3,
+                ),
                 published_at=published_at,
-                summary="",
             )
         )
 
@@ -324,37 +412,34 @@ def fetch_hackernews_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[Tre
     return signals
 
 
-def fetch_reddit_iosprogramming_trends(
-    limit: int = TREND_MAX_ITEMS_PER_SOURCE,
-) -> list[TrendSignal]:
+def fetch_reddit_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
     """Fetch hot posts from r/iOSProgramming."""
-    payload = _safe_get_json(
-        "https://www.reddit.com/r/iOSProgramming/hot.json?limit=60",
-        headers={"User-Agent": REDDIT_USER_AGENT},
-    )
+    try:
+        payload: dict = _get_json(  # type: ignore[assignment]
+            "https://www.reddit.com/r/iOSProgramming/hot.json?limit=60",
+            session=_REDDIT_SESSION,
+        )
+    except Exception as exc:
+        log.warning("reddit_fetch_error error=%r", exc)
+        return []
 
     children = payload.get("data", {}).get("children", []) if isinstance(payload, dict) else []
 
     signals: list[TrendSignal] = []
     for child in children:
-        data = child.get("data", {})
+        data: dict = child.get("data", {})
         title = str(data.get("title", "")).strip()
         permalink = str(data.get("permalink", "")).strip()
         url = f"https://reddit.com{permalink}" if permalink else ""
 
-        if not title:
-            continue
-        if _is_low_signal_title(title):
-            continue
-        if not _is_topic_related(title):
+        if not title or _is_low_signal(title) or not _is_ios_related(title):
             continue
 
-        score = float(data.get("ups", 0)) + float(data.get("num_comments", 0)) * 0.35
-        created_utc = float(data.get("created_utc", 0) or 0)
+        created_utc = _to_float(data.get("created_utc"), 0.0)
         published_at = (
             datetime.fromtimestamp(created_utc, tz=timezone.utc).isoformat()
             if created_utc
-            else _iso_now()
+            else _utc_now_iso()
         )
 
         signals.append(
@@ -362,9 +447,13 @@ def fetch_reddit_iosprogramming_trends(
                 source="Reddit r/iOSProgramming",
                 title=title,
                 url=url,
-                score=round(score, 3),
+                score=round(
+                    _to_float(data.get("ups"), 0.0)
+                    + _to_float(data.get("num_comments"), 0.0) * 0.35,
+                    3,
+                ),
                 published_at=published_at,
-                summary=str(data.get("selftext", "") or "")[:240],
+                summary=_truncate(str(data.get("selftext", "") or "")),
             )
         )
 
@@ -375,195 +464,182 @@ def fetch_reddit_iosprogramming_trends(
 
 
 def fetch_apple_docs_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
-    """Fetch Apple developer release/news signals (documentation + platform updates proxy)."""
+    """Fetch Apple developer release and news signals."""
     feed_urls = [
         "https://developer.apple.com/documentation/updates/rss",
         "https://developer.apple.com/news/releases/rss/releases.rss",
         "https://developer.apple.com/news/rss/news.rss",
     ]
-
+    per_limit = _per_item_limit(limit, len(feed_urls))
     signals: list[TrendSignal] = []
-    per_feed_limit = max(limit // max(len(feed_urls), 1), 1)
-
-    for feed_url in feed_urls:
-        signals.extend(
-            _parse_feed(
-                feed_url=feed_url,
-                source_name="Apple Docs/Developer",
-                limit=per_feed_limit,
-                topic_filter=True,
-            )
-        )
-
+    for url in feed_urls:
+        signals.extend(_parse_rss_feed(url, "Apple Docs/Developer", per_limit))
     return signals[:limit]
 
 
 def fetch_wwdc_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
-    """Fetch recent WWDC/session topics from Apple videos RSS feed."""
-    return _parse_feed(
-        feed_url="https://developer.apple.com/videos/rss/videos.rss",
+    """Fetch recent WWDC session topics from Apple's video RSS feed."""
+    return _parse_rss_feed(
+        "https://developer.apple.com/videos/rss/videos.rss",
         source_name="WWDC",
         limit=limit,
-        topic_filter=True,
     )
 
 
-def fetch_viral_ios_web_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
-    """Discover viral iOS articles/posts via Google News RSS queries."""
-    per_query_limit = max(limit // max(len(DEFAULT_VIRAL_QUERIES), 1), 1)
+def fetch_viral_ios_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
+    """Discover viral iOS content via targeted Google News RSS queries."""
+    per_limit = _per_item_limit(limit, len(_VIRAL_QUERIES))
     signals: list[TrendSignal] = []
-
-    for query in DEFAULT_VIRAL_QUERIES:
-        signals.extend(
-            _fetch_google_news_query(
-                query=query,
-                source_name="Viral iOS Web",
-                limit=per_query_limit,
-            )
-        )
-
+    for query in _VIRAL_QUERIES:
+        signals.extend(_google_news_rss(query, "Viral iOS Web", per_limit))
     return signals[:limit]
 
 
 def fetch_social_web_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
-    """Discover trends from source-scoped web/social queries (X.com, dev.to, Medium)."""
-    per_query_limit = max(limit // max(len(SOCIAL_WEB_QUERY_SOURCES), 1), 1)
+    """Discover trends from source-scoped web/social queries."""
+    per_limit = _per_item_limit(limit, len(_SOCIAL_WEB_QUERIES))
     signals: list[TrendSignal] = []
-
-    for source_name, query in SOCIAL_WEB_QUERY_SOURCES:
-        signals.extend(
-            _fetch_google_news_query(
-                query=query,
-                source_name=source_name,
-                limit=per_query_limit,
-            )
-        )
-
+    for source_name, query in _SOCIAL_WEB_QUERIES:
+        signals.extend(_google_news_rss(query, source_name, per_limit))
     return signals[:limit]
 
 
 def fetch_platform_rss_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
-    """Fetch direct RSS feeds from Medium and dev.to tags for broader coverage."""
-    per_feed_limit = max(limit // max(len(PLATFORM_RSS_FEEDS), 1), 1)
+    """Fetch direct RSS feeds from Medium and dev.to tag pages."""
+    per_limit = _per_item_limit(limit, len(_PLATFORM_RSS_FEEDS))
     signals: list[TrendSignal] = []
-
-    for source_name, feed_url in PLATFORM_RSS_FEEDS:
-        signals.extend(
-            _parse_feed(
-                feed_url=feed_url,
-                source_name=source_name,
-                limit=per_feed_limit,
-                topic_filter=True,
-            )
-        )
-
+    for source_name, feed_url in _PLATFORM_RSS_FEEDS:
+        signals.extend(_parse_rss_feed(feed_url, source_name, per_limit))
     return signals[:limit]
-
-
-_WEBSEARCH_QUERIES = [
-    "top 10 trending topics in iOS development",
-    "top trending iOS Swift topics 2026",
-    "most popular iOS development topics developers",
-]
 
 
 def fetch_websearch_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
-    """Discover iOS trends via targeted web search queries (Google News RSS)."""
-    per_query_limit = max(limit // max(len(_WEBSEARCH_QUERIES), 1), 1)
+    """Discover iOS trends via broad web search queries."""
+    per_limit = _per_item_limit(limit, len(_WEBSEARCH_QUERIES))
     signals: list[TrendSignal] = []
-
     for query in _WEBSEARCH_QUERIES:
-        signals.extend(
-            _fetch_google_news_query(
-                query=query,
-                source_name="WebSearch",
-                limit=per_query_limit,
-            )
-        )
-
+        signals.extend(_google_news_rss(query, "WebSearch", per_limit))
     return signals[:limit]
 
 
+# ---------------------------------------------------------------------------
+# Custom trend loader
+# ---------------------------------------------------------------------------
+
+
+def _load_custom_config(path: Path = CUSTOM_TRENDS_FILE) -> dict[str, list[dict]]:
+    """Load user-defined trend sources from JSON.
+
+    Expected shape::
+
+        {
+          "google_news_queries": [{"name": "...", "query": "..."}],
+          "rss_feeds":           [{"name": "...", "url": "...", "topic_filter": true}],
+          "manual_signals":      [{"source": "...", "title": "...", "url": "...", "score": 50}]
+        }
+
+    Missing keys default to empty lists; malformed files return all-empty.
+    """
+    defaults: dict[str, list[dict]] = {
+        "google_news_queries": [],
+        "rss_feeds": [],
+        "manual_signals": [],
+    }
+
+    if not path.exists():
+        return defaults
+
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        log.warning("custom_trends_load_error path=%s error=%r", path, exc)
+        return defaults
+
+    if not isinstance(raw, dict):
+        log.warning("custom_trends_invalid_shape path=%s", path)
+        return defaults
+
+    return {key: raw.get(key, []) if isinstance(raw.get(key), list) else [] for key in defaults}
+
+
 def fetch_custom_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
-    """Fetch user-defined trend sources from scanners/custom_trends.json."""
-    custom = _load_custom_trend_config()
+    """Fetch user-defined trend sources from ``scanners/custom_trends.json``."""
+    custom = _load_custom_config()
     signals: list[TrendSignal] = []
 
+    # Google News RSS queries
     query_sources = custom["google_news_queries"]
     if query_sources:
-        per_query_limit = max(limit // max(len(query_sources), 1), 1)
+        per_limit = _per_item_limit(limit, len(query_sources))
         for entry in query_sources:
             query = str(entry.get("query", "") or "").strip()
-            source_name = str(entry.get("name", "Custom Query") or "Custom Query").strip()
+            name = str(entry.get("name", "Custom Query") or "Custom Query").strip()
             if not query:
                 continue
-            signals.extend(
-                _fetch_google_news_query(
-                    query=query,
-                    source_name=source_name,
-                    limit=per_query_limit,
-                )
-            )
+            signals.extend(_google_news_rss(query, name, per_limit))
 
+    # Arbitrary RSS feeds
     rss_sources = custom["rss_feeds"]
     if rss_sources:
-        per_feed_limit = max(limit // max(len(rss_sources), 1), 1)
+        per_limit = _per_item_limit(limit, len(rss_sources))
         for entry in rss_sources:
             feed_url = str(entry.get("url", "") or "").strip()
-            source_name = str(entry.get("name", "Custom RSS") or "Custom RSS").strip()
-            topic_filter = bool(entry.get("topic_filter", entry.get("ios_filter", True)))
+            name = str(entry.get("name", "Custom RSS") or "Custom RSS").strip()
+            apply_filter = bool(entry.get("topic_filter", entry.get("ios_filter", True)))
             if not feed_url:
                 continue
-            signals.extend(
-                _parse_feed(
-                    feed_url=feed_url,
-                    source_name=source_name,
-                    limit=per_feed_limit,
-                    topic_filter=topic_filter,
-                )
-            )
+            signals.extend(_parse_rss_feed(feed_url, name, per_limit, apply_filter))
 
+    # Manually specified signals
     for entry in custom["manual_signals"][:limit]:
         title = str(entry.get("title", "") or "").strip()
         url = str(entry.get("url", "") or "").strip()
-        source_name = str(entry.get("source", "Manual") or "Manual").strip()
-        summary = str(entry.get("summary", "") or "").strip()
-        score = _to_float(entry.get("score", 50.0), 50.0)
+        source = str(entry.get("source", "Manual") or "Manual").strip()
+        summary = _truncate(str(entry.get("summary", "") or "").strip())
+        score = _to_float(entry.get("score"), 50.0)
 
         if not title or not url:
             continue
 
-        if bool(entry.get("topic_filter", entry.get("ios_filter", True))) and not _is_topic_related(
-            f"{title} {summary} {url}"
-        ):
+        apply_filter = bool(entry.get("topic_filter", entry.get("ios_filter", True)))
+        if apply_filter and not _is_ios_related(f"{title} {summary} {url}"):
             continue
 
         signals.append(
             TrendSignal(
-                source=source_name,
+                source=source,
                 title=title,
                 url=url,
                 score=score,
-                published_at=_iso_now(),
-                summary=summary[:240],
+                published_at=_utc_now_iso(),
+                summary=summary,
             )
         )
 
-    signals.sort(key=lambda x: (x.score, x.published_at), reverse=True)
+    signals.sort(key=lambda s: (s.score, s.published_at), reverse=True)
     return signals[:limit]
 
 
-SOURCE_FETCHERS: dict[str, Callable[[int], list[TrendSignal]]] = {
+# ---------------------------------------------------------------------------
+# Source registry
+# ---------------------------------------------------------------------------
+
+#: Maps config keys to fetcher callables. Extend here to add new sources.
+SOURCE_FETCHERS: Final[dict[str, Callable[[int], list[TrendSignal]]]] = {
     "hackernews": fetch_hackernews_trends,
-    "reddit": fetch_reddit_iosprogramming_trends,
+    "reddit": fetch_reddit_trends,
     "apple": fetch_apple_docs_trends,
     "wwdc": fetch_wwdc_trends,
-    "viral": fetch_viral_ios_web_trends,
+    "viral": fetch_viral_ios_trends,
     "social": fetch_social_web_trends,
     "platforms": fetch_platform_rss_trends,
     "custom": fetch_custom_trends,
     "websearch": fetch_websearch_trends,
 }
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 
 def discover_ios_trends(
@@ -572,54 +648,85 @@ def discover_ios_trends(
 ) -> list[TrendSignal]:
     """Run selected trend fetchers and return one deduplicated, ranked list.
 
-    Source keys are resolved from `TREND_SOURCES` unless `enabled_sources` is
-    provided explicitly.
+    Parameters
+    ----------
+    limit_per_source:
+        Maximum signals collected from each individual source.
+    enabled_sources:
+        Source keys to run. Defaults to ``TREND_SOURCES`` from config.
+        Unknown keys are silently skipped.
+
+    Returns
+    -------
+    list[TrendSignal]
+        Deduplicated signals sorted by (score DESC, published_at DESC).
     """
-    source_keys = [key.strip().lower() for key in (enabled_sources or list(TREND_SOURCES)) if key]
+    source_keys = [k.strip().lower() for k in (enabled_sources or list(TREND_SOURCES)) if k]
 
     collected: list[TrendSignal] = []
-    for source_key in source_keys:
-        fetcher = SOURCE_FETCHERS.get(source_key)
+    for key in source_keys:
+        fetcher = SOURCE_FETCHERS.get(key)
         if fetcher is None:
-            continue
-        try:
-            collected.extend(fetcher(limit_per_source))
-        except Exception:
-            # Keep pipeline resilient: one source failure should not block publication.
+            log.warning("unknown_source_key key=%s", key)
             continue
 
-    # Deduplicate by URL or normalized title.
-    deduped: list[TrendSignal] = []
+        start = time.monotonic()
+        try:
+            batch = fetcher(limit_per_source)
+            collected.extend(batch)
+            log.info(
+                "source_fetched source=%s count=%d elapsed_ms=%.0f",
+                key,
+                len(batch),
+                (time.monotonic() - start) * 1000,
+            )
+        except Exception as exc:
+            # One source failure must never abort the pipeline run.
+            log.warning(
+                "source_fetch_error source=%s elapsed_ms=%.0f error=%r",
+                key,
+                (time.monotonic() - start) * 1000,
+                exc,
+            )
+
+    # Deduplicate by URL or normalised title.
     seen: set[str] = set()
+    deduped: list[TrendSignal] = []
     for signal in collected:
-        key = signal.url.strip().lower() or re.sub(r"\s+", " ", signal.title.lower()).strip()
+        key = signal.dedup_key()
         if key in seen:
             continue
         seen.add(key)
         deduped.append(signal)
 
-    # Rank by score then recency.
-    deduped.sort(key=lambda x: (x.score, x.published_at), reverse=True)
+    deduped.sort(key=lambda s: (s.score, s.published_at), reverse=True)
+    log.info("discovery_complete total=%d unique=%d", len(collected), len(deduped))
     return deduped
 
 
 def format_trends_for_prompt(signals: list[TrendSignal], max_items: int = 30) -> str:
-    """Format trend signals into compact text context for topic generation prompt."""
+    """Format *signals* into compact, prompt-ready plain text.
+
+    Returns a human-readable fallback string when the list is empty so that
+    downstream prompts receive a non-empty value and can handle the absence
+    gracefully.
+    """
     if not signals:
         return "No external trend signals were available this run."
 
-    lines = []
-    for signal in signals[:max_items]:
-        published_date = signal.published_at[:10] if signal.published_at else "unknown"
-        lines.append(
-            f"- [{signal.source}] {signal.title} | score={signal.score} | date={published_date} | url={signal.url}"
-        )
-
+    lines = [
+        f"- [{s.source}] {s.title} | score={s.score} | date={s.published_at[:10]} | url={s.url}"
+        for s in signals[:max_items]
+    ]
     return "\n".join(lines)
 
 
 def save_trend_snapshot(signals: list[TrendSignal]) -> Path:
-    """Persist discovered signals for observability/debugging in weekly runs."""
+    """Persist *signals* to a timestamped JSON file for observability.
+
+    The output directory is created if it does not exist. Returns the path
+    of the written file.
+    """
     OUTPUT_TRENDS_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
     output_path = OUTPUT_TRENDS_DIR / f"{timestamp}-trend-signals.json"
@@ -627,7 +734,8 @@ def save_trend_snapshot(signals: list[TrendSignal]) -> Path:
     payload = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "count": len(signals),
-        "signals": [signal.__dict__ for signal in signals],
+        "signals": [s.__dict__ for s in signals],
     }
-    output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    output_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    log.info("snapshot_saved path=%s count=%d", output_path, len(signals))
     return output_path
