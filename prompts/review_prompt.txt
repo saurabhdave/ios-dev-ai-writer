@@ -84,7 +84,7 @@ issues — list of specific, concrete problems found.
 strengths — list of specific things done well.
   - Each item must identify what exactly is well-executed:
       ✅  "Clear withCheckedContinuation vs AsyncStream decision matrix in §3"
-      ✅  "os_signpost usage grounded in a realistic async boundary example"
+      ✅  "OSSignposter usage grounded in a realistic async boundary example"
       ❌  "Good technical depth" (too vague)
   - Keep each item under 20 words.
   - Empty list [] if no notable strengths.

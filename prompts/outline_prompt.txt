@@ -57,14 +57,14 @@ Use this exact section order. Do not reorder, merge, or omit any element.
      - Each core section must contain exactly three ### sub-points:
          a) Concrete Apple API/tool/framework callout — name the specific
             symbol or tool in backtick formatting (e.g., `TaskGroup`,
-            `MetricKit`, `os_signpost`).
+            `MetricKit`, `OSSignposter`).
          b) Decision criterion — "Choose X when …; avoid when …" framed
             as a practical engineering tradeoff.
          c) Production caution — one real failure mode, rollout risk,
             backward-compatibility concern, or operational hazard.
      - At least one core section must focus on testing and observability,
        drawing from: `XCTest`, Instruments (Time Profiler, Allocations),
-       `os_signpost`, `MetricKit`, `os_log`, crash monitoring, or rollout
+       `OSSignposter`, `MetricKit`, `os_log`, crash monitoring, or rollout
        gates. Label it clearly (e.g., ## 3. Validation & Observability).
 
   4. Tradeoffs & Pitfalls  (##)

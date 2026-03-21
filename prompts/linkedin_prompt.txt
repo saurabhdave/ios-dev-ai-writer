@@ -73,7 +73,7 @@ Every post must contain the following elements, in this order:
 
   4. Apple framework/tool callout — at least one concrete Apple API, framework,
      or tool named with inline backtick formatting (e.g., `MetricKit`,
-     `os_signpost`, `TaskGroup`).
+     `OSSignposter`, `TaskGroup`).
 
   5. CTA (closing line) — a specific question or invitation to discuss tied
      to the post's engineering content. Avoid generic CTAs like

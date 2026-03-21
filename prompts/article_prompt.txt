@@ -76,7 +76,7 @@ Every article must contain the following elements, in this order:
 
   5. Validation & Observability section — a dedicated ## section covering at
      least three of: `XCTest` async expectations, Instruments Time Profiler or
-     Allocations template, `os_signpost` for async boundary marking, `MetricKit`
+     Allocations template, `OSSignposter` for async boundary marking, `MetricKit`
      for post-release signals, `os_log` structured logging, rollout gates.
 
   6. Practical Checklist section — a dedicated ## section containing a
@@ -102,10 +102,17 @@ API & Type Formatting:
     ❌  withCheckedThrowingContinuation, @Observable, URLSession.data(for:)
 
 Version Statements:
-  For any Swift language feature or framework API introduced after
-  iOS 15 / Swift 5.5, state the minimum deployment target in the relevant
-  sentence (e.g., "requires iOS 17+ / Swift 5.9").
+  Assume a minimum deployment target of iOS 18 / Swift 6. Do not add version
+  callouts for APIs that have been available since iOS 18 or earlier — those are
+  the assumed baseline. Only note APIs that require iOS 18.1+ or later.
   Do not assert version facts that are not verifiable from the allowed references.
+
+Deprecated APIs:
+  NEVER mention or recommend deprecated APIs in prose or code context. If a topic
+  involves a deprecated API as background, name the modern replacement and focus
+  the article on it. Do not reference `os_signpost` — use `OSSignposter`. Do not
+  reference `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`, or
+  `@EnvironmentObject` except in an explicit migration context naming the replacement.
 
 SwiftUI State:
   For Swift 6+ codebases, treat Swift Observation (`@Observable`) as the

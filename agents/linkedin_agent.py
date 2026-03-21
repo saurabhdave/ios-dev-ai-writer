@@ -65,7 +65,7 @@ SDK_QUERY_TIMEOUT: Final[int] = 10
 TYPECHECK_TIMEOUT: Final[int] = 18
 PARSE_TIMEOUT: Final[int] = 12
 
-IOS_SIMULATOR_TARGET: Final[str] = "arm64-apple-ios16.0-simulator"
+IOS_SIMULATOR_TARGET: Final[str] = "arm64-apple-ios18.0-simulator"
 
 VALID_SNIPPET_MODES: Final[frozenset[str]] = frozenset({"auto", "always", "never"})
 

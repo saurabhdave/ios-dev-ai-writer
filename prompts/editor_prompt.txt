@@ -77,7 +77,7 @@ The rewritten article must contain the following elements, in this order:
 
   5. Validation & Observability section — a dedicated ## section covering at
      least three of: `XCTest` async expectations, Instruments Time Profiler
-     or Allocations template, `os_signpost` for async boundary marking,
+     or Allocations template, `OSSignposter` for async boundary marking,
      `MetricKit` for post-release signals, `os_log` structured logging,
      rollout gates. If absent, add from engineering fundamentals — do not
      invent specific claims.
@@ -159,18 +159,21 @@ SwiftUI State:
   migration or legacy support.
 
 Version Statements:
-  For any Swift feature or API introduced after iOS 15 / Swift 5.5, state the
-  minimum deployment target in the relevant sentence. Remove version claims
+  Assume a minimum deployment target of iOS 18 / Swift 6. Do not add version
+  callouts for APIs available since iOS 18 or earlier — those are the assumed
+  baseline. Only note APIs that require iOS 18.1+ or later. Remove version claims
   that cannot be verified from the allowed references.
 
-  Mandatory callouts — include these wherever the API appears as the article's
-  primary subject or is first introduced:
-    - `withTaskGroup` / `withThrowingTaskGroup` / `TaskGroup`        → Swift 5.5+, iOS 15+
-    - `withCheckedThrowingContinuation` / `withCheckedContinuation`  → Swift 5.5+, iOS 15+
-    - `AsyncSequence` / `AsyncStream` / `AsyncIteratorProtocol`      → Swift 5.5+, iOS 15+
-    - `@Observable` / `Observation` framework                        → Swift 5.9+, iOS 17+
-    - `@Bindable`                                                     → Swift 5.9+, iOS 17+
-  Do not omit these callouts when the API is the article's central subject.
+Deprecated APIs:
+  NEVER recommend or reproduce deprecated APIs — not in prose, not in code context.
+  If the draft contains a deprecated API, replace it with its modern equivalent:
+    - `os_signpost` → replace with `OSSignposter`
+    - `ObservableObject` / `@Published` / `@StateObject` / `@ObservedObject` /
+      `@EnvironmentObject` → replace with `@Observable` pattern
+    - Completion-handler URLSession overloads → replace with async/await variants
+  Exception: deprecated APIs may appear ONLY inside an explicit migration section
+  clearly labelled as legacy (e.g., "// Legacy — replaced by X"), never as a
+  recommended approach.
 
 ================================================================================
 ## CONFLICT RESOLUTION

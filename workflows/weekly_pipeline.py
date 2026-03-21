@@ -154,7 +154,7 @@ _APPLE_DOC_SEEDS: list[tuple[frozenset[str], str, str, str]] = [
     (frozenset({"notificationcenter", "nsnotification", "notification observer"}),
      "Apple Documentation", "NotificationCenter",
      "https://developer.apple.com/documentation/foundation/notificationcenter"),
-    (frozenset({"instruments", "metrickit", "os_signpost", "signpost", "profil", "time profiler"}),
+    (frozenset({"instruments", "metrickit", "ossignposter", "os_signpost", "signpost", "profil", "time profiler"}),
      "Apple Documentation", "Instruments Help",
      "https://developer.apple.com/documentation/xcode/gathering-information-for-debugging"),
     (frozenset({"macro", "swift macro", "@attached", "@freestanding"}),

@@ -38,7 +38,7 @@ RECENT_TITLES_DISPLAY_LIMIT: Final[int] = 15
 SUPPLEMENTAL_INTERESTS_LIMIT: Final[int] = 4
 
 # Topic novelty thresholds.
-WORD_OVERLAP_THRESHOLD: Final[float] = 0.60
+WORD_OVERLAP_THRESHOLD: Final[float] = 0.50
 SEMANTIC_SIMILARITY_THRESHOLD: Final[float] = 0.80
 
 # Title length constraints.
@@ -121,7 +121,7 @@ TOPIC_FAMILIES: Final[list[tuple[str, list[str]]]] = [
         "Profiling SwiftUI rendering with Instruments",
         "Reducing app launch time on iOS",
         "Xcode Time Profiler for iOS hang detection",
-        "os_signpost for custom performance markers in iOS",
+        "OSSignposter for custom performance markers in iOS",
         "Memory management in Swift actors",
     ]),
     ("concurrency", [
@@ -174,14 +174,19 @@ TOPIC_FAMILIES: Final[list[tuple[str, list[str]]]] = [
 
 _STOP_WORDS: Final[frozenset[str]] = frozenset(
     {"the", "a", "an", "for", "and", "with", "to", "in", "on", "of",
-     "apple", "ios", "swift", "swiftui"}
+     "apple", "ios", "swift"}
 )
+
+
+def _stem(word: str) -> str:
+    """Lightweight stem: truncate long words to 5-char prefix to match word forms."""
+    return word[:5] if len(word) >= 6 else word
 
 
 def _word_set(text: str) -> set[str]:
     """Build a normalised, stop-word-filtered word set for overlap checks."""
     return {
-        w for w in re.findall(r"[a-z0-9]+", text.lower())
+        _stem(w) for w in re.findall(r"[a-z0-9]+", text.lower())
         if len(w) > 2 and w not in _STOP_WORDS
     }
 
@@ -267,7 +272,7 @@ def _is_semantically_repetitive(
         log_event(
             LOGGER,
             "semantic_similarity_check_failed",
-            level=logging.DEBUG,
+            level=logging.WARNING,
             candidate=candidate,
             error=repr(exc),
         )

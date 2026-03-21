@@ -45,7 +45,7 @@ SWIFT_BOOK_URL: Final[str] = (
     "https://docs.swift.org/swift-book/documentation/"
     "the-swift-programming-language/aboutswift/"
 )
-IOS_SIMULATOR_TARGET: Final[str] = "arm64-apple-ios16.0-simulator"
+IOS_SIMULATOR_TARGET: Final[str] = "arm64-apple-ios18.0-simulator"
 
 MAX_REPAIR_ATTEMPTS: Final[int] = 2
 ARTICLE_EXCERPT_MAX_CHARS: Final[int] = 1_200
@@ -465,9 +465,12 @@ Requirements:
 - Return only fixed Swift code — no markdown fences, no prose.
 - Validation target: {validation_goal}
 - Target Swift language version: {swift_version}
+- Minimum deployment target: iOS 18 / Swift 6. Do not use any API unavailable on iOS 18.
 - Ensure code is valid for `swiftc -swift-version {swift_mode}`.
 - Swift language reference: {swift_book_url}
 - Include all required imports.
+- NEVER use deprecated APIs. If an API is deprecated in iOS 18 / Swift 6, use its
+  modern replacement unconditionally — not inside a // ❌ Before block, not at all.
 - Prefer Swift Observation in Swift 6+ (`@Observable` + `import Observation`).
 - Avoid `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`, and
   `@EnvironmentObject` unless this snippet is explicitly about legacy migration.

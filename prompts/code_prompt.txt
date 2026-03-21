@@ -7,6 +7,7 @@ Topic:
 
 Swift language version: {swift_language_version}
 Swift compiler language mode: {swift_language_mode}
+Minimum deployment target: iOS 18 / Swift 6
 
 Generate one production-quality Swift/SwiftUI snippet that matches the topic and satisfies all requirements below.
 
@@ -23,6 +24,25 @@ Generate one production-quality Swift/SwiftUI snippet that matches the topic and
   explicitly requires it.
 - Do not reference undefined or placeholder types (e.g., generated Core ML
   model classes) unless you define them in the snippet.
+
+================================================================================
+## DEPRECATED API RULES
+================================================================================
+
+NEVER use deprecated APIs. There are no exceptions — not inside a `// ❌ Before` block,
+not as a comparison, not at all.
+
+Examples of deprecated APIs that must NEVER appear:
+  - `os_signpost` → use `OSSignposter` (available since iOS 15 / Swift 5.5)
+  - `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`,
+    `@EnvironmentObject` → use `@Observable` (Swift 6+)
+  - `URLSession` completion-handler overloads → use `async/await` variants
+  - `UIAlertView`, `UIActionSheet` → use `UIAlertController`
+  - Any API marked `@available(*, deprecated)` in the iOS 18 SDK
+
+If a topic involves showing a migration FROM a deprecated API (before/after), use
+a prose comment (`// Legacy pattern — replaced by X`) rather than compiling deprecated
+code.
 
 ================================================================================
 ## BEFORE/AFTER STRUCTURE RULES
