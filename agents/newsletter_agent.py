@@ -43,7 +43,7 @@ from utils.openai_logging import create_openai_client, responses_create_logged
 
 PROMPT_PATH: Final[Path] = Path("prompts/newsletter_prompt.txt")
 
-MAX_OUTPUT_TOKENS: Final[int] = 1_400
+MAX_OUTPUT_TOKENS: Final[int] = 3_500
 GENERATION_TEMPERATURE: Final[float] = 0.50
 
 TREND_MAX_ITEMS: Final[int] = 5

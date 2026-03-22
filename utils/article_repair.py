@@ -42,6 +42,32 @@ def repair_malformed_backticks(text: str) -> Tuple[str, List[str]]:
 
 
 # ---------------------------------------------------------------------------
+# Operational note label strip
+# ---------------------------------------------------------------------------
+
+_OPERATIONAL_NOTE_RE = re.compile(
+    r"\bOperational note:\s*([a-zA-Z]?)",
+    re.IGNORECASE,
+)
+
+
+def strip_operational_note_labels(text: str) -> Tuple[str, int]:
+    """Remove 'Operational note:' prefixes, capitalizing the following sentence.
+
+    Returns (cleaned_text, count_of_replacements).
+    """
+    count: List[int] = [0]
+
+    def _replacer(m: re.Match) -> str:
+        count[0] += 1
+        first_char = m.group(1)
+        return first_char.upper() if first_char else ""
+
+    result = _OPERATIONAL_NOTE_RE.sub(_replacer, text)
+    return result, count[0]
+
+
+# ---------------------------------------------------------------------------
 # Version callout audit (log-only — does not modify article)
 # ---------------------------------------------------------------------------
 
@@ -82,12 +108,15 @@ def repair_article(text: str) -> Tuple[str, Dict]:
 
     Returns:
         (repaired_text, report_dict) where report_dict contains:
-          'backtick_fixes'   — list of substitution descriptions (empty if none)
-          'version_warnings' — list of missing version callout warnings
+          'backtick_fixes'         — list of substitution descriptions (empty if none)
+          'operational_note_fixes' — count of 'Operational note:' labels removed
+          'version_warnings'       — list of missing version callout warnings
     """
     text, backtick_fixes = repair_malformed_backticks(text)
+    text, operational_note_fixes = strip_operational_note_labels(text)
     version_warnings = audit_missing_version_callouts(text)
     return text, {
         "backtick_fixes": backtick_fixes,
+        "operational_note_fixes": operational_note_fixes,
         "version_warnings": version_warnings,
     }

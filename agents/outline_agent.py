@@ -25,7 +25,7 @@ from utils.openai_logging import create_openai_client, responses_create_logged
 # ---------------------------------------------------------------------------
 
 PROMPT_PATH: Final[Path] = Path("prompts/outline_prompt.txt")
-MAX_OUTPUT_TOKENS: Final[int] = 700
+MAX_OUTPUT_TOKENS: Final[int] = 2_500
 GENERATION_TEMPERATURE: Final[float] = 0.45
 
 LOGGER = get_logger("pipeline.outline")

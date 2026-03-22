@@ -30,7 +30,7 @@ from utils.openai_logging import create_openai_client, responses_create_logged
 # ---------------------------------------------------------------------------
 
 PROMPT_PATH: Final[Path] = Path("prompts/review_prompt.txt")
-MAX_OUTPUT_TOKENS: Final[int] = 900
+MAX_OUTPUT_TOKENS: Final[int] = 2_500
 GENERATION_TEMPERATURE: Final[float] = 0.30
 MAX_PARSE_ATTEMPTS: Final[int] = 2
 

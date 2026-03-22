@@ -36,7 +36,7 @@ PROMPT_PATH: Final[Path] = Path("prompts/editor_prompt.txt")
 LAYOUT_REPAIR_PROMPT_PATH: Final[Path] = Path("prompts/layout_repair_prompt.txt")
 FACTUALITY_PROMPT_PATH: Final[Path] = Path("prompts/article_factuality_prompt.txt")
 
-MAX_OUTPUT_TOKENS: Final[int] = 2_600
+MAX_OUTPUT_TOKENS: Final[int] = 5_000
 
 # Temperature caps per operation — lower = more deterministic/conservative.
 POLISH_TEMPERATURE: Final[float] = 0.50
@@ -77,6 +77,7 @@ _CONTEXT_KEYWORDS: Final[tuple[str, ...]] = ("why this matters", "context", "fou
 _RISK_KEYWORDS: Final[tuple[str, ...]] = ("tradeoff", "pitfall", "risk", "limit")
 _CHECKLIST_KEYWORDS: Final[tuple[str, ...]] = ("checklist", "playbook", "implementation steps")
 _CLOSING_KEYWORDS: Final[tuple[str, ...]] = ("takeaway", "conclusion", "final thoughts", "wrap-up")
+_VALIDATION_KEYWORDS: Final[tuple[str, ...]] = ("validation", "observability", "testing", "signals")
 
 LOGGER = get_logger("pipeline.editor")
 
@@ -337,6 +338,16 @@ def assess_medium_layout(
         score += 1
     else:
         _fail("Use only `##` and `###` headings — avoid `####` and deeper levels.")
+
+    # 14. No duplicate semantic sections (required — no points, flag only)
+    # Check for duplicate validation/observability sections which the layout repair LLM
+    # sometimes adds when a numbered core section already covers it.
+    validation_headings = [h for h in h2_headings if _any_heading_contains([h], _VALIDATION_KEYWORDS)]
+    if len(validation_headings) >= 2:
+        _fail(
+            "Duplicate Validation/Observability `##` sections detected — merge into one.",
+            required=True,
+        )
 
     return LayoutAssessment(
         score=score,

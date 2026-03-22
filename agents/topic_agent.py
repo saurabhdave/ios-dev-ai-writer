@@ -32,7 +32,7 @@ from utils.openai_logging import create_openai_client, responses_create_logged
 # ---------------------------------------------------------------------------
 
 PROMPT_PATH: Final[Path] = Path("prompts/topic_prompt.txt")
-MAX_OUTPUT_TOKENS: Final[int] = 220
+MAX_OUTPUT_TOKENS: Final[int] = 1_500
 MAX_GENERATION_ATTEMPTS: Final[int] = 5
 RECENT_TITLES_DISPLAY_LIMIT: Final[int] = 15
 SUPPLEMENTAL_INTERESTS_LIMIT: Final[int] = 4

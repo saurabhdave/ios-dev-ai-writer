@@ -253,13 +253,23 @@ def _load_recent_titles(max_items: int = 20) -> list[str]:
 
 
 def _sanitize_body_urls(markdown: str) -> str:
-    """Final safety pass to strip URLs and code fences from article body."""
-    # Remove fenced code blocks from body; dedicated code section is appended separately.
-    without_fences = re.sub(r"```[\s\S]*?```", "", markdown)
-    without_md_links = re.sub(r"\[([^\]]+)\]\((https?://[^\s)]+)\)", r"\1", without_fences)
-    without_urls = re.sub(r"https?://[^\s)]+", "", without_md_links)
-    compact = re.sub(r"\n{3,}", "\n\n", without_urls)
-    return re.sub(r"[ \t]+", " ", compact).strip()
+    """Final safety pass to strip prose URLs while preserving code blocks."""
+    # Split on fenced code blocks to protect their content from URL stripping.
+    # Odd-indexed parts are code blocks; even-indexed parts are prose.
+    parts = re.split(r"(```[\s\S]*?```)", markdown)
+    processed: list[str] = []
+    for i, part in enumerate(parts):
+        if i % 2 == 1:
+            # Code block — preserve as-is.
+            processed.append(part)
+        else:
+            # Prose section — strip markdown hyperlinks (keep text) and bare URLs.
+            prose = re.sub(r"\[([^\]]+)\]\((https?://[^\s)]+)\)", r"\1", part)
+            prose = re.sub(r"https?://[^\s)]+", "", prose)
+            processed.append(prose)
+    result = "".join(processed)
+    result = re.sub(r"\n{3,}", "\n\n", result)
+    return re.sub(r"[ \t]+", " ", result).strip()
 
 
 def _topic_terms(topic: str) -> set[str]:
@@ -680,16 +690,28 @@ def run_weekly_pipeline() -> Path:
         with timed_step(LOGGER, "deterministic_repair", topic=topic) as step:
             polished_article, repair_report = _repair_article(polished_article)
             step["backtick_fixes"] = len(repair_report["backtick_fixes"])
+            step["operational_note_fixes"] = repair_report.get("operational_note_fixes", 0)
             step["version_warnings"] = len(repair_report["version_warnings"])
             if repair_report["backtick_fixes"]:
-                LOGGER.info(
+                log_event(
+                    LOGGER,
                     "backtick_fixes_applied",
-                    **{"fixes": repair_report["backtick_fixes"]},
+                    level=logging.INFO,
+                    fixes=repair_report["backtick_fixes"],
+                )
+            if repair_report.get("operational_note_fixes", 0):
+                log_event(
+                    LOGGER,
+                    "operational_note_labels_removed",
+                    level=logging.INFO,
+                    count=repair_report["operational_note_fixes"],
                 )
             if repair_report["version_warnings"]:
-                LOGGER.warning(
+                log_event(
+                    LOGGER,
                     "version_callouts_missing",
-                    **{"warnings": repair_report["version_warnings"]},
+                    level=logging.WARNING,
+                    warnings=repair_report["version_warnings"],
                 )
 
         with timed_step(LOGGER, "sanitize_article", topic=topic):

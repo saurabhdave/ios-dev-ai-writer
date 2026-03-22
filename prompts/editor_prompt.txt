@@ -31,6 +31,10 @@ Format:
   - No top-level # title.
   - No URLs or markdown hyperlinks anywhere in the body.
   - No references section or bibliography inside the body.
+  - Inline code: preserve any ```swift fenced block (4–10 lines) in core
+    sections. If no inline snippet is present in a core section, add one
+    for the most illustrative point. Do not add code fences to non-core
+    sections (intros, checklists, tradeoffs, takeaway).
   - Headings: ## and ### only — no deeper levels, no ALL-CAPS headings.
   - Use title case for all headings:
       ✅  ## Why This Matters For iOS Teams
@@ -116,6 +120,15 @@ Opening Hook Specificity:
     ❌  "Swift's actor model strengthens concurrency guarantees, but it forces
         concrete decisions about isolation boundaries."
   If the current hook fails this test, rewrite it.
+
+Operational Note Labels:
+  The draft may contain lines beginning with "Operational note:" — a
+  mechanical template artifact. Remove EVERY occurrence of that prefix and
+  integrate the sentence naturally into the paragraph that precedes it.
+  The content is valuable; the label is not.
+    ✅  "Validate cancellation paths before rollout; a task that cannot be
+        cancelled leaks CPU and battery."
+    ❌  "Operational note: validate cancellation paths before rollout …"
 
 Prohibited Phrases (remove or rewrite on sight):
   - "best practices"

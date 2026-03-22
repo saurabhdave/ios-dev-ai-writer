@@ -32,7 +32,11 @@ Format:
   - No top-level # title.
   - No URLs or markdown hyperlinks anywhere in the body.
   - No references section or bibliography inside the body.
-  - No code fences (code snippets are generated separately).
+  - Inline code: include exactly one ```swift fenced block (4–10 lines) in
+    the core section where it most clearly illustrates the article's key
+    pattern. This inline snippet must be self-contained and compile-ready.
+    A separate standalone example will be generated and appended after the
+    article body; the inline snippet is in addition to that.
   - Headings: ## and ### only — no deeper levels, no ALL-CAPS headings.
   - Use title case for all headings:
       ✅  ## Why This Matters For iOS Teams

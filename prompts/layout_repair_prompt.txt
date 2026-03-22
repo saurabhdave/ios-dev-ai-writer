@@ -35,7 +35,10 @@ Format:
   - Markdown only — no top-level # title.
   - No URLs or markdown hyperlinks anywhere in the body.
   - No references section or bibliography inside the body.
-  - No code fences anywhere in the body.
+  - Inline code: preserve any ```swift fenced block (4–10 lines) present in
+    core sections. If no inline snippet exists in any core section, add one
+    for the most illustrative point. Do not add code fences to non-core
+    sections (intros, checklists, tradeoffs, takeaway).
   - Headings: ## and ### only — no deeper levels, no ALL-CAPS headings.
   - Use title case for all headings:
       ✅  ## Why This Matters For iOS Teams
@@ -118,6 +121,13 @@ API & Type Formatting:
   wherever missing. No exceptions.
     ✅  `withCheckedThrowingContinuation`, `@Observable`, `URLSession.data(for:)`
     ❌  withCheckedThrowingContinuation, @Observable, URLSession.data(for:)
+
+Operational Note Labels:
+  Remove every occurrence of "Operational note:" (case-insensitive) and
+  integrate the sentence naturally into the preceding paragraph as plain prose.
+    ✅  "Validate cancellation paths before rollout; a task that cannot be
+        cancelled leaks CPU and battery."
+    ❌  "Operational note: validate cancellation paths before rollout …"
 
 Prohibited Phrases (remove or rewrite on sight):
   - "best practices"

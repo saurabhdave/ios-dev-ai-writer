@@ -32,7 +32,7 @@ from utils.openai_logging import create_openai_client, responses_create_logged
 PROMPT_PATH: Final[Path] = Path("prompts/article_prompt.txt")
 
 #: Maximum output tokens for both first-pass and retry generation.
-MAX_OUTPUT_TOKENS: Final[int] = 2_600
+MAX_OUTPUT_TOKENS: Final[int] = 5_000
 
 #: Temperature cap for the first-pass generation.
 GENERATION_TEMPERATURE: Final[float] = 0.45
