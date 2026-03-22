@@ -136,7 +136,7 @@ NEWSLETTER_ENABLED = os.getenv("NEWSLETTER_ENABLED", "true").lower() in {
 }
 NEWSLETTER_NAME = os.getenv("NEWSLETTER_NAME", "iOS Dev Weekly").strip()
 NEWSLETTER_ISSUE_FILE = Path(
-    os.getenv("NEWSLETTER_ISSUE_FILE", "outputs/newsletter/.issue_number")
+    os.getenv("NEWSLETTER_ISSUE_FILE", ".newsletter_issue_number")
 )
 
 # LinkedIn post generation.
