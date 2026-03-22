@@ -62,10 +62,19 @@ Use this exact section order. Do not reorder, merge, or omit any element.
             as a practical engineering tradeoff.
          c) Production caution — one real failure mode, rollout risk,
             backward-compatibility concern, or operational hazard.
-     - At least one core section must focus on testing and observability,
-       drawing from: `XCTest`, Instruments (Time Profiler, Allocations),
-       `OSSignposter`, `MetricKit`, `os_log`, crash monitoring, or rollout
-       gates. Label it clearly (e.g., ## 3. Validation & Observability).
+         d) Optional: Common anti-pattern — the naive or beginner approach
+            this recommendation replaces. Include when the contrast
+            meaningfully clarifies WHY the preferred pattern is better.
+            Omit when no clear anti-pattern exists.
+     - For performance, concurrency, or architecture topics: at least one
+       core section must cover testing and observability, drawing from
+       `XCTest`, Instruments (Time Profiler, Allocations), `OSSignposter`,
+       `MetricKit`, `os_log`, or rollout gates. Label it clearly (e.g.,
+       ## 3. Validation & Observability).
+     - For Swift patterns and practices topics: include a validation angle
+       in one section via code correctness checks, guard patterns, or tests
+       that encode the invariant. Full Instruments/MetricKit treatment is
+       not required.
 
   4. Tradeoffs & Pitfalls  (##)
      - 2–3 bullets covering engineering tradeoffs, known failure modes, and

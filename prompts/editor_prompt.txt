@@ -31,10 +31,12 @@ Format:
   - No top-level # title.
   - No URLs or markdown hyperlinks anywhere in the body.
   - No references section or bibliography inside the body.
-  - Inline code: preserve any ```swift fenced block (4–10 lines) in core
-    sections. If no inline snippet is present in a core section, add one
-    for the most illustrative point. Do not add code fences to non-core
-    sections (intros, checklists, tradeoffs, takeaway).
+  - Inline code: preserve all `swift` fenced blocks in core sections. If
+    no inline snippet is present in any core section, add one for the most
+    illustrative point. Multiple small snippets across core sections are
+    acceptable and encouraged when each clarifies a distinct pattern. Do not
+    add code fences to non-core sections (intros, checklists, tradeoffs,
+    takeaway).
   - Headings: ## and ### only — no deeper levels, no ALL-CAPS headings.
   - Use title case for all headings:
       ✅  ## Why This Matters For iOS Teams
@@ -46,8 +48,10 @@ Format:
 
 Length: 900–1,200 words (body text only; headings and list markers excluded).
 
-Audience: intermediate to senior iOS engineers. Do not over-explain
-fundamentals; assume fluency with Swift, SwiftUI, UIKit, and Apple SDKs.
+Audience: iOS engineers at all levels, written from a senior perspective.
+Assume familiarity with Swift syntax. Acknowledging common mistakes or
+naive approaches is appropriate when it contrasts with the recommended
+pattern — it widens reach without dumbing down. Do not over-explain basics.
 
 Tone: senior, practical, and precise. Real-world Apple software engineering
 perspective — not tutorial, not consulting-deck.
@@ -70,8 +74,9 @@ The rewritten article must contain the following elements, in this order:
      contain:
        a) At least one ### subheading.
        b) One concrete Apple API, type, framework, or tool (inline code).
-       c) One architecture decision criterion:
-            "Choose X when …; choose Y when …"
+       c) One decision or contrast point — either a "Choose X when …; choose Y
+          when …" criterion, OR a before/after comparison (anti-pattern →
+          preferred pattern) that shows the engineering improvement.
        d) One operational note: testing, observability, rollout, migration,
           or failure handling.
 
@@ -79,12 +84,15 @@ The rewritten article must contain the following elements, in this order:
      another section. If absent from the draft, create it from existing
      tradeoff or caveat content.
 
-  5. Validation & Observability section — a dedicated ## section covering at
-     least three of: `XCTest` async expectations, Instruments Time Profiler
-     or Allocations template, `OSSignposter` for async boundary marking,
-     `MetricKit` for post-release signals, `os_log` structured logging,
-     rollout gates. If absent, add from engineering fundamentals — do not
-     invent specific claims.
+  5. Validation & Observability section — a dedicated ## section. For
+     performance, concurrency, or architecture topics: cover at least three
+     of `XCTest` async expectations, Instruments Time Profiler or Allocations
+     template, `OSSignposter` for async boundary marking, `MetricKit` for
+     post-release signals, `os_log` structured logging, rollout gates. For
+     Swift patterns and practices topics: a lighter treatment is acceptable —
+     cover code correctness checks, guard invariants, or tests that encode
+     the pattern. If the section is absent, add one appropriate to the topic
+     type from engineering fundamentals — do not invent specific claims.
 
   6. Practical Checklist section — a dedicated ## section using `- [ ] …`
      items an engineer can act on directly.

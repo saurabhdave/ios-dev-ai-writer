@@ -32,11 +32,11 @@ Format:
   - No top-level # title.
   - No URLs or markdown hyperlinks anywhere in the body.
   - No references section or bibliography inside the body.
-  - Inline code: include exactly one ```swift fenced block (4–10 lines) in
-    the core section where it most clearly illustrates the article's key
-    pattern. This inline snippet must be self-contained and compile-ready.
-    A separate standalone example will be generated and appended after the
-    article body; the inline snippet is in addition to that.
+  - Inline code: include `swift` fenced blocks where they clarify individual
+    points — up to one per core section. At minimum include one in the section
+    where it most clearly illustrates the key pattern. All snippets must be
+    self-contained and compile-ready. A separate standalone example will be
+    generated and appended after the article body.
   - Headings: ## and ### only — no deeper levels, no ALL-CAPS headings.
   - Use title case for all headings:
       ✅  ## Why This Matters For iOS Teams
@@ -48,8 +48,11 @@ Format:
 
 Length: 900–1,200 words (body text only; headings and list markers excluded).
 
-Audience: intermediate to senior iOS engineers. Assume fluency with Swift,
-SwiftUI, UIKit, and Apple SDK conventions. Do not over-explain fundamentals.
+Audience: iOS engineers at all levels, written from a senior perspective.
+Assume familiarity with Swift syntax. Acknowledging common mistakes ("A
+frequent mistake is...", "Many developers default to...") is encouraged when
+it contrasts with the recommended approach — this widens reach without
+dumbing down.
 
 Tone: professional, practical, and precise. Write from a real-world Apple
 software engineering perspective, not a tutorial or beginner-guide tone.
@@ -70,10 +73,15 @@ Every article must contain the following elements, in this order:
      Each core section must contain:
        a) At least one ### subheading.
        b) One concrete Apple API, type, framework, or tool name (inline code).
-       c) One architecture decision criterion in the form:
-            "Choose X when …; choose Y when …"
+       c) One decision or contrast point — either a "Choose X when …; choose Y
+          when …" criterion, OR a before/after comparison (common anti-pattern →
+          preferred pattern) that shows the engineering improvement.
        d) One production concern: testing, observability, rollout, migration,
           or failure handling.
+       e) Optional contrast: Open the section by briefly showing the common
+          anti-pattern or naive approach (2–4 lines of code or 1–2 sentences),
+          then pivot to the preferred pattern. Use when the contrast clarifies
+          WHY the recommendation exists. Omit where no clear anti-pattern applies.
 
   4. Tradeoffs/Pitfalls section — a dedicated ## section covering engineering
      tradeoffs and known failure modes. Do not omit or merge into another section.

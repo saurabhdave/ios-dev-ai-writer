@@ -71,6 +71,10 @@ Framing preference:
     listed in {topic_interests}.
   - Draw from {topic_interests} first; use {trend_context} to sharpen
     specificity, not to override the priority themes.
+  - For Swift patterns or practices topics, occasionally frame the title from
+    the reader's growth perspective: e.g., "Swift Patterns Every iOS Engineer
+    Should Know", "Concurrency Techniques Senior Engineers Reach For". Benefit-
+    driven framing is encouraged — prohibited hype words still apply.
 
 ================================================================================
 ## PROHIBITED CONTENT
