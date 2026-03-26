@@ -78,6 +78,8 @@ _BOLD_RE: Final[re.Pattern[str]] = re.compile(r"\*\*([^*]+)\*\*")
 _MD_LINK_RE: Final[re.Pattern[str]] = re.compile(r"\[([^\]]+)\]\((https?://[^\s)]+)\)")
 _BULLET_RE: Final[re.Pattern[str]] = re.compile(r"^[-•]\s+")
 _CODE_FENCE_RE: Final[re.Pattern[str]] = re.compile(r"^```")
+# Matches a bold-only community pick line: **Title** — take (no hyperlink inside)
+_BOLD_NO_LINK_PICK_RE: Final[re.Pattern[str]] = re.compile(r"^\*\*[^\[*].*?\*\*\s*—")
 
 # ---------------------------------------------------------------------------
 # HTML style constants — defined once for consistent email rendering
@@ -409,6 +411,61 @@ def _render_html(markdown: str, newsletter_name: str, issue_number: int) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Newsletter post-processor
+# ---------------------------------------------------------------------------
+
+
+def _repair_community_picks(markdown: str) -> str:
+    """Strip Community Picks items that the LLM rendered without a hyperlink.
+
+    The newsletter prompt requires each pick to use ``**[Title](url)** — take``
+    format, but the LLM occasionally emits ``**Title** — take`` (bold-only,
+    no hyperlink). Picks without a clickable link are useless in an email
+    newsletter, so this function removes them deterministically after generation.
+
+    If fewer than 2 valid linked picks survive, appends a note so the reader
+    knows more picks will appear in the next issue.
+    """
+    lines = markdown.splitlines()
+    in_picks_section = False
+    valid_picks: list[int] = []
+    linkless_lines: set[int] = set()
+
+    for i, line in enumerate(lines):
+        if line.strip().startswith("### Community Picks"):
+            in_picks_section = True
+            continue
+        if in_picks_section and line.strip() == "---":
+            break
+        if not in_picks_section:
+            continue
+        stripped = line.strip()
+        if not stripped:
+            continue
+        # A valid pick has a markdown hyperlink: **[Title](url)** — take
+        if stripped.startswith("**[") and "](" in stripped:
+            valid_picks.append(i)
+        elif _BOLD_NO_LINK_PICK_RE.match(stripped):
+            linkless_lines.add(i)
+
+    if not linkless_lines:
+        return markdown
+
+    repaired = [line for i, line in enumerate(lines) if i not in linkless_lines]
+    result = "\n".join(repaired)
+
+    if len(valid_picks) < 2:
+        # Insert a note after the Community Picks header.
+        result = result.replace(
+            "### Community Picks",
+            "### Community Picks\n\nMore community links next issue.",
+            1,
+        )
+
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Prompt loading
 # ---------------------------------------------------------------------------
 
@@ -538,6 +595,7 @@ def generate_newsletter(
     )
 
     newsletter_markdown = _unescape_code_blocks(response.output_text.strip())
+    newsletter_markdown = _repair_community_picks(newsletter_markdown)
     if not newsletter_markdown:
         raise RuntimeError(
             f"Newsletter generation returned empty output for issue #{issue_number}."

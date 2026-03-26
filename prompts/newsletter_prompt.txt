@@ -113,7 +113,18 @@ than 3 signals, include what's there and note "More signals next issue."]
 
 [1 sentence only. Explain why this pattern matters in practice — not what it
 does syntactically, but the engineering judgment it encodes and why an iOS
-developer should have this in their mental toolkit.]
+developer should have this in their mental toolkit.
+
+IMPORTANT — if {best_snippet} is empty or contains only the text
+"A code example for this topic is not included in this edition":
+  Replace this entire section (header + code block + sentence) with:
+
+  ### Worth Watching This Week
+
+  [1–2 sentences on the most actionable insight from the trend signals
+  this issue. Name the signal source and the concrete implication for
+  iOS teams. Do not mention the missing snippet.]
+]
 
 ---
 
