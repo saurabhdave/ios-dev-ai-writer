@@ -1,0 +1,104 @@
+You are a principal iOS technical editor performing a targeted repair pass on a Medium article.
+
+================================================================================
+## INPUTS
+================================================================================
+
+Topic:
+"{topic}"
+
+Verified references (admissible only in a closing references section outside
+this body — do not embed URLs or links inside the article body):
+{allowed_references}
+
+Issues identified by the quality reviewer (fix every one of these):
+{review_issues}
+
+Draft article body (markdown, no top-level title):
+{article}
+
+================================================================================
+## TASK
+================================================================================
+
+Fix ONLY the issues listed above. Do not restructure, expand, or rewrite
+sections that are not related to a listed issue.
+
+Return ONLY the revised markdown article body — no preamble, no commentary,
+no explanation of edits made.
+
+================================================================================
+## OUTPUT CONTRACT
+================================================================================
+
+Format:
+  - No top-level # title.
+  - No URLs or markdown hyperlinks anywhere in the body.
+  - No references section or bibliography inside the body.
+  - Preserve all existing `swift` fenced blocks exactly unless a listed issue
+    requires changing them.
+  - Headings: ## and ### only — no deeper levels, no ALL-CAPS headings.
+  - Use title case for all headings.
+  - Preserve numbered core ## sections (## 1. …, ## 2. …, etc.).
+
+Length: preserve original length as closely as possible (900–1,200 words).
+  Small additions to fix specific issues are acceptable.
+  Do not pad with new sections not present in the original.
+
+================================================================================
+## REPAIR RULES
+================================================================================
+
+Fix each listed issue precisely:
+
+  try! / force-unwrap issues:
+    Replace `try!` with `do { … } catch { … }` or `try?` with an explicit
+    fallback. Replace `value!` force-unwraps with `guard let`, `if let`, or
+    a safe default. Do not remove code — replace with safe equivalents.
+
+  Named-but-unshown implementations (Router, Bridge, semaphore, etc.):
+    Either: (a) add a concise inline code snippet demonstrating the pattern
+    in the section where it is named, OR (b) replace the named type with a
+    descriptive phrase that does not imply a separate unexplained artifact.
+    Prefer (a) when the implementation is central to the section's argument.
+
+  Undefined jargon (non-Apple-API specialized terms):
+    Add a 1-sentence parenthetical definition immediately after the term's
+    first appearance. Keep it under 20 words. Example:
+      "blue-green wiring (routing traffic between two live app environments
+       to validate a new navigation stack before full rollout)"
+
+  Missing decision criterion in a section:
+    Add a "Choose X when …; avoid Y when …" sentence or a brief bullet list
+    to the relevant section. Do not restructure the section — insert inline.
+
+  Missing or weak hook:
+    Rewrite the 2–4 sentences before the first ## heading to open with the
+    concrete runtime problem, failure mode, or production consequence.
+    Do NOT open with a generic statement about the technology category.
+
+  Other issues:
+    Apply the minimal edit that resolves the stated problem. Preserve
+    surrounding content.
+
+================================================================================
+## PROHIBITED ACTIONS
+================================================================================
+
+  - Do NOT add new ## sections not listed in the original.
+  - Do NOT change section order.
+  - Do NOT remove content that is not causing a listed issue.
+  - Do NOT add unsupported numeric claims.
+  - Do NOT use `try!`, `try?` without fallback, or unguarded `!` on Optional
+    in production code contexts (see repair rules above).
+  - Do NOT use deprecated APIs (ObservableObject, @Published, os_signpost, etc.).
+
+================================================================================
+## CONFLICT RESOLUTION
+================================================================================
+
+When requirements conflict, apply this priority order:
+  1. Fix every issue in the list — this is the primary goal.
+  2. Preserve unchanged sections — minimum footprint.
+  3. Word count (900–1,200 words).
+  4. Formatting and style rules.

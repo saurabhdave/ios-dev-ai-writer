@@ -35,6 +35,7 @@ from agents.article_agent import apply_swift_backticks
 PROMPT_PATH: Final[Path] = Path("prompts/editor_prompt.txt")
 LAYOUT_REPAIR_PROMPT_PATH: Final[Path] = Path("prompts/layout_repair_prompt.txt")
 FACTUALITY_PROMPT_PATH: Final[Path] = Path("prompts/article_factuality_prompt.txt")
+REVIEW_REPAIR_PROMPT_PATH: Final[Path] = Path("prompts/review_repair_prompt.txt")
 
 MAX_OUTPUT_TOKENS: Final[int] = 5_000
 
@@ -538,3 +539,58 @@ def enforce_factual_grounding(
         )
 
     return current.strip()
+
+
+def repair_from_review(
+    topic: str,
+    article: str,
+    allowed_references: str,
+    review_issues: list[str],
+) -> str:
+    """Apply a targeted repair pass to resolve specific review issues.
+
+    Only fires when ``review_issues`` is non-empty. Returns the article
+    unchanged when the model returns empty output.
+
+    Raises
+    ------
+    RuntimeError
+        When the prompt template file is missing.
+    """
+    if not review_issues:
+        return article.strip()
+
+    client = create_openai_client()
+    issues_text = "\n".join(f"- {issue}" for issue in review_issues)
+    prompt = (
+        _load_template(REVIEW_REPAIR_PROMPT_PATH)
+        .replace("{topic}", topic)
+        .replace("{allowed_references}", allowed_references.strip() or "- None")
+        .replace("{article}", article.strip())
+        .replace("{review_issues}", issues_text)
+    )
+    repaired = _render_model_response(
+        client,
+        prompt,
+        operation="repair_from_review",
+        temperature=min(OPENAI_TEMPERATURE, FACTUALITY_TEMPERATURE),
+    )
+    if not repaired:
+        log_event(
+            LOGGER,
+            "review_repair_empty",
+            level=logging.WARNING,
+            topic=topic,
+            issue_count=len(review_issues),
+        )
+        return article.strip()
+
+    log_event(
+        LOGGER,
+        "review_repair_complete",
+        level=logging.INFO,
+        topic=topic,
+        issue_count=len(review_issues),
+        output_chars=len(repaired),
+    )
+    return repaired

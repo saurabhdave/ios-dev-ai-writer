@@ -21,6 +21,7 @@ from agents.editor_agent import (
     enforce_factual_grounding,
     polish_article,
     reinforce_medium_layout,
+    repair_from_review,
 )
 from agents.linkedin_agent import generate_linkedin_post
 from agents.newsletter_agent import generate_newsletter
@@ -41,6 +42,8 @@ from config import (
     OUTPUT_NEWSLETTER_DIR,
     OUTPUT_QUALITY_HISTORY_PATH,
     LINKEDIN_POST_ENABLED,
+    REVIEW_REPAIR_ENABLED,
+    REVIEW_REPAIR_MIN_SCORE,
     SELF_REVIEW_ENABLED,
     SWIFT_COMPILER_LANGUAGE_MODE,
     SWIFT_LANGUAGE_VERSION,
@@ -504,7 +507,7 @@ def _compose_markdown(
             [
                 "## Swift/SwiftUI Code Example",
                 "",
-                "_No validated code snippet was generated this run._",
+                "_A code example for this topic is not included in this edition._",
                 "",
             ]
         )
@@ -750,6 +753,37 @@ def run_weekly_pipeline() -> Path:
                     review_issues=review_result.get("issues", []),
                 )
 
+        review_repair_triggered = False
+        with timed_step(
+            LOGGER,
+            "review_repair",
+            topic=topic,
+            enabled=REVIEW_REPAIR_ENABLED,
+        ):
+            if REVIEW_REPAIR_ENABLED and SELF_REVIEW_ENABLED and review_result:
+                review_issues = review_result.get("issues", [])
+                review_min = min(
+                    review_result.get("overall_quality", 10),
+                    review_result.get("technical_depth", 10),
+                    review_result.get("actionability", 10),
+                )
+                if review_issues and review_min < REVIEW_REPAIR_MIN_SCORE:
+                    review_repair_triggered = True
+                    polished_article = repair_from_review(
+                        topic=topic,
+                        article=polished_article,
+                        allowed_references=reference_context,
+                        review_issues=review_issues,
+                    )
+                    log_event(
+                        LOGGER,
+                        "review_repair_triggered",
+                        level=logging.INFO,
+                        topic=topic,
+                        review_min_score=review_min,
+                        issue_count=len(review_issues),
+                    )
+
         with timed_step(LOGGER, "append_quality_history", topic=topic):
             slug = _slugify(topic)
             has_refs = bool(_reference_items(trends, topic=topic, max_items=1)) or bool(_seed_reference_items(topic))
@@ -768,6 +802,7 @@ def run_weekly_pipeline() -> Path:
                 "review_actionability": review_result.get("actionability"),
                 "review_issues": review_result.get("issues", []),
                 "review_strengths": review_result.get("strengths", []),
+                "review_repair_triggered": review_repair_triggered,
             }
             _append_quality_history(quality_record)
             log_event(
