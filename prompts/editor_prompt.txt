@@ -164,6 +164,27 @@ Backtick Corruption Guard:
     ❌  `with`TaskGroup``, `with`CheckedContinuation``, `with`ThrowingTaskGroup``
   No occurrences of this malformed pattern may remain in the output.
 
+Code Snippets — Safety Rules:
+  NEVER use `try!` or unguarded force-unwraps (`!` on Optional) in inline
+  code snippets or code-context prose. Use `do-catch` or `try?` with an
+  explicit fallback. Exception: force-unwrap is acceptable only inside a
+  `// ❌ Before` legacy block. If the draft contains `try!` outside a Before
+  block, replace it with a do-catch block or `try?` with a fallback.
+
+Named Patterns Must Be Demonstrated:
+  If prose names a concrete implementation (e.g., "a Router", "a
+  NavigationBridge", "a bounded semaphore") it MUST either:
+    (a) be shown in an inline code snippet in that section, OR
+    (b) be described in enough detail that no code is needed.
+  If the draft references a named implementation without demonstrating it,
+  either add a minimal code snippet or rewrite to remove the reference.
+
+Jargon Definition Rule:
+  Any specialized term that is not a named Apple API (e.g., "blue-green
+  wiring", "circuit breaker", "fan-out pattern") MUST be defined in 1
+  sentence on first use. Scan the draft for undefined jargon and add
+  parenthetical definitions or replace the terms.
+
 Factual Integrity:
   - Remove or replace unsupported numeric claims (percentages, benchmarks,
     hard numbers) unless directly grounded in the verified references.

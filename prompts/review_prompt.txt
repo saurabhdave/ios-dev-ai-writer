@@ -80,6 +80,9 @@ issues — list of specific, concrete problems found.
       • No dedicated tradeoffs section
       • No validation/observability section
       • Closing section missing or merges into the last core section
+      • Code snippet or prose uses `try!` or unguarded force-unwrap outside a ❌ Before block
+      • Article names a pattern/type (Router, Bridge, semaphore, etc.) not demonstrated anywhere
+      • Specialized jargon (non-Apple-API term) introduced without an inline definition
 
 strengths — list of specific things done well.
   - Each item must identify what exactly is well-executed:

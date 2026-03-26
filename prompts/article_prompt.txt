@@ -150,6 +150,25 @@ Prohibited Phrases (never use):
   - "exciting"
   - Repetitive filler phrasing of any kind
 
+Code Snippets — Safety Rules:
+  NEVER use `try!` or unguarded force-unwraps (`!` on Optional) in inline
+  code snippets or code-context prose. Use `do-catch` or `try?` with an
+  explicit fallback. Exception: force-unwrap is acceptable only inside a
+  `// ❌ Before` legacy block.
+
+Named Patterns Must Be Demonstrated:
+  If prose names a concrete implementation (e.g., "a Router", "a
+  NavigationBridge", "a bounded semaphore") it MUST either:
+    (a) be shown in an inline code snippet in that section, OR
+    (b) be described in enough detail that no code is needed.
+  Do NOT name an implementation and say "implement X" without demonstrating X.
+
+Jargon Definition Rule:
+  Any specialized term that is not a named Apple API (e.g., "blue-green
+  wiring", "circuit breaker", "fan-out pattern") MUST be defined in 1
+  sentence on first use. If you cannot define it concisely, replace it with
+  a term you can define.
+
 Specificity:
   Prefer concrete implementation details over abstract principles. Every
   section should leave the reader with something actionable.
