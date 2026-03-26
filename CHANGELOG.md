@@ -6,6 +6,30 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-03-26
+
+### Added
+- **Review-triggered repair loop** (`workflows/weekly_pipeline.py`, `agents/editor_agent.py`, `prompts/review_repair_prompt.txt`): Articles that score below `REVIEW_REPAIR_MIN_SCORE` (default 7) on any quality dimension (overall, technical_depth, actionability) and have reviewer-identified issues now automatically receive a targeted `repair_from_review()` editor pass before publishing. New `review_repair_triggered` field written to `outputs/quality_history.json` per run.
+- **`REVIEW_REPAIR_ENABLED` / `REVIEW_REPAIR_MIN_SCORE` config vars** (`config.py`): Toggle and threshold for the review-repair loop. Defaults: enabled, score threshold 7.
+- **`repair_from_review()` function** (`agents/editor_agent.py`): Calls the LLM with a focused issue-list prompt (`review_repair_prompt.txt`). Fixes only the listed issues; preserves unchanged sections, tone, and length. Uses `.replace()` substitution (immune to Swift brace KeyError).
+- **`prompts/review_repair_prompt.txt`** (new): Targeted repair prompt with typed fix rules per issue category (try!, unnamed implementations, undefined jargon, weak hooks) and a strict preserve-unchanged constraint.
+- **Theme cluster saturation guard** (`agents/topic_agent.py`): Hard code-level dedup — detects when 2+ recent articles cover the same theme cluster (Swift concurrency/async-await, UIKit migration, SwiftUI performance profiling) and rejects new topic candidates in that cluster. `THEME_CLUSTER_SATURATION_LIMIT = 2`.
+- **`_cluster_match()`, `_is_theme_cluster_saturated()`, `_theme_concentration_summary()`** (`agents/topic_agent.py`): New helpers powering the cluster guard and the `{theme_warnings}` injection into the topic prompt.
+- **Community Picks post-processor** (`agents/newsletter_agent.py`): `_repair_community_picks()` deterministically strips bold-only (no hyperlink) picks after LLM generation. Falls back to "More community links next issue." when fewer than 2 hyperlinked picks survive.
+
+### Changed
+- **Semantic similarity threshold lowered: 0.80 → 0.72** (`agents/topic_agent.py`): Catches "same concept, different angle" near-duplicates (e.g., concurrency basics vs. concurrency migration) that previously passed the cosine check.
+- **Recent-titles display limit: 15 → 24** (`agents/topic_agent.py`): Gives the topic agent broader dedup context when history is deep.
+- **`prompts/topic_prompt.txt`**: Added `{theme_warnings}` block between recent titles and TASK sections; saturated theme avoidance promoted to conflict-resolution priority 2.
+- **`try!` prohibition added to `prompts/article_prompt.txt` and `prompts/editor_prompt.txt`**: `try!` and unguarded force-unwrap forbidden in all production code snippets and prose; allowed only inside `// ❌ Before` legacy blocks.
+- **Named-pattern demonstration rule** (`prompts/article_prompt.txt`, `prompts/editor_prompt.txt`): Prose that names a concrete implementation (Router, NavigationBridge, bounded semaphore) must either show it in a code snippet or describe it in enough detail that no code is needed.
+- **Jargon definition rule** (`prompts/article_prompt.txt`, `prompts/editor_prompt.txt`): Any non-Apple-API specialized term (e.g., "blue-green wiring", "circuit breaker") must be defined in one sentence on first use.
+- **`prompts/review_prompt.txt`**: Added 3 new issue categories to the checklist — `try!`/force-unwrap in production context, named pattern not demonstrated, and specialized jargon without inline definition.
+- **`prompts/newsletter_prompt.txt`**: Added fallback instruction for empty `{best_snippet}` — replace "Swift Snippet of the Week" with "Worth Watching This Week" (1–2 sentences on top trend signal).
+- **Backtick repair regex generalized** (`utils/article_repair.py`): `_MALFORMED_BACKTICK_RE` changed from `r'\`(with)\`(\w+)\`\`'` to `r'\`(\w+)\`(\w+)\`\`'` — now catches any prefix word, not just "with" (e.g., `` `withThrowing`TaskGroup`` `` → `` `withThrowingTaskGroup` ``).
+- **Reader-visible pipeline placeholder replaced** (`workflows/weekly_pipeline.py`): "_No validated code snippet was generated this run._" → "_A code example for this topic is not included in this edition._"
+- **Removed duplicate `TOPIC_INTERESTS` entry** (`config.py`): "Swift async await patterns" removed (covered by "Structured Concurrency"); list reduced 20 → 19 entries.
+
 ## [1.1.0] - 2026-03-18
 
 ### Added

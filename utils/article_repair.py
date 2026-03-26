@@ -18,10 +18,12 @@ from typing import Tuple, List, Dict
 # Backtick repair
 # ---------------------------------------------------------------------------
 
-# Matches the malformed pattern: `with`Word``
-# e.g. `with`TaskGroup`` → `withTaskGroup`
-#      `with`CheckedThrowingContinuation`` → `withCheckedThrowingContinuation`
-_MALFORMED_BACKTICK_RE = re.compile(r'`(with)`(\w+)``')
+# Matches the malformed split-backtick pattern: `prefix`Suffix``
+# The prefix is any word (not just "with") so this catches:
+#   `with`TaskGroup``           → `withTaskGroup`
+#   `withThrowing`TaskGroup``   → `withThrowingTaskGroup`
+#   `withChecked`Continuation`` → `withCheckedContinuation`
+_MALFORMED_BACKTICK_RE = re.compile(r'`(\w+)`(\w+)``')
 
 
 def repair_malformed_backticks(text: str) -> Tuple[str, List[str]]:
