@@ -13,6 +13,11 @@ Priority interest themes for upcoming articles:
 Recently published titles (do not repeat these topics or angles):
 {recent_titles}
 
+Saturated theme clusters — these themes already have too many recent articles.
+Do NOT generate a title that falls into any of these clusters, regardless of how
+differently it is worded:
+{theme_warnings}
+
 ================================================================================
 ## TASK
 ================================================================================
@@ -100,7 +105,8 @@ Never use:
 
 When requirements conflict, apply this priority order:
   1. Format constraints (one line, ≤10 words, ≤60 characters) — hard limits.
-  2. Materially different from recent titles.
-  3. Drawn from priority interest themes.
-  4. Preferred topic family and framing rules.
-  5. Prohibited content rules.
+  2. Avoid saturated theme clusters — treat {theme_warnings} as a hard block.
+  3. Materially different from recent titles.
+  4. Drawn from priority interest themes.
+  5. Preferred topic family and framing rules.
+  6. Prohibited content rules.

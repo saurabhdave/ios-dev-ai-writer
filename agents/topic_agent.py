@@ -34,12 +34,17 @@ from utils.openai_logging import create_openai_client, responses_create_logged
 PROMPT_PATH: Final[Path] = Path("prompts/topic_prompt.txt")
 MAX_OUTPUT_TOKENS: Final[int] = 1_500
 MAX_GENERATION_ATTEMPTS: Final[int] = 5
-RECENT_TITLES_DISPLAY_LIMIT: Final[int] = 15
+RECENT_TITLES_DISPLAY_LIMIT: Final[int] = 24  # Show all loaded titles, not a capped subset.
 SUPPLEMENTAL_INTERESTS_LIMIT: Final[int] = 4
 
 # Topic novelty thresholds.
 WORD_OVERLAP_THRESHOLD: Final[float] = 0.50
-SEMANTIC_SIMILARITY_THRESHOLD: Final[float] = 0.80
+# Lowered from 0.80 → 0.72 to catch "same concept, different audience" duplicates
+# (e.g., "Structured Concurrency for Production" vs "Structured Concurrency for SwiftUI").
+SEMANTIC_SIMILARITY_THRESHOLD: Final[float] = 0.72
+
+# Theme cluster saturation: block a theme once this many recent titles already cover it.
+THEME_CLUSTER_SATURATION_LIMIT: Final[int] = 2
 
 # Title length constraints.
 TITLE_MAX_CHARS: Final[int] = 60
@@ -65,6 +70,26 @@ _MIGRATION_TARGET_RE: Final[re.Pattern[str]] = re.compile(
     r"\b(completion handler|callback|delegate|kvo|nsnotification|urlsession|combine|uikit)\b",
     re.IGNORECASE,
 )
+
+# Theme clusters used to detect topic saturation across recent articles.
+# A title matches a cluster if ANY of its patterns fires (case-insensitive).
+# When THEME_CLUSTER_SATURATION_LIMIT titles in `recent` match a cluster,
+# a new candidate that also matches that cluster is rejected.
+_THEME_CLUSTER_PATTERNS: Final[dict[str, list[str]]] = {
+    "Swift concurrency / async-await": [
+        r"\basync\b", r"\bawait\b", r"\bconcurren",
+        r"\bactor\b", r"\bcontinuation\b", r"\btask\s*group\b",
+    ],
+    "UIKit migration": [
+        r"\buikit\b", r"\buitableview\b", r"\buiviewcontroller\b",
+        r"\bnavigationcontroller\b", r"\bdelegat\w+.*\bswift\b",
+    ],
+    "SwiftUI performance profiling": [
+        r"\bswiftui\b.*\bperforman", r"\bperforman.*\bswiftui\b",
+        r"\bswiftui\b.*\bprofil", r"\bprofil.*\bswiftui\b",
+        r"\bswiftui\b.*\binstrument",
+    ],
+}
 
 _TRAILING_STOP_WORDS: Final[frozenset[str]] = frozenset(
     {"for", "to", "with", "and", "or", "of", "in", "on"}
@@ -293,6 +318,48 @@ def _shares_migration_target(
     return False
 
 
+def _cluster_match(title: str, patterns: list[str]) -> bool:
+    """Return True when *title* matches any pattern in a theme cluster."""
+    lowered = title.lower()
+    return any(re.search(p, lowered) for p in patterns)
+
+
+def _is_theme_cluster_saturated(
+    candidate: str,
+    recent_titles: list[str],
+) -> bool:
+    """Return True when *candidate* falls in a theme cluster already at the saturation limit.
+
+    A cluster is saturated when ``THEME_CLUSTER_SATURATION_LIMIT`` or more of the
+    recent titles already cover that theme.  This is a hard block — the candidate
+    is rejected regardless of how different the title wording is.
+    """
+    for patterns in _THEME_CLUSTER_PATTERNS.values():
+        if not _cluster_match(candidate, patterns):
+            continue
+        count = sum(1 for t in recent_titles if _cluster_match(t, patterns))
+        if count >= THEME_CLUSTER_SATURATION_LIMIT:
+            return True
+    return False
+
+
+def _theme_concentration_summary(recent_titles: list[str]) -> str:
+    """Return a formatted prompt warning for saturated theme clusters.
+
+    Lists each cluster where ``THEME_CLUSTER_SATURATION_LIMIT`` or more recent
+    titles already cover that theme.  Returns a 'none' notice when clear.
+    """
+    warnings: list[str] = []
+    for cluster_name, patterns in _THEME_CLUSTER_PATTERNS.items():
+        count = sum(1 for t in recent_titles if _cluster_match(t, patterns))
+        if count >= THEME_CLUSTER_SATURATION_LIMIT:
+            warnings.append(
+                f'- "{cluster_name}" — {count} recent articles already cover this theme. '
+                "AVOID THIS THEME ENTIRELY this run."
+            )
+    return "\n".join(warnings) if warnings else "- None — all themes are available this run."
+
+
 # ---------------------------------------------------------------------------
 # Title length constraint
 # ---------------------------------------------------------------------------
@@ -472,6 +539,7 @@ def generate_topic(
 
     recent_context = "\n".join(f"- {t}" for t in recent[:RECENT_TITLES_DISPLAY_LIMIT]) or "- None"
     interests_context = "\n".join(f"- {i}" for i in filtered) or "- SwiftUI"
+    theme_warnings = _theme_concentration_summary(recent)
     template = _load_template()
 
     for attempt in range(1, MAX_GENERATION_ATTEMPTS + 1):
@@ -480,6 +548,7 @@ def generate_topic(
             .replace("{trend_context}", trend_context.strip() or "No external trend signals were available this run.")
             .replace("{recent_titles}", recent_context)
             .replace("{topic_interests}", interests_context)
+            .replace("{theme_warnings}", theme_warnings)
         )
         response = responses_create_logged(
             client,
@@ -511,6 +580,8 @@ def generate_topic(
             violations.append("semantic_repetitive")
         if _shares_migration_target(candidate, recent):
             violations.append("migration_target_duplicate")
+        if _is_theme_cluster_saturated(candidate, recent):
+            violations.append("theme_cluster_saturated")
 
         if violations:
             log_event(

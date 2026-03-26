@@ -118,7 +118,10 @@ TOPIC_INTERESTS = [
     item.strip()
     for item in os.getenv(
         "TOPIC_INTERESTS",
-        "Swift async await patterns,Structured Concurrency,SwiftUI architecture,Swift 6 Adoption,iOS performance improvements,Xcode tips and debugging workflows,UIKit interoperability,SwiftData persistence,App Intents,Apple Intelligence APIs,WidgetKit,verified Swift tips and tricks,verified SwiftUI modifiers,Swift 6.3 Macros,Reducing Boilerplate in Real Projects,visionOS development,accessibility in SwiftUI,Swift Testing framework,SwiftUI animations and transitions,UIKit to SwiftUI migration patterns",
+        # Deduplicated: "Swift async await patterns" removed (covered by "Structured Concurrency").
+        # "UIKit interoperability" kept as distinct from "UIKit to SwiftUI migration patterns"
+        # (interoperability = coexistence; migration = full cutover).
+        "Structured Concurrency,SwiftUI architecture,Swift 6 Adoption,iOS performance improvements,Xcode tips and debugging workflows,UIKit interoperability,SwiftData persistence,App Intents,Apple Intelligence APIs,WidgetKit,verified Swift tips and tricks,verified SwiftUI modifiers,Swift 6.3 Macros,Reducing Boilerplate in Real Projects,visionOS development,accessibility in SwiftUI,Swift Testing framework,SwiftUI animations and transitions,UIKit to SwiftUI migration patterns",
     ).split(",")
     if item.strip()
 ]
@@ -177,4 +180,13 @@ SELF_REVIEW_ENABLED = os.getenv("SELF_REVIEW_ENABLED", "true").lower() in {
 OUTPUT_QUALITY_HISTORY_PATH = Path(
     os.getenv("OUTPUT_QUALITY_HISTORY_PATH", "outputs/quality_history.json")
 )
+
+# Review-triggered repair: re-run the editor pass when review scores are below threshold.
+REVIEW_REPAIR_ENABLED = os.getenv("REVIEW_REPAIR_ENABLED", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+REVIEW_REPAIR_MIN_SCORE = max(1, int(os.getenv("REVIEW_REPAIR_MIN_SCORE", "7")))
 
