@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.5.2] - 2026-03-27
+
+### Fixed
+- **`quality_history.json` never committed on CI** (`.gitignore`, `.github/workflows/weekly.yml`): `outputs/` was gitignored with a trailing-slash pattern, which prevents child-path negations — so `git status --porcelain outputs/quality_history.json` always returned empty and the file was silently skipped in the CI commit step. Changed to `outputs/*` + `!outputs/quality_history.json` so the file is trackable. Also added `git add -f` in the CI step as a belt-and-suspenders guard.
+- **Static fallback titles caused silent duplicate emission** (`agents/topic_agent.py`): Removed `_FALLBACK_TITLES` list and `_fallback_topic_title()`. If all 5 generation attempts are rejected, `generate_topic` now raises `RuntimeError` with a clear message pointing to the `violations` log field. A failed CI run is observable and fixable; a silently published duplicate is not.
+
 ## [1.5.1] - 2026-03-27
 
 ### Fixed

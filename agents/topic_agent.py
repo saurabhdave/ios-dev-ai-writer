@@ -453,27 +453,6 @@ def _filtered_interests(
 # Fallback titles
 # ---------------------------------------------------------------------------
 
-_FALLBACK_TITLES: Final[list[str]] = [
-    "Swift 6.3 Macros for iOS Codebases",
-    "Reducing SwiftUI Boilerplate in Real Projects",
-    "Structured Concurrency Patterns for SwiftUI Apps",
-    "Profiling SwiftUI List Performance with Instruments",
-    "VoiceOver Support for Custom SwiftUI Views",
-    "Xcode Build Performance with Explicit Swift Modules",
-    "SwiftUI KeyframeAnimator for Fluid Transitions",
-    "Migrating Deprecated iOS APIs to Swift 6 Safely",
-]
-
-
-def _fallback_topic_title(recent_titles: Iterable[str]) -> str:
-    """Return the first fallback title that is not repetitive with recent titles."""
-    seen = list(recent_titles)
-    for candidate in _FALLBACK_TITLES:
-        normalised = _constrain_title_length(candidate)
-        if normalised and not _is_repetitive(normalised, seen):
-            return normalised
-    return _constrain_title_length(_FALLBACK_TITLES[0])
-
 
 # ---------------------------------------------------------------------------
 # Prompt loading
@@ -603,12 +582,13 @@ def generate_topic(
         )
         return candidate
 
-    fallback = _fallback_topic_title(recent)
     log_event(
         LOGGER,
-        "topic_generation_fallback",
-        level=logging.WARNING,
+        "topic_generation_exhausted",
+        level=logging.ERROR,
         attempts=MAX_GENERATION_ATTEMPTS,
-        fallback=fallback,
     )
-    return fallback
+    raise RuntimeError(
+        f"Failed to generate a novel Apple-platform topic after {MAX_GENERATION_ATTEMPTS} attempts. "
+        "Check logs for rejection reasons (violations field)."
+    )

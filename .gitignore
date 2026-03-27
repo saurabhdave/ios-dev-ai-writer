@@ -23,7 +23,8 @@ __pycache__/
 memory/
 
 # Generated outputs (published to saurabhdave/ios-ai-articles)
-outputs/
+outputs/*
+!outputs/quality_history.json
 outputs/newsletter/
 
 # Temp content repo clone used by CI publish step

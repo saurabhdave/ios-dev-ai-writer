@@ -1,0 +1,761 @@
+[
+  {
+    "date": "2026-03-13",
+    "slug": "migrate-notificationcenter-observers-to-swift-concurrency",
+    "topic": "Migrate NotificationCenter Observers to Swift Concurrency",
+    "layout_score": 13,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Add one short pull-quote style insight using markdown blockquote."
+    ],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": false,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "No concrete code examples are provided — the article describes patterns conceptually but lacks runnable snippets (e.g., a for-await-in Task that posts/handles a Notification).",
+      "No platform/version availability guidance — it doesn’t state the minimum OS versions required for NotificationCenter.notifications(named:object:) or async/await features (e.g., iOS/macOS versions).",
+      "No explicit guidance about updating UI from notification handlers — missing explicit mention to hop to the main actor / MainActor.run when handlers affect UI state.",
+      "Doesn’t discuss retain-cycle specifics (capturing self in Tasks) or show common safe capture patterns (weak self, Task cancellation checks).",
+      "Limited guidance on mixing Combine and AsyncSequence in practice — article warns about mixed paradigms but doesn’t give concrete bridging examples (e.g., converting Publisher to AsyncSequence or vice versa).",
+      "Operational/observability suggestions are high-level (structured logging, metrics) with no example log schema or recommended tooling (OSLog, MetricKit, Prometheus, etc.)."
+    ],
+    "review_strengths": [
+      "Clear, well-structured organization with scannable headings and a practical incremental checklist for rollout.",
+      "Accurate references to relevant APIs and concurrency primitives (NotificationCenter.notifications(named:object:), AsyncStream/AsyncThrowingStream, Task, actors, Combine).",
+      "Good decision criteria enumerated (when to prefer AsyncSequence vs Combine vs AsyncStream) that make migration choices explicit.",
+      "Actionable testing and validation guidance (XCTest async tests, profiling, memory/leaks checks) and emphasis on verifying cancellation and ordering.",
+      "Practical operational advice around logging Task lifecycle and tracking active consumer counts to detect leaks or long-lived subscribers."
+    ]
+  },
+  {
+    "date": "2026-03-14",
+    "slug": "migrate-kvo-to-swift-structured-concurrency",
+    "topic": "Migrate KVO to Swift Structured Concurrency",
+    "layout_score": 13,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Add one short pull-quote style insight using markdown blockquote."
+    ],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": false,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "No concrete code snippets — the conceptual AsyncStream/NSKeyValueObservation adapter is described but lacks an example showing correct continuation handling, weak captures, and cancellation patterns.",
+      "No Swift-version or OS-target guidance — doesn’t state minimum Swift/SDK or iOS versions for using Swift structured concurrency features (async/await, actors).",
+      "Doesn’t explicitly mention KVC/KVO compliance requirements (dynamic/@objc, willChange/didChange) or caveats when observing properties that aren’t KVO-compliant.",
+      "Minor imprecision: KeyValueObservingPublisher is referenced without noting it’s part of Combine/Foundation bridging and has its own delivery semantics; readers could benefit from distinctions between publisher buffering/backpressure vs AsyncSequence ordering.",
+      "No concrete performance/overhead guidance or examples showing how to gate signposting/telemetry in hot paths (only a general suggestion to gate behind flags)."
+    ],
+    "review_strengths": [
+      "Well-structured and scannable — clear sections, checklist and rollout strategy that map directly to engineering workflows.",
+      "Good coverage of tradeoffs and pitfalls — calls out double notifications, continuation leaks, thread/actor delivery, and migration strategies (strangler pattern).",
+      "Concrete operational and testing advice — recommends Instruments, signposts, specific tests for cancellation, ordering, background-thread deinit scenarios.",
+      "Actionable decision criteria — when to prefer AsyncSequence vs Combine vs native Swift observation are stated clearly.",
+      "Emphasis on observability and lifecycle (instrument registration/teardown, deprecation strategy) aligns with production practices and rollout safety."
+    ]
+  },
+  {
+    "date": "2026-03-14",
+    "slug": "swift-63-macros-for-ios-codebases",
+    "topic": "Swift 6.3 Macros for iOS Codebases",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": false,
+    "review_overall": 0,
+    "review_technical_depth": 0,
+    "review_actionability": 0,
+    "review_issues": [
+      "parse_error: {\"overall_quality\":8,\"technical_depth\":7,\"actionability\":6,\"issues\":[\"Title references Swift 6.3 but the article never c"
+    ],
+    "review_strengths": []
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "convert-delegates-to-swift-asyncawait",
+    "topic": "Convert Delegates to Swift Async/Await",
+    "layout_score": 13,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Add one short pull-quote style insight using markdown blockquote."
+    ],
+    "code_path": "repaired",
+    "code_repair_attempts": 2,
+    "has_references": false,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "No code examples or snippets to demonstrate patterns (continuation adapter, AsyncStream adapter, cancellation handling, weak capture).",
+      "Misses explicit guidance on main-actor/@MainActor and Main Thread delivery—only mentions queue hopping generally; callers will benefit from explicit MainActor examples and recommendations.",
+      "Recommends guarding continuations with a boolean to avoid double-resume without noting that withCheckedContinuation/withCheckedThrowingContinuation provide runtime checks in debug builds; this could confuse readers about safety guarantees and best practice.",
+      "Doesn't call out platform availability/OS version requirements for async/await and AsyncStream (e.g., minimum Swift/OS versions) which is important for library authors supporting multiple toolchains.",
+      "Discussion of backpressure and buffer policies is high-level; lacks concrete guidance (when to use .bufferingOldest vs .bufferingNewest or specific buffer sizes) or examples for high-rate sources.",
+      "No concrete examples of how to expose dual APIs in Swift (e.g., async convenience over delegate-based API, deprecation annotations, or migration shims)."
+    ],
+    "review_strengths": [
+      "Clear, scannable structure with logical sections (one-shot vs sequence, testing, rollout).",
+      "Strong decision criteria — concise rules for choosing continuations vs AsyncStream.",
+      "Practical operational guidance: testing, Instruments/weak-reference deallocation checks, observability, and rollout strategies (feature flags, canaries).",
+      "Good coverage of common pitfalls (cancellation, threading, lifetime/retention) and concrete mitigation/testing suggestions.",
+      "Useful checklist summarizing key validation steps that teams can apply immediately."
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "reducing-swiftui-boilerplate-in-real-projects",
+    "topic": "Reducing SwiftUI Boilerplate in Real Projects",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": false,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "No concrete code examples or snippets demonstrating the recommended patterns (e.g., @StateObject ownership, Binding(get:set:), exposing AsyncSequence from services).",
+      "'newer Swift observation APIs' is vague — the article should name specific APIs (Swift 5.9/5.10 Observation, SwiftData where applicable) and the minimum deployment/toolchain targets to guide migrations.",
+      "No concrete adapter patterns shown for mixing Combine and async/await (how to bridge publishers and AsyncSequence/Task cancellation in practice).",
+      "No guidance on backward-compatible techniques for teams that must support older iOS versions (specific fallbacks or polyfills).",
+      "Recommendations reference logging and CI validation but do not suggest specific logging libraries, telemetry events, or CI test strategies (e.g., how to run lifecycle-sensitive UI tests reliably on CI)."
+    ],
+    "review_strengths": [
+      "Clear, scannable structure with strong sectioning (View composition, State management, Testing/Operations, Tradeoffs).",
+      "Good operational emphasis—stresses observable lifecycle, staged rollouts, CI gating, and production safety rather than 'clever' implicit wiring.",
+      "Actionable decision criteria are presented (when to prefer @StateObject vs @ObservedObject vs EnvironmentObject; Combine vs async/await vs AsyncSequence).",
+      "Practical checklist and quick-scan items give engineers concrete things to audit immediately in real projects.",
+      "Covers testing and observability aspects (unit, UI, Instruments, logging) which are often omitted in similar articles."
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "replace-timer-with-swift-concurrency-tasks",
+    "topic": "Replace Timer with Swift Concurrency Tasks",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": false,
+    "review_overall": 0,
+    "review_technical_depth": 0,
+    "review_actionability": 0,
+    "review_issues": [
+      "parse_error: {\"overall_quality\":8,\"technical_depth\":8,\"actionability8\":8,\"issues\":[\"No concrete code examples — patterns are describe"
+    ],
+    "review_strengths": []
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "profile-swiftui-rendering-bottlenecks-with-instruments",
+    "topic": "Profile SwiftUI Rendering Bottlenecks with Instruments",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": false,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "No concrete code samples or Instruments trace examples — readers must infer implementation from prose.",
+      "Vague references to “newer Swift language/observation features” without naming specifics (e.g., Observable, Observation, or Swift 5.9/5.10 features), which reduces precision for implementers.",
+      "Does not call out specific Instruments templates/recording settings (e.g., toggling Core Animation layer capture, or Time Profiler sampling settings) that would help reproducibility.",
+      "No concrete examples of os_signpost usage (API or code) or how to correlate signposts with MetricKit payloads.",
+      "Minor editorial: inconsistent capitalization of iOS/IOS in one heading (WHY THIS MATTERS FOR IOS TEAMS RIGHT NOW)."
+    ],
+    "review_strengths": [
+      "Well-structured and scannable — logical sections (Measure, Fixes, Observability, Tradeoffs, Checklist).",
+      "Practical, production-focused guidance: emphasizes device diversity, real data, staged rollouts, and MetricKit for post-release signals.",
+      "Accurate and relevant toolset: calls out Instruments (Time Profiler, Core Animation), MetricKit, os_signpost, XCTest performance tests.",
+      "Provides concrete decision criteria and tradeoffs (when to use .id(), when to extract subviews, caching vs memory cost).",
+      "Actionable checklist that a team can follow to validate and roll out fixes safely."
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "convert-delegates-to-asyncsequence-in-swift-concurrency",
+    "topic": "Convert Delegates to AsyncSequence in Swift Concurrency",
+    "layout_score": 13,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Closing takeaway section exists as plain text — promote it to a `##` heading.",
+      "Add one short pull-quote style insight using markdown blockquote."
+    ],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": false,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 7,
+    "review_issues": [
+      "No concrete code examples or snippets showing an adapter implementation (e.g., creating AsyncStream/AsyncThrowingStream, storing continuation, forwarding delegate calls, calling continuation.finish()).",
+      "Doesn't mention some relevant Swift APIs/patterns that would help implementers (e.g., withCheckedContinuation/withCheckedThrowingContinuation, weak captures to avoid retain cycles, Task cancellation propagation via Task.checkCancellation()).",
+      "No explicit guidance on how to preserve synchronous delegate semantics when necessary (e.g., when callers rely on immediate return values or reentrancy), beyond a high-level note to keep delegates in those cases.",
+      "Missing discussion of specific threading primitives or dispatch patterns to ensure main-thread delivery (e.g., DispatchQueue.main.async vs @MainActor nuances and potential performance implications).",
+      "No concrete examples of telemetry/metrics schema or suggested counters/histograms (names, cardinality guidance) to make parity comparisons easy in production.",
+      "Article doesn’t call out version/availability concerns (minimum Swift/OS versions required for AsyncSequence features) which matter for platform-team rollouts."
+    ],
+    "review_strengths": [
+      "Well-structured and scannable with clear sectioning (mental model, adapter patterns, migration strategy, validation, checklist).",
+      "Strong operational focus: emphasizes observability, telemetry parity, runtime feature flags, and staged rollout—practical for production systems.",
+      "Covers key correctness topics: lifecycle/ownership, continuation.finish(), cancellation, Sendable and @MainActor considerations.",
+      "Provides a useful, actionable checklist for testing and rollout (ordering, thread-affinity, cancellation, buffering).",
+      "Balanced tradeoff analysis comparing delegates vs AsyncSequence and enumerating common failure modes (memory leaks, thread-affinity loss, divergence between dual implementations)."
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "implement-app-intents-with-swift-concurrency",
+    "topic": "Implement App Intents with Swift Concurrency",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Closing takeaway section exists as plain text — promote it to a `##` heading."
+    ],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": false,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "No concrete code samples or snippets demonstrating async App Intent handlers, Task scoping, or cancellation checks — readers must translate prose into implementation themselves.",
+      "Minor terminology ambiguity: references perform()/handler methods together without showing the exact App Intents API signatures (e.g., AppIntent.perform() async -> some Response), which could confuse readers new to the framework.",
+      "No explicit Swift or Xcode version targeting; concurrency behavior and App Intents APIs differ across OS and Swift versions and that guidance is missing.",
+      "Lacks concrete examples for testing intents (XCTest code or sample intent invocation) and for migrating renamed parameters (no sample migration strategy or code).",
+      "Does not link to official Apple docs or sample projects for App Intents, os_signpost, or relevant telemetry APIs, which would help readers validation and further study."
+    ],
+    "review_strengths": [
+      "Clear, scannable structure with pragmatic, operational focus geared to platform engineering teams.",
+      "Good emphasis on treating intent parameter changes like API changes and on staged rollouts and telemetry—high production relevance.",
+      "Accurate, actionable concurrency guidance: promoting structured Task scoping, avoiding Task.detached for actor-dependent work, and checking Task.isCancelled.",
+      "Concrete observability recommendations (os_log, os_signpost, Instruments, platform crash/hang telemetry) and a usable pre-rollout checklist that teams can incorporate into runbooks.",
+      "Balanced tradeoffs and decision criteria (when to use App Intents vs lighter background triggers), helping readers choose the right integration surface."
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "replace-combine-with-asyncsequence",
+    "topic": "Replace Combine with AsyncSequence",
+    "layout_score": 13,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Add one short pull-quote style insight using markdown blockquote."
+    ],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": false,
+    "review_overall": 0,
+    "review_technical_depth": 0,
+    "review_actionability": 0,
+    "review_issues": [
+      "parse_error: {\"overall_quality\":8,\"technical_depth\":8,\"actionability\":9,\"issues\":[\"No concrete code examples demonstrating Publisher "
+    ],
+    "review_strengths": []
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "migrate-urlsession-callbacks-to-asyncawait",
+    "topic": "Migrate URLSession Callbacks to async/await",
+    "layout_score": 12,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Include an early context section explaining why this matters for iOS teams.",
+      "Include an implementation checklist section with concrete action items."
+    ],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": false,
+    "review_overall": 0,
+    "review_technical_depth": 0,
+    "review_actionability": 0,
+    "review_issues": [
+      "parse_error: {\"overall_quality\":8,\"technical_depth\":8,\"actionability\":9,\"issues\":[\"No concrete code samples or short snippets showing"
+    ],
+    "review_strengths": []
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "limit-concurrent-tasks-with-swift-structured-concurrency",
+    "topic": "Limit Concurrent Tasks with Swift Structured Concurrency",
+    "layout_score": 13,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Add one short pull-quote style insight using markdown blockquote."
+    ],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": false,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 7,
+    "review_issues": [
+      "No concrete code examples or minimal reproducible snippets are provided (e.g., enqueue loop with TaskGroup, actor permit token type, or async adapter using withCheckedContinuation), which reduces immediate implementability.",
+      "Observability recommendations are high-level; specific Apple tooling (Instruments templates, MetricKit, os_signpost/os_log usage examples, or how to emit compact metrics) are not referenced.",
+      "Does not mention a few relevant Swift/Apple runtime details that can affect design choices (Task.detached, Task.priority, cooperative cancellation nuances, or how actor isolation interacts with thread pooling).",
+      "Migration section suggests wrapping legacy primitives but omits a brief example showing safe continuation/resume patterns and thread confinement considerations.",
+      "No guidance on numeric heuristics or how to choose N (concurrency budget) in practice beyond testing—e.g., connection limits, file descriptor budgets, or heuristic formulas tied to device classes."
+    ],
+    "review_strengths": [
+      "Clear, scannable structure with strong headings and a useful checklist for rollout readiness.",
+      "Provides explicit decision criteria for each pattern (when to choose/avoid TaskGroup, actors, legacy primitives).",
+      "Covers operational concerns (testing, load testing on device, metrics to emit) and includes practical pitfalls and tradeoffs relevant to production iOS apps.",
+      "Balances conceptual guidance with deployment strategy (feature flags, phased rollouts) which is important for engineering teams.",
+      "Emphasizes observability and validation (unit tests, device profiling, telemetry) and calls out specific metrics to collect (active tasks, queue depth, latencies)."
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "replace-completion-handlers-with-swift-asyncawait",
+    "topic": "Replace Completion Handlers with Swift async/await",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": false,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "No minimum platform/Swift version guidance for async availability",
+      "No concrete code examples or snippets in article body",
+      "Calls withUnsafeContinuation a \"micro-optimization\"—misleading phrasing",
+      "Doesn't quantify rollout metrics or timeouts (eg. thresholds to watch)",
+      "No mention of backwards compatibility strategy for Obj-C callers"
+    ],
+    "review_strengths": [
+      "Clear, scannable structure with useful headings",
+      "Explicit decision criteria for continuations, Task, and actors",
+      "Concrete operational and testing notes for production safety",
+      "Practical migration checklist and rollout pattern",
+      "Good emphasis on observability and tracing"
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "replace-delegates-with-swift-asyncawait",
+    "topic": "Replace Delegates with Swift async/await",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 2,
+    "has_references": false,
+    "review_overall": 9,
+    "review_technical_depth": 9,
+    "review_actionability": 8,
+    "review_issues": [
+      "No concrete code examples demonstrating async wrappers for delegates",
+      "Threading and actor-context considerations are not explicitly addressed",
+      "Idempotency/double-resume mitigation lacks concrete patterns or snippets",
+      "Objective-C bridging guidance is high-level without example shims"
+    ],
+    "review_strengths": [
+      "Clear continuation vs AsyncStream decision guidance",
+      "Strong emphasis on observability, signposts, and telemetry",
+      "Practical incremental migration and rollback strategies",
+      "Concrete checklist covering tests, cancellation, and Instruments validation"
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "migrate-nsnotificationcenter-to-asyncsequence-in-swift",
+    "topic": "Migrate NSNotificationCenter to AsyncSequence in Swift",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": false,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "No concrete code example for AsyncStream wrapper implementation.",
+      "No explicit handling guidance for queue/main-thread delivery semantics.",
+      "Doesn't show how to share AsyncSequence across multiple consumers.",
+      "No example for continuation.onTermination teardown pattern.",
+      "Doesn't mention API availability/OS version specifics for concurrency features."
+    ],
+    "review_strengths": [
+      "Clear sectioning and scannable checklist-driven structure.",
+      "Accurate decision criteria for AsyncStream vs Combine usage.",
+      "Concrete testing and observability guidance (XCTest, Allocations, signposts).",
+      "Highlights common pitfalls (retained observers, duplicate deliveries) clearly.",
+      "Provides incremental rollout and compatibility advice for large codebases."
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "profile-swiftui-performance-with-xcode-time-profiler",
+    "topic": "Profile SwiftUI Performance with Xcode Time Profiler",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "No concrete Instruments sampling/configuration guidance (sample rate, record mode).",
+      "No small code examples demonstrating os_signpost usage or Task offloading.",
+      "Missing explicit guidance on symbolication troubleshooting and dSYM upload.",
+      "Doesn't mention Time Profiler limitations (sampling vs tracing) or sampling overhead."
+    ],
+    "review_strengths": [
+      "Strong, engaging opening and clear audience framing.",
+      "Well-structured, scannable sections and checklist for real workflows.",
+      "Concrete Apple APIs and tools are named throughout (Time Profiler, os_signpost).",
+      "Good emphasis on stabilizing identity and state before micro-optimizing.",
+      "Practical tradeoffs and rollout/observability recommendations (MetricKit, TestFlight)."
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "replace-kvo-with-swift-structured-concurrency",
+    "topic": "Replace KVO with Swift Structured Concurrency",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 7,
+    "review_issues": [
+      "No concrete code example showing AsyncStream adapter implementation",
+      "Doesn't mention minimum Swift/Xcode version required for structured concurrency",
+      "No guidance on bridging Combine publishers to AsyncSequence",
+      "Lacks details on NSKeyValueObservation lifetime semantics and ownership",
+      "Doesn't discuss back-deployment or availability constraints for older OS versions"
+    ],
+    "review_strengths": [
+      "Clear, scannable structure with practical headings",
+      "Concrete migration checklist and rollout guidance",
+      "Explicit testing advice including async XCTest and cancellation checks",
+      "Good coverage of performance tradeoffs and high-frequency signal strategies",
+      "Calls out actors and @MainActor for ownership and thread safety"
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "task-group-patterns-for-swiftui-data-loading",
+    "topic": "Task Group Patterns for SwiftUI Data Loading",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "No concrete code examples demonstrating TaskGroup patterns and batching.",
+      "No minimum Swift/iOS version guidance for concurrency feature availability.",
+      "Actor-based semaphore described but no implementation sketch provided.",
+      "Missing explicit example of cancelling URLSessionDataTask from Task cancellation.",
+      "Limited guidance on TaskPriority or scheduling to manage tail latency."
+    ],
+    "review_strengths": [
+      "Clear, scannable sectioning and strong opening motivation.",
+      "Explicit decision rules that guide when to use patterns.",
+      "Good emphasis on cancellation, observability, and telemetry.",
+      "Practical rollout and testing guidance including canaries and signposts.",
+      "Useful implementation checklist summarizing actionable steps."
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "slug": "accessible-custom-swiftui-controls-with-voiceover",
+    "topic": "Accessible Custom SwiftUI Controls with VoiceOver",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "No concrete code examples demonstrating SwiftUI modifiers or UIViewRepresentable usage.",
+      "Does not mention specific Swift versions or iOS minimums for APIs referenced.",
+      "No sample test snippets or UI test strategies (XCUITest code) included.",
+      "Could call out APIs like accessibilityFocused or AccessibilityFocusState when relevant."
+    ],
+    "review_strengths": [
+      "Clear, scannable structure with practical headings and checklists.",
+      "Explicit decision criteria for choosing SwiftUI vs UIKit wrappers.",
+      "Good coverage of tradeoffs and common failure modes with operational tips.",
+      "Actionable release and observability guidance with concrete logging and testing recommendations."
+    ]
+  },
+  {
+    "date": "2026-03-17",
+    "slug": "task-group-cancellation-patterns-in-swift",
+    "topic": "Task Group Cancellation Patterns in Swift",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Opening hook is generic; could better preview concrete examples or outcomes",
+      "Multiple malformed backtick usages around TaskGroup (e.g., \"with`TaskGroup```\", \"`with`TaskGroup``\")",
+      "No Swift version or deployment-target guidance for structured-concurrency semantics",
+      "No explicit example code inline showing cancellation wiring (though pipeline may append code)"
+    ],
+    "review_strengths": [
+      "Clear, scannable sectioning with practical headings",
+      "Concisely explains short-circuit vs partial-result TaskGroup strategies",
+      "Actions map to concrete Apple APIs: Task.cancel(), Task.isCancelled, group.cancelAll()",
+      "Strong observability guidance: os_signpost, os_log, Instruments, MetricKit",
+      "Practical checklist with actionable, non-trivial items for migration and testing"
+    ]
+  },
+  {
+    "date": "2026-03-18",
+    "slug": "actor-isolation-patterns-in-swift-6",
+    "topic": "Actor Isolation Patterns in Swift 6",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "Opening hook is generic and not tightly specific to Swift 6 migration",
+      "No explicit Swift-version constraints or deployment-target guidance for Swift 6 changes",
+      "Missing short code examples demonstrating continuation cancellation wiring",
+      "Doesn't reference concrete tracing API symbols (for example `os_signpost`)",
+      "Statement \"many platform APIs already provide async variants\" is uncited and vague"
+    ],
+    "review_strengths": [
+      "Clear decision rules for structured Task vs detached tasks",
+      "Practical guidance on actor ownership and UI/main-thread confinement",
+      "Good continuations guidance, including cancellation and streaming distinction",
+      "Actionable observability advice naming Time Profiler and Allocations",
+      "Concise, usable checklist mapping to engineering tasks"
+    ]
+  },
+  {
+    "date": "2026-03-18",
+    "slug": "replacing-combine-with-asyncsequence-in-swiftui",
+    "topic": "Replacing Combine with AsyncSequence in SwiftUI",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "Opening hook is generic; lacks a concise, attention-grabbing problem statement",
+      "No Swift concurrency deployment target or Swift/toolchain version noted (e.g., iOS 15+/Swift 5.5+)",
+      "References multicast/share preservation but gives no concrete pattern or code example for preserving sharing semantics",
+      "Mentions AsyncPublisher-style adapters imprecisely; doesn't name exact interop APIs or show signatures",
+      "No small cancellation-forwarding snippet demonstrating how wrappers propagate cancellation"
+    ],
+    "review_strengths": [
+      "Clear guidance on ownership and Task hygiene for view models",
+      "Practical validation and observability section naming os_signpost, Instruments, MetricKit",
+      "Actionable checklist with concrete engineering steps and rollout controls",
+      "Balanced tradeoffs section calling out operator coverage and model mismatch risks"
+    ]
+  },
+  {
+    "date": "2026-03-21",
+    "slug": "voiceover-for-custom-swiftui-components",
+    "topic": "VoiceOver for Custom SwiftUI Components",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 7,
+    "review_actionability": 8,
+    "review_issues": [
+      "Article omits explicit API symbols in backticks (e.g., `UIAccessibility`, `OSSignpost`).",
+      "No deployment-target or Swift version guidance for compatibility considerations.",
+      "Limited detail on VoiceOver rotor usage and precise accessibilityTraits values.",
+      "Checklist items remain high-level; lacks example XCTest assertions or expected assertions.",
+      "No concrete timing guidance for avoiding stale accessibilityValue after async loads."
+    ],
+    "review_strengths": [
+      "Clear operational hook linking regressions to support load and releases.",
+      "Well-structured, scannable sections with a concise closing takeaway.",
+      "Practical checklist that maps to CI, logging, and rollout practices.",
+      "Good tradeoffs discussion between UIViewRepresentable and SwiftUI-only approaches.",
+      "Strong emphasis on tests, signposts, and observability for post-release debugging."
+    ]
+  },
+  {
+    "date": "2026-03-21",
+    "slug": "profiling-swiftui-rendering-with-instruments",
+    "topic": "Profiling SwiftUI rendering with Instruments",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "Doesn't name OSSignpost or os_log APIs explicitly for signposting",
+      "No Swift version or deployment target guidance for adoption considerations",
+      "No example signpost or Instruments code snippets in article body",
+      "Missing concrete Instruments session settings (sampling interval, buffer size)",
+      "Unsupported numeric claims absent; no benchmark examples or thresholds provided"
+    ],
+    "review_strengths": [
+      "Clear, specific opening that ties symptoms to SwiftUI render causes",
+      "Strong emphasis on on-device profiling and thermal/background effects",
+      "Practical guidance to use Time Profiler and Allocations together",
+      "Concrete migration decision criteria including feature-flag gating",
+      "Useful, actionable checklist covering tracing, CI, and rollouts"
+    ]
+  },
+  {
+    "date": "2026-03-22",
+    "slug": "modular-swift-package-architecture-for-swiftui",
+    "topic": "Modular Swift Package Architecture for SwiftUI",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 7,
+    "review_issues": [
+      "Duplicate 'Validation & Observability' section appears twice",
+      "No concrete Package.swift example for products and targets",
+      "Missing explicit Swift toolchain or deployment target constraints",
+      "Signposting guidance omits concrete API name like `os_signpost`/`OSSignpost`",
+      "No sample CI recipe or commands to validate pinned dependency combinations",
+      "Some sections repeat similar guidance without additional specifics"
+    ],
+    "review_strengths": [
+      "Clear callouts for `Bundle.module` and `@MainActor` usage",
+      "Practical, actionable checklist at article end",
+      "Covers testing strategy including unit, integration, and CI validation",
+      "Addresses telemetry strategy and gating with feature flags",
+      "Mentions binary artifacts and XCFrameworks for closed-source deps"
+    ]
+  },
+  {
+    "date": "2026-03-22",
+    "slug": "dynamic-type-scalable-layouts-in-swiftui",
+    "topic": "Dynamic Type Scalable Layouts in SwiftUI",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Duplicate Validation/Observability `##` sections detected — merge into one."
+    ],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Opening hook is generic; lacks a concrete, attention-grabbing example or metric",
+      "No deployment target or Swift/OS version guidance for APIs like UIViewRepresentable and OSSignposter",
+      "Doesn't call out RTL/localization layout testing explicitly",
+      "Example font usage (.font(.system(.headline))) may confuse readers used to semantic fonts (.headline)"
+    ],
+    "review_strengths": [
+      "Clear, scannable structure with sections for primitives, patterns, and migration",
+      "Provides concrete UIKit interop example using UIFontMetrics",
+      "Practical checklist with CI and testing items developers can act on immediately",
+      "Covers observability with OSSignposter and os_log for post-ship debugging"
+    ]
+  },
+  {
+    "date": "2026-03-26",
+    "slug": "structured-concurrency-patterns-for-swiftui-developers",
+    "topic": "Structured Concurrency Patterns for SwiftUI Developers",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Opening hook is useful but could be more specific about concrete failure examples and impact metrics",
+      "Typo in section header: \"Task Versus `TaskGroup`\" shows malformed backticks and text 'withThrowing`TaskGroup``'",
+      "Uses `@Observable` without stating platform/Swift/OS availability or deployment-target constraints",
+      "Mentions signposting/trace capture but provides no concrete OSSignpost or Instruments example",
+      "No discussion of `Task.detached` semantics versus `Task` initialization and when to use each"
+    ],
+    "review_strengths": [
+      "Clear decision guidance: when to prefer `Task` vs `TaskGroup` with join semantics",
+      "Concrete, copy-pasteable Swift examples for Task, TaskGroup, and continuations",
+      "Actionable checklist covering inventory, tests, rollout, and instrumentation",
+      "Good coverage of cancellation patterns including `Task.isCancelled` and cancellation handlers",
+      "Validation guidance spans unit tests, tracing, and staged rollouts for production readiness"
+    ],
+    "review_repair_triggered": false
+  },
+  {
+    "date": "2026-03-26",
+    "slug": "swift-structured-concurrency-patterns-for-ios",
+    "topic": "Swift Structured Concurrency Patterns for iOS",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "No Swift or iOS deployment-target stated for migration guidance",
+      "Example URLSession bridging lacks cancellation hookup to observe Task.isCancelled",
+      "AsyncSequence/AsyncStream recommended but no sample adapter provided",
+      "Opening paragraph strong but could include a concrete real-world symptom example"
+    ],
+    "review_strengths": [
+      "Clear decision guidance for Task vs Task.detached vs TaskGroup",
+      "Concrete testing advice: require async tests and assert cancellation",
+      "Practical checklist with deployable steps and rollout guidance",
+      "Good emphasis on observability and telemetry (task counts, cancellation rates)"
+    ],
+    "review_repair_triggered": false
+  }
+]
