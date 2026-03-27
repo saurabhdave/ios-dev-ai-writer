@@ -53,12 +53,19 @@ jobs:
 
       - name: Commit and push generated content
         run: |
+          CHANGED_FILES=""
           if [ -n "$(git status --porcelain .newsletter_issue_number)" ]; then
+            CHANGED_FILES="${CHANGED_FILES} .newsletter_issue_number"
+          fi
+          if [ -n "$(git status --porcelain outputs/quality_history.json)" ]; then
+            CHANGED_FILES="${CHANGED_FILES} outputs/quality_history.json"
+          fi
+          if [ -n "${CHANGED_FILES}" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add .newsletter_issue_number
-            git commit -m "chore: persist newsletter issue counter"
+            git add ${CHANGED_FILES}
+            git commit -m "chore: persist newsletter counter and quality history"
             git push
           else
-            echo "No newsletter counter changes to commit."
+            echo "No state files changed."
           fi

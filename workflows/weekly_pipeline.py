@@ -229,28 +229,49 @@ def _slugify(text: str) -> str:
 
 
 def _load_recent_titles(max_items: int = 20) -> list[str]:
-    """Load recently generated article titles to avoid repetitive topics."""
-    if not OUTPUT_ARTICLES_DIR.exists():
-        return []
+    """Load recently generated article titles to avoid repetitive topics.
 
-    markdown_files = sorted(OUTPUT_ARTICLES_DIR.glob("*.md"), reverse=True)
+    Reads from quality_history.json first (all-time history committed to the
+    source repo), then falls back to local article markdown files so that
+    deduplication works on CI where only the current run's article is present
+    in outputs/articles/.
+    """
     titles: list[str] = []
 
-    for path in markdown_files:
+    # Primary source: quality_history.json (committed to source repo, full history)
+    if OUTPUT_QUALITY_HISTORY_PATH.exists():
         try:
-            content = path.read_text(encoding="utf-8")
-        except OSError:
-            continue
+            history: list[dict] = json.loads(
+                OUTPUT_QUALITY_HISTORY_PATH.read_text(encoding="utf-8")
+            )
+            if isinstance(history, list):
+                for entry in reversed(history):  # most recent first
+                    topic = entry.get("topic", "")
+                    if topic and topic not in titles:
+                        titles.append(topic)
+                    if len(titles) >= max_items:
+                        return titles
+        except (json.JSONDecodeError, ValueError, OSError):
+            pass  # fall through to markdown fallback
 
-        for line in content.splitlines():
-            if line.startswith("# "):
-                title = line[2:].strip()
-                if title:
-                    titles.append(title)
+    # Fallback: local article markdown files (for manual/dev runs)
+    if OUTPUT_ARTICLES_DIR.exists():
+        markdown_files = sorted(OUTPUT_ARTICLES_DIR.glob("*.md"), reverse=True)
+        for path in markdown_files:
+            try:
+                content = path.read_text(encoding="utf-8")
+            except OSError:
+                continue
+
+            for line in content.splitlines():
+                if line.startswith("# "):
+                    title = line[2:].strip()
+                    if title and title not in titles:
+                        titles.append(title)
+                    break
+
+            if len(titles) >= max_items:
                 break
-
-        if len(titles) >= max_items:
-            break
 
     return titles
 
