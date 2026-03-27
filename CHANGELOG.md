@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-03-27
+
+### Fixed
+- **Topic deduplication broken on CI** (`workflows/weekly_pipeline.py`, `.github/workflows/weekly.yml`): `_load_recent_titles()` was reading from `outputs/articles/*.md`, which in GitHub Actions contains only the current run's article (all previous articles are pushed to the content repo and never committed back). The topic agent therefore received a history of 1 title instead of the full history, making all 5 deduplication checks ineffective and allowing repeated topics.
+  - `_load_recent_titles()` now reads from `outputs/quality_history.json` first (all-time history, committed to source repo), then falls back to local article markdown files for dev/manual runs.
+  - GitHub Actions workflow now also commits `outputs/quality_history.json` back to the source repo after each run, so the full topic history grows across runs and is available on the next CI checkout.
+
 ## [1.5.0] - 2026-03-26
 
 ### Added
