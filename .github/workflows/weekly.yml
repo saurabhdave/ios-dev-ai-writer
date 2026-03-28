@@ -35,11 +35,34 @@ jobs:
           OPENAI_TEMPERATURE: "0.7"
         run: python main.py
 
-      - name: Publish articles to content repo
+      - name: Clone content repository
         env:
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
           git clone https://x-access-token:${DEPLOY_TOKEN}@github.com/saurabhdave/ios-ai-articles.git _content
+
+      - name: Run editorial gate
+        run: |
+          python scripts/editorial_gate.py \
+            --articles-dir    outputs/articles \
+            --linkedin-dir    outputs/linkedin \
+            --codegen-dir     outputs/codegen \
+            --newsletter-dir  outputs/newsletter \
+            --quarantine-dir  outputs/quarantine \
+            --existing-articles-dir _content/articles
+        # exit 1 means files were quarantined — pipeline continues with valid content
+        continue-on-error: true
+
+      - name: Log quarantined files
+        if: always()
+        run: |
+          if [ -d outputs/quarantine ] && [ "$(ls -A outputs/quarantine 2>/dev/null)" ]; then
+            echo "=== Quarantined files (not published) ==="
+            ls outputs/quarantine/
+          fi
+
+      - name: Publish articles to content repo
+        run: |
           cp -r outputs/articles/.    _content/articles/    || true
           cp -r outputs/linkedin/.    _content/linkedin/    || true
           cp -r outputs/codegen/.     _content/codegen/     || true
