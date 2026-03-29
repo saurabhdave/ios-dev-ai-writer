@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
 [![OpenAI](https://img.shields.io/badge/OpenAI-API-412991?style=flat-square&logo=openai&logoColor=white)](https://platform.openai.com)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/saurabhdave/ios-dev-ai-writer/weekly.yml?style=flat-square&label=weekly%20pipeline)](https://github.com/saurabhdave/ios-dev-ai-writer/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/saurabhdave/ios-dev-ai-writer/weekly.yml?style=flat-square&label=2x%2Fweek%20pipeline)](https://github.com/saurabhdave/ios-dev-ai-writer/actions)
 
 ---
 
@@ -50,7 +50,7 @@ Auto-commit to ios-ai-articles
 
 ```mermaid
 flowchart TD
-    A[GitHub Actions · Mon / Wed / Fri 10:00 UTC] --> B[main.py]
+    A[GitHub Actions · Mon & Thu 10:00 UTC] --> B[main.py]
     B --> C[weekly_pipeline.py]
 
     C --> S[trend_scanner.py]
@@ -257,7 +257,7 @@ Outputs are gitignored locally and auto-published to [saurabhdave/ios-ai-article
 
 ## GitHub Actions
 
-**Schedule:** Monday, Wednesday, Friday at 10:00 UTC.
+**Schedule:** Monday and Thursday at 10:00 UTC (`0 10 * * 1,4`).
 
 **Secrets required:**
 

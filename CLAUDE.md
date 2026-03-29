@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Does
 
-`ios-dev-ai-writer` is a Python pipeline that auto-generates weekly Medium-style articles about Apple platform engineering. It runs on a GitHub Actions schedule (Mon/Wed/Fri at 10:00 UTC), discovers iOS/Swift trends from multiple sources, then passes them through a multi-stage LLM pipeline to produce articles, Swift code examples, and LinkedIn posts — all committed back to the repo.
+`ios-dev-ai-writer` is a Python pipeline that auto-generates weekly Medium-style articles about Apple platform engineering. It runs on a GitHub Actions schedule (Mon/Thu at 10:00 UTC), discovers iOS/Swift trends from multiple sources, then passes them through a multi-stage LLM pipeline to produce articles, Swift code examples, and LinkedIn posts — all committed back to the repo.
 
 ## Commands
 
@@ -87,5 +87,5 @@ MEDIUM_LAYOUT_MAX_REPAIR_PASSES     # Default: 2
 
 ### GitHub Actions
 
-- [.github/workflows/weekly.yml](.github/workflows/weekly.yml) — Runs pipeline 3×/week, auto-commits outputs to main
+- [.github/workflows/weekly.yml](.github/workflows/weekly.yml) — Runs pipeline 2×/week (Mon/Thu), auto-commits outputs to main
 - [.github/workflows/release.yml](.github/workflows/release.yml) — Creates GitHub Release on `v*` tag push
