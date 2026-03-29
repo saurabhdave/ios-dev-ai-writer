@@ -757,5 +757,34 @@
       "Good emphasis on observability and telemetry (task counts, cancellation rates)"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-03-29",
+    "slug": "custom-layouts-using-swiftuis-layout-protocol",
+    "topic": "Custom Layouts Using SwiftUI's Layout Protocol",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "Opening hook is generic; lacks a concrete example or metric to hook readers",
+      "Example TwoColLayout omits `placeSubviews` implementation",
+      "No SwiftUI or iOS deployment target / Swift version stated for compatibility",
+      "Cache invalidation examples lack concrete code or API hooks showing invalidation",
+      "Instrumentation guidance is high-level; missing concrete logging/OSSignpost examples"
+    ],
+    "review_strengths": [
+      "Clear emphasis on `Layout` cache pattern and why to test `sizeThatFits`",
+      "Practical migration guidance with `UIHostingController` and incremental strategy",
+      "Concrete decision criteria when to extract a `Layout` versus inline stacks",
+      "Includes a practical checklist developers can act on immediately",
+      "Calls out profiling tools (`Instruments`, Time Profiler, Allocations) for performance validation"
+    ],
+    "review_repair_triggered": false
   }
 ]
