@@ -17,6 +17,7 @@ from utils.article_repair import repair_article as _repair_article
 from agents.review_agent import review_article
 from agents.editor_agent import (
     LayoutAssessment,
+    apply_voice_pass,
     assess_medium_layout,
     enforce_factual_grounding,
     polish_article,
@@ -31,6 +32,7 @@ import config as _config_module
 from config import (
     EDITOR_PASS_ENABLED,
     FACT_GROUNDING_ENABLED,
+    VOICE_PASS_ENABLED,
     FACT_GROUNDING_MAX_PASSES,
     MEDIUM_LAYOUT_MAX_REPAIR_PASSES,
     MEDIUM_LAYOUT_MIN_SCORE,
@@ -673,6 +675,9 @@ def run_weekly_pipeline() -> Path:
                 if EDITOR_PASS_ENABLED
                 else article
             )
+
+        with timed_step(LOGGER, "voice_pass", topic=topic, enabled=VOICE_PASS_ENABLED):
+            polished_article = apply_voice_pass(polished_article)
 
         with timed_step(
             LOGGER,

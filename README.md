@@ -181,6 +181,7 @@ export CODEGEN_VALIDATION_MODE="snippet"                           # optional: s
 export SELF_REVIEW_ENABLED="true"                                  # optional: run LLM self-review after generation
 export OUTPUT_QUALITY_HISTORY_PATH="outputs/quality_history.json"  # optional: path for per-run quality metrics
 export PIPELINE_LOG_LEVEL="INFO"                                   # optional: DEBUG|INFO|WARNING|ERROR
+export VOICE_PASS_ENABLED="true"                                   # optional: remove AI writing fingerprints from article prose
 
 ```
 

@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
-from config import OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
+from config import OPENAI_MODEL, OPENAI_TEMPERATURE, VOICE_PASS_ENABLED, openai_generation_kwargs
 from utils.observability import get_logger, log_event
 from utils.openai_logging import create_openai_client, responses_create_logged
 from agents.article_agent import apply_swift_backticks
@@ -36,6 +36,7 @@ PROMPT_PATH: Final[Path] = Path("prompts/editor_prompt.txt")
 LAYOUT_REPAIR_PROMPT_PATH: Final[Path] = Path("prompts/layout_repair_prompt.txt")
 FACTUALITY_PROMPT_PATH: Final[Path] = Path("prompts/article_factuality_prompt.txt")
 REVIEW_REPAIR_PROMPT_PATH: Final[Path] = Path("prompts/review_repair_prompt.txt")
+VOICE_PROMPT_PATH: Final[Path] = Path("prompts/voice_prompt.txt")
 
 MAX_OUTPUT_TOKENS: Final[int] = 5_000
 
@@ -43,6 +44,7 @@ MAX_OUTPUT_TOKENS: Final[int] = 5_000
 POLISH_TEMPERATURE: Final[float] = 0.50
 LAYOUT_TEMPERATURE: Final[float] = 0.45
 FACTUALITY_TEMPERATURE: Final[float] = 0.30
+VOICE_TEMPERATURE: Final[float] = 0.40
 
 # Layout rubric thresholds.
 LAYOUT_MAX_SCORE: Final[int] = 14
@@ -396,6 +398,29 @@ def polish_article(topic: str, article: str, allowed_references: str) -> str:
         output_chars=len(polished),
     )
     return polished
+
+
+def apply_voice_pass(article: str) -> str:
+    """Remove AI writing fingerprints. Runs after the main editor pass."""
+    if not VOICE_PASS_ENABLED:
+        return article
+    client = create_openai_client()
+    prompt = _load_template(VOICE_PROMPT_PATH).replace("{article}", article)
+    result = _render_model_response(
+        client,
+        prompt,
+        operation="apply_voice_pass",
+        temperature=VOICE_TEMPERATURE,
+    )
+    if not result:
+        return article  # degrade gracefully — don't discard the article
+    log_event(
+        LOGGER,
+        "voice_pass_applied",
+        level=logging.INFO,
+        output_chars=len(result),
+    )
+    return result
 
 
 def reinforce_medium_layout(

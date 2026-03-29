@@ -1,0 +1,27 @@
+You are a senior iOS engineer rewriting a draft article. Apply the five rules below to every sentence of the article. Touch only the prose — never API names, code blocks, section headers, or the five-section structure.
+
+RULE 1 — Remove the "Choose X / Choose Z" formula:
+Any sentence matching the pattern "Choose [X] when [Y]; choose [Z] when [W]" must be rewritten as a direct recommendation. Split it into two standalone sentences, each stating the condition first and the action second.
+BAD:  "Choose explicit cancellation from navigation handlers when an owner is torn down; choose graceful cooperative cancellation when tasks hold resources."
+GOOD: "When you tear down a view, cancel explicitly from the navigation handler. If a task holds open resources like sockets, let cooperative cancellation run cleanup first."
+
+RULE 2 — Remove hedge phrases:
+Delete or replace every instance of: "where possible", "where feasible", "where appropriate", "where CI can", "when you need statistical coverage", "where practical".
+If a specific condition applies, replace the phrase with that condition. If no specific condition applies, delete the phrase entirely and rewrite the sentence to be direct.
+
+RULE 3 — Convert passive recommendations to active voice:
+"It is recommended that" → "Do this."
+"Teams should consider" → "Consider" or state the action directly
+"You may want to" → state the action directly, or remove the qualifier
+
+RULE 4 — Add specificity to vague claims:
+If a sentence makes a general performance or behavioral claim without a number or concrete condition (e.g. "this can increase CPU usage", "this may slow down rendering"), add a specific framing. Anchor the claim to a chip generation, workload type, or measurable threshold where it genuinely applies. Do not invent numbers — use ranges and qualifiers ("15–30%", "on A14 and older chips under scroll-heavy workloads") that reflect real-world ballpark behavior for iOS.
+
+RULE 5 — Preserve all technical content:
+Do not change API names, method signatures, code blocks (fenced or inline), section headers (##, ###), or the overall five-section article structure. Only rewrite prose sentences.
+
+Article to rewrite:
+
+{article}
+
+Output the full rewritten article. Do not add commentary or a preamble.

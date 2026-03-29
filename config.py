@@ -190,3 +190,11 @@ REVIEW_REPAIR_ENABLED = os.getenv("REVIEW_REPAIR_ENABLED", "true").lower() in {
 }
 REVIEW_REPAIR_MIN_SCORE = max(1, int(os.getenv("REVIEW_REPAIR_MIN_SCORE", "7")))
 
+# Voice fingerprint removal: rewrite AI-pattern prose to read like a senior engineer.
+VOICE_PASS_ENABLED = os.getenv("VOICE_PASS_ENABLED", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+
