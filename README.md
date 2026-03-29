@@ -12,7 +12,7 @@
 
 ## What It Does
 
-Three times a week, a GitHub Actions job scans iOS/Swift trend sources, picks a topic, and runs it through a multi-stage LLM pipeline that produces a full Medium-style article — complete with a Swift code example, a LinkedIn post, and a developer newsletter issue. Everything is committed and published automatically.
+Twice a week, a GitHub Actions job scans iOS/Swift trend sources, picks a topic, and runs it through a multi-stage LLM pipeline that produces a full Medium-style article — complete with a Swift code example, a LinkedIn post, and a developer newsletter issue. Everything is committed and published automatically.
 
 **Published output lives at [saurabhdave/ios-ai-articles](https://github.com/saurabhdave/ios-ai-articles).**
 
@@ -215,7 +215,9 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `TREND_SOURCES` | *(all 8)* | Comma-separated: `hackernews,reddit,apple,wwdc,viral,social,platforms,custom,websearch` |
 | `TREND_MAX_ITEMS_PER_SOURCE` | `10` | Items fetched per source |
 | `TREND_HTTP_TIMEOUT_SECONDS` | `12` | HTTP timeout for trend fetches |
+| `REDDIT_USER_AGENT` | `ios-dev-ai-writer/1.0 (weekly trend scanner)` | User-agent string for Reddit RSS requests |
 | `CUSTOM_TRENDS_FILE` | `scanners/custom_trends.json` | Path to custom trends JSON |
+| `TOPIC_INTERESTS` | *(19 topics — see config.py)* | Comma-separated list of preferred topic areas fed to the topic agent |
 
 ### Code Generation
 
@@ -235,7 +237,6 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `NEWSLETTER_ENABLED` | `true` | Generate newsletter issue |
 | `NEWSLETTER_NAME` | `iOS Dev Weekly` | Newsletter display name |
 | `OUTPUT_QUALITY_HISTORY_PATH` | `outputs/quality_history.json` | Append-only quality record |
-| `PIPELINE_LOG_LEVEL` | `INFO` | `DEBUG`\|`INFO`\|`WARNING`\|`ERROR` |
 
 ---
 
