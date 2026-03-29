@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-03-28
+
+### Added
+- **Voice post-processing pass** (`agents/editor_agent.py`, `prompts/voice_prompt.txt`): New `apply_voice_pass()` runs after `polish_article()` and rewrites prose to remove detectable AI writing patterns — "Choose X / Choose Z" constructs, hedge phrases (`where possible`, `where feasible`, etc.), passive recommendations (`it is recommended that`, `you may want to`), and vague performance claims. Preserves all API names, code blocks, section headers, and the five-section article structure.
+- **`VOICE_PASS_ENABLED` config var** (`config.py`): Toggle for the voice pass. Default: `true`. Set `VOICE_PASS_ENABLED=false` to skip.
+- **`prompts/voice_prompt.txt`** (new): Five-rule rewrite prompt with BAD/GOOD examples per rule, instructs the model to output the full article with no preamble.
+
 ## [1.5.2] - 2026-03-27
 
 ### Fixed
