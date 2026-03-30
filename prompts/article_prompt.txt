@@ -188,6 +188,32 @@ Specificity:
   section should leave the reader with something actionable.
 
 ================================================================================
+## REFERENCE RULES — strictly enforced
+================================================================================
+
+1. Every reference must link to a specific page, not a homepage.
+   BANNED: https://developer.apple.com/documentation/swiftui
+   BANNED: https://www.swift.org/documentation/
+   REQUIRED: https://developer.apple.com/documentation/swiftui/view/body-swift.property
+   REQUIRED: https://developer.apple.com/documentation/os/ossignposter
+
+2. If the article covers a specific Swift feature added in a release, cite the Swift Evolution proposal.
+   Format: [SE-XXXX — Proposal Title](https://github.com/swiftlang/swift-evolution/blob/main/proposals/XXXX-name.md)
+   Examples: SE-0306 (Actors), SE-0296 (async/await), SE-0317 (@MainActor)
+
+3. If the article covers a technique demonstrated at WWDC, cite the session.
+   Format: [WWDC YY — Session Title (XXXXX)](https://developer.apple.com/videos/play/wwdc20YY/XXXXX/)
+   Examples: WWDC24 10109 (Migrate your app to Swift 6), WWDC23 10244 (Beyond the basics of structured concurrency)
+
+4. Maximum 5 references. Quality over quantity.
+   Every reference listed must be directly cited or used in the article body.
+   Do not list references that are not referenced in the prose.
+
+5. Reference format in article:
+   ## References
+   - [Specific Page Title](exact-url)
+
+================================================================================
 ## CONFLICT RESOLUTION
 ================================================================================
 

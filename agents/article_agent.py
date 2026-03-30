@@ -273,6 +273,29 @@ def _passes_quality_gate(markdown: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Reference quality check
+# ---------------------------------------------------------------------------
+
+_HOMEPAGE_PATTERNS: Final[tuple[str, ...]] = (
+    r"developer\.apple\.com/documentation/\w+/?$",
+    r"swift\.org/documentation/?$",
+    r"swift\.org/blog/?$",
+)
+
+
+def validate_references(article: str) -> list[str]:
+    """Return list of reference URLs that appear to be homepage-level (too short)."""
+    refs = re.findall(r"\(https?://[^\)]+\)", article)
+    warnings = []
+    for ref in refs:
+        url = ref.strip("()")
+        for pat in _HOMEPAGE_PATTERNS:
+            if re.search(pat, url):
+                warnings.append(url)
+    return warnings
+
+
+# ---------------------------------------------------------------------------
 # Generation helpers
 # ---------------------------------------------------------------------------
 
@@ -351,6 +374,17 @@ def generate_article(topic: str, outline: str, allowed_references: str) -> str:
         .replace("{outline}", outline)
         .replace("{allowed_references}", allowed_references.strip() or "- None")
     )
+
+    # --- Reference quality check (warn only, never block) ---
+    ref_warnings = validate_references(allowed_references)
+    for url in ref_warnings:
+        log_event(
+            LOGGER,
+            "reference_homepage_warning",
+            level=logging.WARNING,
+            url=url,
+            reason="links to homepage or top-level docs path — use a specific page URL",
+        )
 
     # --- First-pass generation ---
     article = _call_model(
