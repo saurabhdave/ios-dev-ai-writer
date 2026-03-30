@@ -6,6 +6,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.4] - 2026-03-30
+
+### Fixed
+- **Near-duplicate topic detection** (`agents/topic_agent.py`): `_is_repetitive` now uses `normalise_title()` instead of `_word_set()`. `normalise_title()` strips a broader stopword set and de-gerunds long tokens (e.g. `profiling→profil`, `rendering→render`) so that verb-form variants of the same concept — such as "Profile SwiftUI Rendering with Instruments" vs "Profiling SwiftUI Rendering in Instruments" — are correctly detected as duplicates at the Jaccard step.
+
+### Added
+- **`TOPIC_SIMILARITY_THRESHOLD` env var** (`config.py`): The semantic cosine-similarity rejection threshold (previously hard-coded at 0.72 in `topic_agent.py`) is now configurable via `TOPIC_SIMILARITY_THRESHOLD`. Default remains `0.72`. Documented in README configuration table.
+
 ## [1.6.3] - 2026-03-30
 
 ### Added
