@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-03-29
+
+### Added
+- **GitHub Actions step summary** (`.github/workflows/weekly.yml`, `workflows/weekly_pipeline.py`): After each `python main.py` run, the pipeline writes `outputs/run_summary.json` (topic, word count, codegen path, repair attempts, editor pass count, config flags). A new "Write run summary" CI step reads this file and appends a formatted markdown table to `$GITHUB_STEP_SUMMARY`, providing a human-readable audit trail per run without digging into logs.
+- **`editor_pass_count` tracking** (`workflows/weekly_pipeline.py`): Integer counter incremented after each LLM-backed editing pass (polish, factual grounding, layout reinforcement, review-triggered repair) and surfaced in `run_summary.json`.
+
 ## [1.6.0] - 2026-03-28
 
 ### Added
