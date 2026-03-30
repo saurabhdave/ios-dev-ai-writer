@@ -1,6 +1,6 @@
 [project]
 name = "ios-dev-ai-writer"
-version = "1.6.4"
+version = "1.6.5"
 description = "AI agent pipeline that generates weekly iOS Medium articles from trend signals."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -26,7 +26,8 @@ dependencies = [
   "openai>=2.26.0,<3",
   "python-dotenv>=1.2.1,<2",
   "requests>=2.32.5,<3",
-  "feedparser>=6.0.12,<7"
+  "feedparser>=6.0.12,<7",
+  "tenacity>=8.2.0"
 ]
 
 [tool.setuptools]

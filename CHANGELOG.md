@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.5] - 2026-03-30
+
+### Added
+- **Exponential backoff retry on all OpenAI API calls** (`utils/openai_logging.py`): All calls to `client.responses.create()` and `client.embeddings.create()` are now wrapped with tenacity retry logic. Retries on `RateLimitError`, `APITimeoutError`, `APIConnectionError`, and `InternalServerError` with exponential backoff (2–30s, 4 attempts). A `WARNING` log line is emitted before each sleep via `before_sleep_log`. After all attempts are exhausted the original exception is re-raised.
+- **`tenacity>=8.2.0` dependency** (`pyproject.toml`): Added as a direct dependency to support retry logic.
+- **Failure run summary** (`workflows/weekly_pipeline.py`): When the pipeline exits via an unhandled exception, `outputs/run_summary.json` is written with `"quarantine_triggered": true` and `"failure_reason"` set to the exception message. The write is guarded so it never suppresses the original exception.
+
 ## [1.6.4] - 2026-03-30
 
 ### Fixed
