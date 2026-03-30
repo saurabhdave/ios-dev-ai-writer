@@ -46,13 +46,14 @@ jobs:
               exit(0)
           with open(summary_path) as f:
               s = json.load(f)
+          dash = "\u2014"
           lines = [
               f"## Pipeline run \u2014 {s.get('date', 'unknown')}",
               "| Field | Value |",
               "|---|---|",
-              f"| Topic | {s.get('topic', '\u2014')} |",
-              f"| Word count | {s.get('article_word_count', '\u2014')} |",
-              f"| Codegen path | {s.get('codegen_path', '\u2014')} |",
+              f"| Topic | {s.get('topic') or dash} |",
+              f"| Word count | {s.get('article_word_count') or dash} |",
+              f"| Codegen path | {s.get('codegen_path') or dash} |",
               f"| Repair attempts | {s.get('codegen_repair_attempts', 0)} |",
               f"| Editor passes | {s.get('editor_passes', 0)} |",
               f"| Voice pass | {'yes' if s.get('voice_pass') else 'no'} |",
