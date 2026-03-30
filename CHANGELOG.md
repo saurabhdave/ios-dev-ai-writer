@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.6] - 2026-03-30
+
+### Added
+- **Author context injection** (`scanners/author_context.json`, `agents/topic_agent.py`, `agents/article_agent.py`, `prompts/article_prompt.txt`): Articles can now be grounded in real production experience. `scanners/author_context.json` stores first-person experience bullets keyed by topic family (`concurrency`, `swiftui_rendering`, `architecture`, `testing`, `performance`, `migration`). `load_author_context()` in `topic_agent.py` keyword-matches the chosen topic to a family and returns formatted bullets. `article_agent.py` injects these into the article prompt via a new `{author_context}` placeholder at the top of `article_prompt.txt`. When no context matches (missing file, unmatched topic, empty family), the prompt falls back to a generic senior-engineer voice — no pipeline change.
+
 ## [1.6.5] - 2026-03-30
 
 ### Added
