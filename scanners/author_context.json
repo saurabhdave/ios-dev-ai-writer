@@ -1,0 +1,16 @@
+{
+  "_instructions": "Add 2-3 bullet points of your real experience per topic family. These are injected into article generation as grounding context. First person. Specific. Include failure modes you've seen.",
+  "concurrency": [
+    "Migrated a high-traffic URLSession-heavy networking layer to async/await — the main gotcha was cancellation semantics differing from the old callback pattern",
+    "Hit data races in shared cache objects when moving to Swift 6 strict concurrency — had to actor-isolate more than expected",
+    "Saw background task starvation on A13 devices under memory pressure when using Task.detached without QoS"
+  ],
+  "swiftui_rendering": [
+    "Profiled a feed view that re-rendered 3x per scroll tick — root cause was @Observable object held by multiple ancestor views",
+    "Found Instruments' SwiftUI template misleading on simulator — always profile on device"
+  ],
+  "architecture": [],
+  "testing": [],
+  "performance": [],
+  "migration": []
+}

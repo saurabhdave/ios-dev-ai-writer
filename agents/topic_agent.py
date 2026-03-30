@@ -507,6 +507,59 @@ def _load_template(path: Path = PROMPT_PATH) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Author context injection
+# ---------------------------------------------------------------------------
+
+#: Keyword families used to match a topic to an author context bucket.
+_AUTHOR_CONTEXT_KEYWORDS: Final[dict[str, list[str]]] = {
+    "concurrency": ["async", "await", "actor", "task", "concurrency", "combine"],
+    "swiftui_rendering": ["render", "swiftui", "instruments", "profil", "body", "view"],
+    "architecture": ["architecture", "pattern", "design", "injection", "dependency"],
+    "testing": ["test", "xctest", "mock", "stub", "tdd"],
+    "performance": ["performance", "memory", "cpu", "battery", "optimis"],
+    "migration": ["migrat", "urlsession", "uikit", "legacy", "deprecated"],
+}
+
+
+def load_author_context(
+    topic: str,
+    context_file: str | Path = Path("scanners/author_context.json"),
+) -> str:
+    """Return formatted author-experience bullets for *topic*, or an empty string.
+
+    Loads ``context_file``, finds the first family whose keywords appear in
+    *topic*, and returns the bullets as a prompt-ready string.  Returns ``""``
+    when the file is missing, the family is empty, or no family matches.
+    """
+    import json as _json  # noqa: PLC0415 — kept local to avoid top-level import clutter
+
+    path = Path(context_file)
+    if not path.exists():
+        return ""
+    try:
+        ctx: dict[str, object] = _json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        log_event(
+            LOGGER,
+            "author_context_load_failed",
+            level=logging.WARNING,
+            path=str(path),
+            error=repr(exc),
+        )
+        return ""
+
+    topic_lower = topic.lower()
+    for family, keywords in _AUTHOR_CONTEXT_KEYWORDS.items():
+        if any(kw in topic_lower for kw in keywords):
+            bullets = ctx.get(family, [])
+            if isinstance(bullets, list) and bullets:
+                return "Author's real-world context for this topic:\n" + "\n".join(
+                    f"- {b}" for b in bullets
+                )
+    return ""
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 

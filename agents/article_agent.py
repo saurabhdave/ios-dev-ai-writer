@@ -21,7 +21,8 @@ import re
 from pathlib import Path
 from typing import Final
 
-from config import OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
+from agents.topic_agent import load_author_context
+from config import CUSTOM_TRENDS_FILE, OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
 from utils.observability import get_logger, log_event
 from utils.openai_logging import create_openai_client, responses_create_logged
 
@@ -367,9 +368,15 @@ def generate_article(topic: str, outline: str, allowed_references: str) -> str:
     """
     client = create_openai_client()
 
+    author_context = load_author_context(
+        topic,
+        CUSTOM_TRENDS_FILE.parent / "author_context.json",
+    )
+
     template = _load_prompt_template()
     base_prompt = (
         template
+        .replace("{author_context}", author_context)
         .replace("{topic}", topic)
         .replace("{outline}", outline)
         .replace("{allowed_references}", allowed_references.strip() or "- None")

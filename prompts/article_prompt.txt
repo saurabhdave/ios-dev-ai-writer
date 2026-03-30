@@ -1,3 +1,11 @@
+{author_context}
+
+When author context is provided above, ground the article in those specific experiences.
+Reference the failure modes mentioned. Use "in production" framing where the context supports it.
+If no context is provided, write as a senior engineer with broad production experience.
+
+================================================================================
+
 VOICE RULES — apply to every paragraph:
 - Write as a senior iOS engineer who has shipped this pattern in production, not as a textbook.
 - Use specific numbers and conditions: "on A14 and older under scroll load" not "on lower-end devices".
