@@ -126,6 +126,10 @@ TOPIC_INTERESTS = [
     if item.strip()
 ]
 
+# Semantic similarity threshold for topic deduplication.
+# Lowered from 0.80 → 0.72 to catch same-concept/different-wording duplicates.
+TOPIC_SIMILARITY_THRESHOLD = float(os.getenv("TOPIC_SIMILARITY_THRESHOLD", "0.72"))
+
 # Topic composition policy is now Apple-platform programming only.
 # `TOPIC_MODE` remains for backward compatibility and is normalized to `ios_only`.
 TOPIC_MODE = "ios_only"

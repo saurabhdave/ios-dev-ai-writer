@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Iterable
 
-from config import OPENAI_MODEL, OPENAI_TEMPERATURE, TOPIC_INTERESTS, openai_generation_kwargs
+from config import OPENAI_MODEL, OPENAI_TEMPERATURE, TOPIC_INTERESTS, TOPIC_SIMILARITY_THRESHOLD, openai_generation_kwargs
 from utils.observability import get_logger, log_event
 from utils.openai_logging import create_openai_client, responses_create_logged
 
@@ -39,9 +39,9 @@ SUPPLEMENTAL_INTERESTS_LIMIT: Final[int] = 4
 
 # Topic novelty thresholds.
 WORD_OVERLAP_THRESHOLD: Final[float] = 0.50
-# Lowered from 0.80 → 0.72 to catch "same concept, different audience" duplicates
-# (e.g., "Structured Concurrency for Production" vs "Structured Concurrency for SwiftUI").
-SEMANTIC_SIMILARITY_THRESHOLD: Final[float] = 0.72
+# Semantic threshold loaded from config (env: TOPIC_SIMILARITY_THRESHOLD, default 0.72).
+# Lowered from 0.80 → 0.72 to catch "same concept, different audience" duplicates.
+SEMANTIC_SIMILARITY_THRESHOLD: Final[float] = TOPIC_SIMILARITY_THRESHOLD
 
 # Theme cluster saturation: block a theme once this many recent titles already cover it.
 THEME_CLUSTER_SATURATION_LIMIT: Final[int] = 2
@@ -216,6 +216,32 @@ def _word_set(text: str) -> set[str]:
     }
 
 
+# Stopwords for title normalisation — broader than _STOP_WORDS to strip
+# grammatical filler that inflates apparent topic distance.
+_NORMALISE_STOPWORDS: Final[frozenset[str]] = frozenset({
+    "a", "an", "the", "and", "or", "for", "in", "on", "of", "to", "with",
+    "using", "via", "how", "what", "your", "my", "our", "their",
+    "is", "are", "was", "were", "be", "been", "being", "have", "has",
+})
+
+
+def normalise_title(title: str) -> set[str]:
+    """Lowercase, remove stopwords, stem verb forms (profiling→profil), return a set.
+
+    Simple verb normalisation: strip trailing 'ing' from tokens longer than 6
+    characters so that 'profiling' and 'profile' produce overlapping stems.
+    """
+    tokens = re.findall(r"\w+", title.lower())
+    tokens = [t for t in tokens if t not in _NORMALISE_STOPWORDS]
+    normalised: list[str] = []
+    for t in tokens:
+        if t.endswith("ing") and len(t) > 6:
+            normalised.append(t[:-3])  # "profiling" → "profil", "rendering" → "render"
+        else:
+            normalised.append(t)
+    return set(normalised)
+
+
 # ---------------------------------------------------------------------------
 # Keyword matching helpers
 # ---------------------------------------------------------------------------
@@ -244,12 +270,16 @@ def _is_repetitive(
     recent_titles: Iterable[str],
     threshold: float = WORD_OVERLAP_THRESHOLD,
 ) -> bool:
-    """Return True when *candidate* has too much word overlap with a recent title."""
-    candidate_words = _word_set(candidate)
+    """Return True when *candidate* has too much word overlap with a recent title.
+
+    Uses ``normalise_title`` so verb forms like 'profiling' and 'profile' are
+    treated as the same token, preventing near-duplicates from slipping through.
+    """
+    candidate_words = normalise_title(candidate)
     if not candidate_words:
         return False
     for previous in recent_titles:
-        prev_words = _word_set(previous)
+        prev_words = normalise_title(previous)
         if not prev_words:
             continue
         overlap = len(candidate_words & prev_words) / len(candidate_words | prev_words)
