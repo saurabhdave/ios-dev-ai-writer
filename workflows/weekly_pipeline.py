@@ -924,6 +924,23 @@ def run_weekly_pipeline() -> Path:
             error_type=type(exc).__name__,
             error=str(exc),
         )
+        try:
+            run_summary_path = Path("outputs/run_summary.json")
+            run_summary_path.parent.mkdir(parents=True, exist_ok=True)
+            run_summary_path.write_text(
+                json.dumps(
+                    {
+                        "date": datetime.now(timezone.utc).date().isoformat(),
+                        "quarantine_triggered": True,
+                        "failure_reason": str(exc),
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         raise
     finally:
         reset_run_context(context_tokens)

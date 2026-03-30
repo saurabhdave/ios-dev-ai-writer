@@ -6,12 +6,45 @@ import logging
 import time
 from typing import Any, Mapping
 
+import openai
 from openai import OpenAI
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+    before_sleep_log,
+)
 
 from config import OPENAI_API_KEY
 from utils.observability import get_logger, log_event
 
 LLM_LOGGER = get_logger("pipeline.llm")
+
+_RETRYABLE_ERRORS = (
+    openai.RateLimitError,
+    openai.APITimeoutError,
+    openai.APIConnectionError,
+    openai.InternalServerError,
+)
+
+_retry_kwargs = dict(
+    retry=retry_if_exception_type(_RETRYABLE_ERRORS),
+    wait=wait_exponential(multiplier=1, min=2, max=30),
+    stop=stop_after_attempt(4),
+    before_sleep=before_sleep_log(LLM_LOGGER, logging.WARNING),
+    reraise=True,
+)
+
+
+@retry(**_retry_kwargs)
+def _call_responses_api(client: OpenAI, **kwargs: Any) -> Any:
+    return client.responses.create(**kwargs)
+
+
+@retry(**_retry_kwargs)
+def embeddings_create_with_retry(client: OpenAI, **kwargs: Any) -> Any:
+    return client.embeddings.create(**kwargs)
 
 
 def create_openai_client() -> OpenAI:
@@ -71,7 +104,8 @@ def responses_create_logged(
 
     start = time.perf_counter()
     try:
-        response = client.responses.create(
+        response = _call_responses_api(
+            client,
             model=model,
             max_output_tokens=max_output_tokens,
             input=input,

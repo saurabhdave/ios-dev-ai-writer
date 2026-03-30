@@ -25,7 +25,7 @@ from typing import Final, Iterable
 
 from config import OPENAI_MODEL, OPENAI_TEMPERATURE, TOPIC_INTERESTS, TOPIC_SIMILARITY_THRESHOLD, openai_generation_kwargs
 from utils.observability import get_logger, log_event
-from utils.openai_logging import create_openai_client, responses_create_logged
+from utils.openai_logging import create_openai_client, embeddings_create_with_retry, responses_create_logged
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -314,7 +314,8 @@ def _is_semantically_repetitive(
     try:
         from openai import OpenAI  # noqa: PLC0415
         assert isinstance(client, OpenAI)
-        response = client.embeddings.create(
+        response = embeddings_create_with_retry(
+            client,
             model=EMBEDDING_MODEL,
             input=[candidate, *recent_titles],
         )
