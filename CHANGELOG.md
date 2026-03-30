@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-03-30
+
+### Fixed
+- **CI syntax error in run summary step** (`.github/workflows/weekly.yml`): Backslash escapes inside f-string expressions (`'\u2014'`) cause a `SyntaxError` on Python < 3.12. Extracted the em dash to a variable (`dash = "\u2014"`) defined before the f-strings, and replaced `dict.get(key, '\u2014')` with `dict.get(key) or dash`.
+
 ## [1.6.1] - 2026-03-29
 
 ### Added
