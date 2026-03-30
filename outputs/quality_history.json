@@ -786,5 +786,37 @@
       "Calls out profiling tools (`Instruments`, Time Profiler, Allocations) for performance validation"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-03-30",
+    "slug": "verified-swiftui-modifiers-for-safer-app-ui",
+    "topic": "Verified SwiftUI Modifiers for Safer App UI",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Duplicate Validation/Observability `##` sections detected — merge into one."
+    ],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "Opening paragraph is dense—hook could be more explicit about concrete failure modes",
+      "No deployment target or Swift version guidance for `Sendable`/concurrency recommendations",
+      "`os_signpost`/`OSLog` not consistently formatted in backticks in prose",
+      "No concrete examples showing misuse of captured `ObservableObject`/view‑model in a modifier",
+      "No code demonstrating unit/snapshot test patterns for `List` reuse lifecycle"
+    ],
+    "review_strengths": [
+      "Clear, focused problem statement on modifier captures and reuse bugs",
+      "Good concrete `ViewModifier` and `UIViewRepresentable` code examples",
+      "Explicit tradeoffs section discussing ergonomics vs correctness",
+      "Practical checklist with actionable rollout and observability items",
+      "Strong emphasis on typed invariants (`Sendable`, wrappers) to prevent runtime errors",
+      "Calls out real observability tools (`os_signpost`, `OSLog`, Instruments) for production troubleshooting"
+    ],
+    "review_repair_triggered": false
   }
 ]
