@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-03-30
+
+### Added
+- **Reference quality rules in article prompt** (`prompts/article_prompt.txt`): New `REFERENCE RULES — strictly enforced` section requires references to link to specific documentation pages, not homepages or top-level paths. Rules cover banned/required URL patterns, Swift Evolution proposal citation format (`SE-XXXX`), WWDC session citation format, a 5-reference maximum, and enforcement that every listed reference must appear in the article prose.
+- **`validate_references` in article agent** (`agents/article_agent.py`): Post-generation check that scans `allowed_references` for homepage-level URLs matching `developer.apple.com/documentation/<word>`, `swift.org/documentation`, or `swift.org/blog`. Emits `reference_homepage_warning` log events at `WARNING` level per offending URL. Never blocks pipeline execution.
+
 ## [1.6.2] - 2026-03-30
 
 ### Fixed
