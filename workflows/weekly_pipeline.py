@@ -664,17 +664,18 @@ def run_weekly_pipeline() -> Path:
                 allowed_references=reference_context,
             )
 
+        editor_pass_count = 0
         with timed_step(
             LOGGER,
             "editor_pass",
             topic=topic,
             enabled=EDITOR_PASS_ENABLED,
         ):
-            polished_article = (
-                polish_article(topic=topic, article=article, allowed_references=reference_context)
-                if EDITOR_PASS_ENABLED
-                else article
-            )
+            if EDITOR_PASS_ENABLED:
+                polished_article = polish_article(topic=topic, article=article, allowed_references=reference_context)
+                editor_pass_count += 1
+            else:
+                polished_article = article
 
         with timed_step(LOGGER, "voice_pass", topic=topic, enabled=VOICE_PASS_ENABLED):
             polished_article = apply_voice_pass(polished_article)
@@ -693,6 +694,7 @@ def run_weekly_pipeline() -> Path:
                     allowed_references=reference_context,
                     max_passes=FACT_GROUNDING_MAX_PASSES,
                 )
+                editor_pass_count += 1
 
         layout_assessment: LayoutAssessment
         with timed_step(
@@ -711,6 +713,7 @@ def run_weekly_pipeline() -> Path:
                     max_passes=MEDIUM_LAYOUT_MAX_REPAIR_PASSES,
                     min_score=MEDIUM_LAYOUT_MIN_SCORE,
                 )
+                editor_pass_count += 1
             else:
                 layout_assessment = assess_medium_layout(
                     polished_article, min_score=MEDIUM_LAYOUT_MIN_SCORE
@@ -801,6 +804,7 @@ def run_weekly_pipeline() -> Path:
                         allowed_references=reference_context,
                         review_issues=review_issues,
                     )
+                    editor_pass_count += 1
                     log_event(
                         LOGGER,
                         "review_repair_triggered",
@@ -883,6 +887,24 @@ def run_weekly_pipeline() -> Path:
                 step["html_path"] = str(nl_html_path)
         else:
             log_event(LOGGER, "newsletter_skipped", topic=topic, reason="NEWSLETTER_ENABLED=false")
+
+        with timed_step(LOGGER, "save_run_summary", topic=topic):
+            today_str = datetime.now(timezone.utc).date().isoformat()
+            run_summary = {
+                "date": today_str,
+                "topic": topic,
+                "article_word_count": len(polished_article.split()),
+                "codegen_path": code_result.path,
+                "codegen_repair_attempts": code_result.repair_attempts,
+                "editor_passes": editor_pass_count,
+                "voice_pass": VOICE_PASS_ENABLED,
+                "linkedin_enabled": LINKEDIN_POST_ENABLED,
+                "newsletter_enabled": NEWSLETTER_ENABLED,
+                "quarantine_triggered": False,
+            }
+            run_summary_path = Path("outputs/run_summary.json")
+            run_summary_path.parent.mkdir(parents=True, exist_ok=True)
+            run_summary_path.write_text(json.dumps(run_summary, indent=2) + "\n", encoding="utf-8")
 
         log_event(
             LOGGER,

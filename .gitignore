@@ -26,6 +26,8 @@ memory/
 outputs/*
 !outputs/quality_history.json
 outputs/newsletter/
+# Ephemeral per-run summary (written by pipeline, consumed by CI step summary)
+outputs/run_summary.json
 
 # Temp content repo clone used by CI publish step
 _content/

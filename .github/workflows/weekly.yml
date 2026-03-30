@@ -35,6 +35,36 @@ jobs:
           OPENAI_TEMPERATURE: "0.7"
         run: python main.py
 
+      - name: Write run summary
+        if: always()
+        run: |
+          python - <<'EOF'
+          import json, os
+          summary_path = "outputs/run_summary.json"
+          if not os.path.exists(summary_path):
+              print("No run summary found.")
+              exit(0)
+          with open(summary_path) as f:
+              s = json.load(f)
+          lines = [
+              f"## Pipeline run \u2014 {s.get('date', 'unknown')}",
+              "| Field | Value |",
+              "|---|---|",
+              f"| Topic | {s.get('topic', '\u2014')} |",
+              f"| Word count | {s.get('article_word_count', '\u2014')} |",
+              f"| Codegen path | {s.get('codegen_path', '\u2014')} |",
+              f"| Repair attempts | {s.get('codegen_repair_attempts', 0)} |",
+              f"| Editor passes | {s.get('editor_passes', 0)} |",
+              f"| Voice pass | {'yes' if s.get('voice_pass') else 'no'} |",
+              f"| Newsletter | {'yes' if s.get('newsletter_enabled') else 'no'} |",
+              f"| Quarantine | {'triggered' if s.get('quarantine_triggered') else 'clean'} |",
+          ]
+          md = "\n".join(lines) + "\n"
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write(md)
+          print("Summary written.")
+          EOF
+
       - name: Publish articles to content repo
         env:
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
