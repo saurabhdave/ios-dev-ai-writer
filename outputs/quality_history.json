@@ -849,5 +849,34 @@
       "Actionable checklist with specific test types and instrumentation items"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-03-31",
+    "slug": "speed-xcode-builds-with-explicit-swift-modules",
+    "topic": "Speed Xcode Builds with Explicit Swift Modules",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Duplicate Validation/Observability `##` sections detected — merge into one."
+    ],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "No xcodebuild command examples showing flags to produce explicit .swiftmodule artifacts",
+      "No Swift compiler or language-version constraints stated for module stability considerations",
+      "Missing concrete cache key format example combining checksum, toolchain, and settings",
+      "Code snippet uses Swift concurrency and @MainActor without specifying minimum Swift or deployment targets"
+    ],
+    "review_strengths": [
+      "Clear, focused problem statement linking slow CI to developer throughput",
+      "Concrete CI workflow guidance: prebuild, restore, verify checksums",
+      "Good emphasis on cache-key hygiene and toolchain identifiers",
+      "Practical observability guidance using OSSignposter and profiler traces"
+    ],
+    "review_repair_triggered": false
   }
 ]
