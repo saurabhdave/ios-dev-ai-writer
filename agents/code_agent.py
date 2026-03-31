@@ -34,7 +34,7 @@ from config import (
     openai_generation_kwargs,
 )
 from utils.observability import get_logger, log_event
-from utils.openai_logging import create_openai_client, responses_create_logged
+from utils.openai_logging import create_openai_client, response_output_text, responses_create_logged
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -545,7 +545,7 @@ def _repair_code(
         input=prompt,
         **openai_generation_kwargs(min(OPENAI_TEMPERATURE, REPAIR_TEMPERATURE)),
     )
-    return _clean_generated_code(response.output_text)
+    return _clean_generated_code(response_output_text(response))
 
 
 # ---------------------------------------------------------------------------
@@ -628,7 +628,7 @@ def generate_code_with_metadata(topic: str, article_body: str = "") -> CodeGener
         input=prompt,
         **openai_generation_kwargs(OPENAI_TEMPERATURE),
     )
-    code = _clean_generated_code(response.output_text)
+    code = _clean_generated_code(response_output_text(response))
     if not code:
         raise RuntimeError(
             f"Code generation returned empty output for topic={topic!r}."

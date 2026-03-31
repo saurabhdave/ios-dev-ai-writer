@@ -80,6 +80,17 @@ def _extract_usage(response: Any) -> dict[str, int | None]:
     }
 
 
+def response_output_text(response: Any) -> str:
+    """Return the response text payload as a plain string.
+
+    Some SDK responses may expose ``output_text=None`` when no text content was
+    produced. Callers use this helper so empty-output handling remains explicit
+    and consistent instead of crashing on ``None.strip()``.
+    """
+    text = getattr(response, "output_text", "")
+    return text if isinstance(text, str) else ""
+
+
 def responses_create_logged(
     client: OpenAI,
     *,

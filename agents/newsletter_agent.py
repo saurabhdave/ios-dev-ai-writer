@@ -35,7 +35,7 @@ from config import (
     openai_generation_kwargs,
 )
 from utils.observability import get_logger, log_event
-from utils.openai_logging import create_openai_client, responses_create_logged
+from utils.openai_logging import create_openai_client, response_output_text, responses_create_logged
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -594,7 +594,7 @@ def generate_newsletter(
         **openai_generation_kwargs(min(OPENAI_TEMPERATURE, GENERATION_TEMPERATURE)),
     )
 
-    newsletter_markdown = _unescape_code_blocks(response.output_text.strip())
+    newsletter_markdown = _unescape_code_blocks(response_output_text(response).strip())
     newsletter_markdown = _repair_community_picks(newsletter_markdown)
     if not newsletter_markdown:
         raise RuntimeError(

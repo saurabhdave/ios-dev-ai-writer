@@ -18,7 +18,7 @@ from typing import Final
 
 from config import OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
 from utils.observability import get_logger, log_event
-from utils.openai_logging import create_openai_client, responses_create_logged
+from utils.openai_logging import create_openai_client, response_output_text, responses_create_logged
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -90,7 +90,7 @@ def generate_outline(topic: str) -> str:
         **openai_generation_kwargs(min(OPENAI_TEMPERATURE, GENERATION_TEMPERATURE)),
     )
 
-    outline = response.output_text.strip()
+    outline = response_output_text(response).strip()
 
     if not outline:
         log_event(

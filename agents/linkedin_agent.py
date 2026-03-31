@@ -33,7 +33,7 @@ from config import (
     openai_generation_kwargs,
 )
 from utils.observability import get_logger, log_event
-from utils.openai_logging import create_openai_client, responses_create_logged
+from utils.openai_logging import create_openai_client, response_output_text, responses_create_logged
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -575,7 +575,7 @@ def _enforce_factual_grounding(
             input=prompt,
             **openai_generation_kwargs(min(OPENAI_TEMPERATURE, FACTUALITY_TEMPERATURE)),
         )
-        revised = response.output_text.strip()
+        revised = response_output_text(response).strip()
         if not revised:
             log_event(
                 LOGGER,
@@ -652,7 +652,7 @@ def generate_linkedin_post(
         **openai_generation_kwargs(min(OPENAI_TEMPERATURE, GENERATION_TEMPERATURE)),
     )
 
-    post = response.output_text.strip()
+    post = response_output_text(response).strip()
     if not post:
         raise RuntimeError(
             f"LinkedIn post generation returned empty output for topic={topic!r}."

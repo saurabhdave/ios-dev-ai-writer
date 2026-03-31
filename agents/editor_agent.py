@@ -25,7 +25,7 @@ from typing import Final
 
 from config import OPENAI_MODEL, OPENAI_TEMPERATURE, VOICE_PASS_ENABLED, openai_generation_kwargs
 from utils.observability import get_logger, log_event
-from utils.openai_logging import create_openai_client, responses_create_logged
+from utils.openai_logging import create_openai_client, response_output_text, responses_create_logged
 from agents.article_agent import apply_swift_backticks
 
 # ---------------------------------------------------------------------------
@@ -156,7 +156,7 @@ def _render_model_response(
         input=prompt,
         **openai_generation_kwargs(temperature),
     )
-    text = response.output_text.strip()
+    text = response_output_text(response).strip()
     # Remove a leading H1 title the model sometimes adds despite instructions.
     text = _TITLE_H1_RE.sub("", text, count=1).strip()
     return apply_swift_backticks(text)

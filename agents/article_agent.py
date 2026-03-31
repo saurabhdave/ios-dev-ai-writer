@@ -24,7 +24,7 @@ from typing import Final
 from agents.topic_agent import load_author_context
 from config import CUSTOM_TRENDS_FILE, OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
 from utils.observability import get_logger, log_event
-from utils.openai_logging import create_openai_client, responses_create_logged
+from utils.openai_logging import create_openai_client, response_output_text, responses_create_logged
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -333,7 +333,7 @@ def _call_model(
         input=prompt,
         **openai_generation_kwargs(temperature),
     )
-    return _normalize_article(response.output_text)
+    return _normalize_article(response_output_text(response))
 
 
 # ---------------------------------------------------------------------------
