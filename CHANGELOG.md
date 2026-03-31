@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.8] - 2026-03-31
+
+### Fixed
+- **Final article URL sanitization no longer corrupts Swift indentation** (`workflows/weekly_pipeline.py`): `_sanitize_body_urls()` now normalizes whitespace only in prose segments and leaves fenced code blocks untouched, so the final safety pass no longer collapses indentation inside Swift examples.
+- **Reference seeding now uses specific docs pages and preserves seed slots** (`workflows/weekly_pipeline.py`): Replaced homepage-level Apple/Swift seed URLs with specific documentation pages, added homepage filtering to prompt/public reference selection, and reserved prompt-reference capacity for seed references so stable grounding links are not appended and then truncated away.
+- **Deterministic version-callout audit aligned with the iOS 18 / Swift 6 baseline** (`utils/article_repair.py`): Removed stale warnings for APIs like `@Observable` and `withTaskGroup` that are already covered by the repo baseline, eliminating false-positive `version_callouts_missing` log noise.
+
 ## [1.6.7] - 2026-03-31
 
 ### Fixed
