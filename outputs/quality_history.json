@@ -818,5 +818,36 @@
       "Calls out real observability tools (`os_signpost`, `OSLog`, Instruments) for production troubleshooting"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-03-31",
+    "slug": "automating-dynamic-type-tests-in-xcode",
+    "topic": "Automating Dynamic Type Tests in Xcode",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Duplicate Validation/Observability `##` sections detected — merge into one."
+    ],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "No iOS deployment target or Swift version stated for APIs used",
+      "No concrete XCUITest launch-argument example for setting UIContentSizeCategory",
+      "Duplicate 'Validation And Observability' heading appears twice",
+      "Missing guidance for collecting Instruments traces in CI (how/where to attach)",
+      "Unit test uses generic XCTAssert instead of a specific XCTAssert* helper for clearer failures"
+    ],
+    "review_strengths": [
+      "Strong, specific opening hook framing Dynamic Type regressions",
+      "Clear guidance on test granularity and when to use each test type",
+      "Concrete UITraitCollection-based unit test example for deterministic checks",
+      "Practical CI advice including staged runs and pinned simulator guidance",
+      "Actionable checklist with specific test types and instrumentation items"
+    ],
+    "review_repair_triggered": false
   }
 ]
