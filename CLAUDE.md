@@ -19,7 +19,8 @@ python main.py
 cp .env.example .env  # set OPENAI_API_KEY at minimum
 ```
 
-There is no test suite or linter configured.
+There is a small `unittest` suite for OpenAI config compatibility in `tests/`.
+No linter is configured.
 
 ## Architecture
 
@@ -29,10 +30,13 @@ There is no test suite or linter configured.
 main.py → weekly_pipeline.py
   → TrendScanner (8 sources: HackerNews, Reddit, Apple Docs, WWDC, etc.)
   → topic_agent → outline_agent → article_agent
-  → editor_agent (polish → factual grounding → Medium layout reinforcement loop)
+  → editor_agent (polish → voice pass → factual grounding → Medium layout reinforcement loop)
+  → deterministic article repair
   → code_agent (Swift/SwiftUI snippet with repair loop)
   → linkedin_agent
-  → Save to outputs/{articles,trends,codegen,linkedin}/
+  → newsletter_agent
+  → review_agent
+  → Save to outputs/{articles,trends,codegen,linkedin,newsletter}/ + quality_history
 ```
 
 ### Key Files
@@ -45,6 +49,9 @@ main.py → weekly_pipeline.py
 | [agents/editor_agent.py](agents/editor_agent.py) | Polish, layout reinforcement loop, factual grounding |
 | [agents/code_agent.py](agents/code_agent.py) | Swift codegen with validation/repair loop |
 | [agents/linkedin_agent.py](agents/linkedin_agent.py) | LinkedIn post generation |
+| [agents/newsletter_agent.py](agents/newsletter_agent.py) | Newsletter markdown + HTML generation |
+| [agents/review_agent.py](agents/review_agent.py) | Article self-review scoring and issue extraction |
+| [utils/article_repair.py](utils/article_repair.py) | Deterministic post-processing for malformed backticks and article cleanup |
 | [utils/observability.py](utils/observability.py) | Structured JSON logging, timed steps, pipeline events |
 | [utils/openai_logging.py](utils/openai_logging.py) | OpenAI client init and token usage tracking |
 
@@ -52,7 +59,7 @@ main.py → weekly_pipeline.py
 
 - **Apple-platform only** — topics filtered to iOS/Swift/SwiftUI/Xcode; AI-first topics explicitly excluded
 - **Swift 6 patterns** — `@Observable` preferred over `@Published`; Swift 6.2.4 + compiler mode 6 by default
-- **Title limits** — 60 chars / 10 words max; fallback titles generated on violation
+- **Title limits** — 60 chars / 10 words max; topic generation retries and fails clearly if novelty/format constraints cannot be satisfied
 - **Article length** — 900–1200 words
 - **Code snippets** — 3–8 lines for articles
 - **References** — trust-first model: low-signal domains stripped before publication; unverified URLs sanitized from article body
@@ -84,6 +91,9 @@ MEDIUM_LAYOUT_MAX_REPAIR_PASSES     # Default: 2
 - `outputs/trends/{timestamp}-trend-signals.json` — Trend snapshot
 - `outputs/linkedin/{date}-{slug}-linkedin.md` — LinkedIn post
 - `outputs/codegen/{date}-{slug}-codegen.json` — Code generation metadata and repair diagnostics
+- `outputs/newsletter/{date}-issue-N.md` — Newsletter markdown
+- `outputs/newsletter/{date}-issue-N.html` — Newsletter HTML
+- `outputs/quality_history.json` — Rolling quality/review history used for dedup and auditability
 
 ### GitHub Actions
 
