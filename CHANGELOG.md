@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.9] - 2026-03-31
+
+### Fixed
+- **Model-aware OpenAI request compatibility** (`config.py`, `tests/test_openai_config.py`, `README.md`, `CLAUDE.md`): The shared generation helper now handles GPT-5, GPT-5.1, GPT-5 Pro, and o-series models with model-aware reasoning and temperature rules instead of a single `gpt-5*` prefix check. `gpt-5.1` now defaults to `reasoning="none"` and only receives `temperature` in that mode, o-series models now retain `reasoning` configuration, unsupported reasoning-effort values are clamped conservatively with warnings, and focused unit tests document the expected request-shape behavior.
+
 ## [1.6.8] - 2026-03-31
 
 ### Fixed
