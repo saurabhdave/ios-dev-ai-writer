@@ -12,7 +12,7 @@ Fixes pattern-based issues that LLM prompts catch inconsistently:
 from __future__ import annotations
 
 import re
-from typing import Tuple, List, Dict
+from typing import Dict, List, Tuple
 
 # ---------------------------------------------------------------------------
 # Backtick repair
@@ -73,17 +73,10 @@ def strip_operational_note_labels(text: str) -> Tuple[str, int]:
 # Version callout audit (log-only — does not modify article)
 # ---------------------------------------------------------------------------
 
-# (api_token_in_text, expected_version_substring)
-_VERSION_CHECKS: List[Tuple[str, str]] = [
-    ("`withTaskGroup`",                    "iOS 15"),
-    ("`withThrowingTaskGroup`",            "iOS 15"),
-    ("`withCheckedThrowingContinuation`",  "iOS 15"),
-    ("`withCheckedContinuation`",          "iOS 15"),
-    ("`AsyncSequence`",                    "iOS 15"),
-    ("`AsyncStream`",                      "iOS 15"),
-    ("`@Observable`",                      "iOS 17"),
-    ("`@Bindable`",                        "iOS 17"),
-]
+# Only track APIs that require a post-baseline deployment callout.
+# The repo now assumes iOS 18 / Swift 6 as the default baseline, so APIs
+# available on iOS 18 or earlier should not trigger warnings.
+_VERSION_CHECKS: List[Tuple[str, str]] = []
 
 
 def audit_missing_version_callouts(text: str) -> List[str]:

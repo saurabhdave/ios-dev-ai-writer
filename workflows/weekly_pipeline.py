@@ -94,6 +94,7 @@ IOS_ANCHOR_TERMS = {
 
 HIGH_QUALITY_REFERENCE_DOMAINS = {
     "developer.apple.com",
+    "docs.swift.org",
     "swift.org",
     "forums.swift.org",
     "avanderlee.com",
@@ -102,6 +103,7 @@ HIGH_QUALITY_REFERENCE_DOMAINS = {
 
 TRUSTED_REFERENCE_DOMAINS = {
     "developer.apple.com",
+    "docs.swift.org",
     "swift.org",
     "forums.swift.org",
     "avanderlee.com",
@@ -139,20 +141,20 @@ _APPLE_DOC_SEEDS: list[tuple[frozenset[str], str, str, str]] = [
      "Apple Documentation", "URLSession",
      "https://developer.apple.com/documentation/foundation/urlsession"),
     (frozenset({"swiftui", "swiftui view", "navigationstack", "lazyvstack"}),
-     "Apple Documentation", "SwiftUI",
-     "https://developer.apple.com/documentation/swiftui"),
+     "Apple Documentation", "View.body",
+     "https://developer.apple.com/documentation/swiftui/view/body-swift.property"),
     (frozenset({"observable", "observation", "@observable"}),
-     "Apple Documentation", "Observation",
-     "https://developer.apple.com/documentation/observation"),
+     "Apple Documentation", "Managing model data in your app",
+     "https://developer.apple.com/documentation/swiftui/managing-model-data-in-your-app"),
     (frozenset({"app intent", "siri", "shortcuts", "appintent"}),
-     "Apple Documentation", "App Intents",
-     "https://developer.apple.com/documentation/appintents"),
+     "Apple Documentation", "AppIntent",
+     "https://developer.apple.com/documentation/appintents/appintent"),
     (frozenset({"delegate", "uikit", "uiviewcontroller", "uitableview", "uikit delegate"}),
-     "Apple Documentation", "UIKit",
-     "https://developer.apple.com/documentation/uikit"),
+     "Apple Documentation", "UIViewController",
+     "https://developer.apple.com/documentation/uikit/uiviewcontroller"),
     (frozenset({"combine", "publisher", "subscriber", "passthrough"}),
-     "Apple Documentation", "Combine",
-     "https://developer.apple.com/documentation/combine"),
+     "Apple Documentation", "Publisher",
+     "https://developer.apple.com/documentation/combine/publisher"),
     (frozenset({"kvo", "key-value", "key value observ", "nsobject"}),
      "Apple Documentation", "Key-Value Observing",
      "https://developer.apple.com/documentation/swift/using-key-value-observing-in-swift"),
@@ -166,14 +168,24 @@ _APPLE_DOC_SEEDS: list[tuple[frozenset[str], str, str, str]] = [
      "Apple Documentation", "Swift Macros",
      "https://developer.apple.com/documentation/swift/macros"),
     (frozenset({"widgetkit", "widget", "home screen widget"}),
-     "Apple Documentation", "WidgetKit",
-     "https://developer.apple.com/documentation/widgetkit"),
+     "Apple Documentation", "TimelineProvider",
+     "https://developer.apple.com/documentation/widgetkit/timelineprovider"),
     (frozenset({"swiftdata", "swift data", "persistenc", "core data"}),
-     "Apple Documentation", "SwiftData",
-     "https://developer.apple.com/documentation/swiftdata"),
+     "Apple Documentation", "ModelContainer",
+     "https://developer.apple.com/documentation/swiftdata/modelcontainer"),
 ]
 
-_SWIFT_ORG_SEED = ("Swift.org", "Swift Documentation", "https://www.swift.org/documentation/")
+_SWIFT_ORG_SEED = (
+    "Swift.org",
+    "The Swift Programming Language",
+    "https://docs.swift.org/swift-book/documentation/the-swift-programming-language/aboutswift/",
+)
+
+_HOMEPAGE_REFERENCE_PATTERNS = (
+    r"developer\.apple\.com/documentation/\w+/?$",
+    r"(?:www\.)?swift\.org/documentation/?$",
+    r"(?:www\.)?swift\.org/blog/?$",
+)
 
 
 def _seed_reference_items(topic: str) -> list[tuple[str, str, str]]:
@@ -183,13 +195,17 @@ def _seed_reference_items(topic: str) -> list[tuple[str, str, str]]:
     seen_urls: set[str] = set()
 
     for keywords, source, title, url in _APPLE_DOC_SEEDS:
-        if url not in seen_urls and any(kw in lowered for kw in keywords):
+        if (
+            url not in seen_urls
+            and any(kw in lowered for kw in keywords)
+            and _is_specific_reference_url(url)
+        ):
             results.append((source, title, url))
             seen_urls.add(url)
 
     # Always include the general Swift docs page as a stable foundation reference.
     swift_url = _SWIFT_ORG_SEED[2]
-    if swift_url not in seen_urls:
+    if swift_url not in seen_urls and _is_specific_reference_url(swift_url):
         results.append(_SWIFT_ORG_SEED)
 
     return results
@@ -292,10 +308,11 @@ def _sanitize_body_urls(markdown: str) -> str:
             # Prose section — strip markdown hyperlinks (keep text) and bare URLs.
             prose = re.sub(r"\[([^\]]+)\]\((https?://[^\s)]+)\)", r"\1", part)
             prose = re.sub(r"https?://[^\s)]+", "", prose)
+            prose = re.sub(r"[ \t]+", " ", prose)
             processed.append(prose)
     result = "".join(processed)
     result = re.sub(r"\n{3,}", "\n\n", result)
-    return re.sub(r"[ \t]+", " ", result).strip()
+    return result.strip()
 
 
 def _topic_terms(topic: str) -> set[str]:
@@ -355,6 +372,11 @@ def _domain_in(domain: str, candidates: set[str]) -> bool:
 def _is_trusted_reference_domain(url: str) -> bool:
     """Return True when URL belongs to a trusted technical source domain."""
     return _domain_in(_domain_from_url(url), TRUSTED_REFERENCE_DOMAINS)
+
+
+def _is_specific_reference_url(url: str) -> bool:
+    """Reject homepage-level references that violate the article reference policy."""
+    return not any(re.search(pattern, url) for pattern in _HOMEPAGE_REFERENCE_PATTERNS)
 
 
 def _reference_quality_score(source: str, title: str, url: str, topic_terms: set[str]) -> int:
@@ -419,6 +441,8 @@ def _reference_items(
             continue
         if len(title) > 140:
             continue
+        if not _is_specific_reference_url(url):
+            continue
         if (
             any(re.search(pattern, combined_text) for pattern in REFERENCE_EXCLUSION_PATTERNS)
             and not _has_allowed_intelligence_context(combined_text)
@@ -450,7 +474,9 @@ def _references_for_prompt(
     trends: list[TrendSignal], max_items: int = 8, topic: str | None = None
 ) -> str:
     """Create broader source list for prompt grounding (less strict than publish refs)."""
-    def _collect(apply_topic_filter: bool) -> list[str]:
+    def _collect(apply_topic_filter: bool, available_slots: int) -> list[str]:
+        if available_slots <= 0:
+            return []
         seen_urls: set[str] = set()
         lines: list[str] = []
         topic_terms = _topic_terms(topic or "") if apply_topic_filter and topic else set()
@@ -461,6 +487,8 @@ def _references_for_prompt(
             source = trend.source.strip()
 
             if not title or not url or not url.startswith("http"):
+                continue
+            if not _is_specific_reference_url(url):
                 continue
             if apply_topic_filter and topic_terms and not _is_reference_relevant(source, title, topic_terms):
                 continue
@@ -473,21 +501,28 @@ def _references_for_prompt(
 
             seen_urls.add(url)
             lines.append(f"- [{source}] {title} | {url}")
-            if len(lines) >= max_items:
+            if len(lines) >= available_slots:
                 break
         return lines
 
-    lines = _collect(apply_topic_filter=bool(topic))
-    if not lines and topic:
+    seed_lines: list[str] = []
+    if topic:
+        for source, title_str, url in _seed_reference_items(topic):
+            seed_lines.append(f"- [{source}] {title_str} | {url}")
+
+    trend_slots = max(max_items - min(len(seed_lines), max_items), 0) if topic else max_items
+    lines = _collect(apply_topic_filter=bool(topic), available_slots=trend_slots)
+    if not lines and topic and trend_slots > 0:
         # Fallback so generation never has empty context when strict matching yields no hits.
-        lines = _collect(apply_topic_filter=False)
+        lines = _collect(apply_topic_filter=False, available_slots=trend_slots)
 
     # Always append static Apple/Swift doc seeds so agents have stable grounding anchors.
     if topic:
         seen_in_lines = {line.split("| ")[-1].strip() for line in lines if "| http" in line}
-        for source, title_str, url in _seed_reference_items(topic):
+        for line in seed_lines:
+            url = line.split("| ")[-1].strip()
             if url not in seen_in_lines:
-                lines.append(f"- [{source}] {title_str} | {url}")
+                lines.append(line)
                 seen_in_lines.add(url)
 
     if not lines:
