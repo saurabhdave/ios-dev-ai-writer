@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.12] - 2026-03-31
+
+### Fixed
+- **Content-repo publish handoff now excludes mutable newsletter state** (`.github/workflows/weekly.yml`): The scheduled publish step now syncs only publishable article, LinkedIn, codegen, and newsletter artifacts into `ios-ai-articles`, and explicitly removes `newsletter/.issue_number` from the handoff. This prevents the output repo from carrying stale counter state while preserving newsletter `.md`/`.html` history and keeps downstream editorial gating scoped to real content changes.
+
 ## [1.6.11] - 2026-03-31
 
 ### Changed
