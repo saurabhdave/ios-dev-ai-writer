@@ -29,10 +29,12 @@ Generate one production-quality Swift/SwiftUI snippet that matches the topic and
 ## DEPRECATED API RULES
 ================================================================================
 
-NEVER use deprecated APIs. There are no exceptions — not inside a `// ❌ Before` block,
-not as a comparison, not at all.
+Do not present deprecated APIs as the recommended final pattern.
+Deprecated or legacy APIs may appear ONLY inside an explicit `// ❌ Before`
+block when the topic is about migration, deprecation, or modernisation.
+Outside that block, use only the modern replacement.
 
-Examples of deprecated APIs that must NEVER appear:
+Examples of deprecated APIs that must NEVER appear as the recommended final code:
   - `os_signpost` → use `OSSignposter` (available since iOS 15 / Swift 5.5)
   - `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`,
     `@EnvironmentObject` → use `@Observable` (Swift 6+)
@@ -40,9 +42,11 @@ Examples of deprecated APIs that must NEVER appear:
   - `UIAlertView`, `UIActionSheet` → use `UIAlertController`
   - Any API marked `@available(*, deprecated)` in the iOS 18 SDK
 
-If a topic involves showing a migration FROM a deprecated API (before/after), use
-a prose comment (`// Legacy pattern — replaced by X`) rather than compiling deprecated
-code.
+If a topic involves showing a migration FROM a deprecated API:
+  - Keep the `// ❌ Before` side minimal and clearly labelled as legacy.
+  - A comment-only legacy block is acceptable when it explains the contrast
+    more cleanly than compiling old code.
+  - The `// ✅ After` block must be the production-ready target.
 
 ================================================================================
 ## BEFORE/AFTER STRUCTURE RULES
@@ -51,7 +55,7 @@ code.
 Apply a before/after structure ONLY when the topic involves migration,
 deprecation, or modernisation of an existing API or pattern:
 
-  - Open with a `// ❌ Before` comment block showing the legacy/deprecated approach.
+  - Open with a `// ❌ Before` block showing the legacy/deprecated approach.
   - Follow with a blank line, then a `// ✅ After` comment block showing the
     modern replacement.
   - Each block must be self-contained and clearly labelled.

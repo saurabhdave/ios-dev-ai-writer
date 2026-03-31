@@ -12,9 +12,10 @@ Article body:
 {article}
 ---
 
-Note: A Swift code block is appended separately after the article body by the
-pipeline. Do NOT flag missing inline code as an issue if the article already
-uses inline backtick API references (e.g., `withCheckedThrowingContinuation`)
+Note: This review input contains only the article body. The pipeline may
+generate a separate standalone Swift example elsewhere, but it is not part of
+this input. Do NOT flag missing extra fenced code as an issue if the article
+already uses precise inline API references (e.g., `withCheckedThrowingContinuation`)
 in prose.
 
 ================================================================================

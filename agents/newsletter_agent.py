@@ -52,6 +52,7 @@ SNIPPET_MAX_LINES: Final[int] = 25
 ARTICLE_TEASER_MAX_CHARS: Final[int] = 400
 ARTICLE_TEASER_SENTENCES: Final[int] = 3
 ARTICLE_EXCERPT_MAX_LINES: Final[int] = 20
+NO_SNIPPET_PLACEHOLDER: Final[str] = "A code example for this topic is not included in this edition."
 
 # Sources treated as community picks (non-Apple-docs, developer community).
 _COMMUNITY_SOURCES: Final[frozenset[str]] = frozenset(
@@ -576,7 +577,7 @@ def generate_newsletter(
         article_title=article_title,
         article_teaser=article_teaser,
         trend_signals_json=trend_signals_json,
-        best_snippet=best_snippet or "No validated snippet available this run.",
+        best_snippet=best_snippet or NO_SNIPPET_PLACEHOLDER,
         community_links_json=community_links_json,
         linkedin_post=linkedin_post.strip() if linkedin_post else "",
     )

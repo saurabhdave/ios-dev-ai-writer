@@ -115,8 +115,9 @@ than 3 signals, include what's there and note "More signals next issue."]
 does syntactically, but the engineering judgment it encodes and why an iOS
 developer should have this in their mental toolkit.
 
-IMPORTANT — if {best_snippet} is empty or contains only the text
-"A code example for this topic is not included in this edition":
+IMPORTANT — if {best_snippet} is empty or contains only one of these placeholder lines:
+"A code example for this topic is not included in this edition"
+"No validated snippet available this run."
   Replace this entire section (header + code block + sentence) with:
 
   ### Worth Watching This Week
