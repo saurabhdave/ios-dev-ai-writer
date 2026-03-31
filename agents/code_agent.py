@@ -246,11 +246,11 @@ def _is_unsupported_version_error(diagnostics: str) -> bool:
     return bool(_UNSUPPORTED_VERSION_RE.search(diagnostics))
 
 
-def _run_swiftc(command: list[str], timeout: int) -> tuple[int, str]:
-    """Execute a swiftc command and return (returncode, stderr).
+def _run_command(command: list[str], timeout: int) -> tuple[int, str, str]:
+    """Execute a subprocess command and return ``(returncode, stdout, stderr)``.
 
-    Returns (-1, error_message) on timeout or OSError so callers get a
-    uniform tuple rather than an exception to handle.
+    Returns ``(-1, "", error_message)`` on timeout or OSError so callers get a
+    uniform result instead of an exception to handle.
     """
     try:
         result = subprocess.run(
@@ -260,11 +260,26 @@ def _run_swiftc(command: list[str], timeout: int) -> tuple[int, str]:
             timeout=timeout,
             check=False,
         )
-        return result.returncode, result.stderr.strip()
+        return result.returncode, result.stdout.strip(), result.stderr.strip()
     except subprocess.TimeoutExpired:
-        return -1, f"swiftc timed out after {timeout}s"
+        return -1, "", f"command timed out after {timeout}s"
     except OSError as exc:
-        return -1, f"swiftc OSError: {exc}"
+        return -1, "", f"command OSError: {exc}"
+
+
+def _run_swiftc(command: list[str], timeout: int) -> tuple[int, str]:
+    """Execute a swiftc command and return ``(returncode, stderr)``."""
+    rc, _stdout, stderr = _run_command(command, timeout)
+    return rc, stderr
+
+
+def _query_ios_sdk_path(xcrun: str) -> str:
+    """Return the iOS simulator SDK path from ``xcrun``, or ``""`` on failure."""
+    rc, stdout, _stderr = _run_command(
+        [xcrun, "--sdk", "iphonesimulator", "--show-sdk-path"],
+        timeout=SDK_QUERY_TIMEOUT,
+    )
+    return stdout if rc == 0 else ""
 
 
 def _swift_compile_validate(code: str) -> tuple[bool, str]:
@@ -287,11 +302,8 @@ def _swift_compile_validate(code: str) -> tuple[bool, str]:
 
         xcrun = shutil.which("xcrun")
         if xcrun:
-            rc, sdk_path = _run_swiftc(
-                [xcrun, "--sdk", "iphonesimulator", "--show-sdk-path"],
-                timeout=SDK_QUERY_TIMEOUT,
-            )
-            if rc == 0 and sdk_path:
+            sdk_path = _query_ios_sdk_path(xcrun)
+            if sdk_path:
                 rc, stderr = _run_swiftc(
                     _build_typecheck_command(swiftc, source, sdk_path, module_cache),
                     timeout=TYPECHECK_TIMEOUT,

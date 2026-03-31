@@ -106,12 +106,8 @@ _UL_STYLE: Final[str] = "margin:0 0 16px;padding-left:20px;list-style-type:disc"
 # ---------------------------------------------------------------------------
 
 
-def _read_and_increment_issue(issue_file: Path) -> int:
-    """Read the current issue number, increment it, persist atomically, return new value.
-
-    Uses a write-to-tempfile-then-rename pattern to prevent partial writes from
-    corrupting the counter if the process is interrupted mid-write.
-    """
+def _read_issue_number(issue_file: Path) -> int:
+    """Read and return the current persisted issue number."""
     issue_file.parent.mkdir(parents=True, exist_ok=True)
     current = 0
     if issue_file.exists():
@@ -125,14 +121,16 @@ def _read_and_increment_issue(issue_file: Path) -> int:
                 path=str(issue_file),
                 error=repr(exc),
             )
+    return current
 
-    next_issue = current + 1
 
+def _write_issue_number(issue_file: Path, issue_number: int) -> None:
+    """Persist ``issue_number`` atomically using a temp-file-and-rename flow."""
     # Atomic write: temp file in same directory so rename is on the same filesystem.
     tmp_fd, tmp_path_str = tempfile.mkstemp(dir=issue_file.parent, suffix=".tmp")
     try:
         with open(tmp_fd, "w", encoding="utf-8") as f:
-            f.write(str(next_issue))
+            f.write(str(issue_number))
         Path(tmp_path_str).replace(issue_file)
     except OSError as exc:
         Path(tmp_path_str).unlink(missing_ok=True)
@@ -149,9 +147,8 @@ def _read_and_increment_issue(issue_file: Path) -> int:
         LOGGER,
         "issue_counter_incremented",
         level=logging.INFO,
-        issue_number=next_issue,
+        issue_number=issue_number,
     )
-    return next_issue
 
 
 # ---------------------------------------------------------------------------
@@ -533,7 +530,8 @@ def generate_newsletter(
         log_event(LOGGER, "newsletter_skipped", level=logging.INFO, reason="NEWSLETTER_ENABLED=false")
         return {"markdown": "", "html": "", "issue_number": 0}
 
-    issue_number = _read_and_increment_issue(Path(NEWSLETTER_ISSUE_FILE))
+    issue_file = Path(NEWSLETTER_ISSUE_FILE)
+    issue_number = _read_issue_number(issue_file) + 1
 
     top_trends = _pick_top_trends(trends)
     community_picks = _pick_community_links(trends)
@@ -602,6 +600,7 @@ def generate_newsletter(
         )
 
     newsletter_html = _render_html(newsletter_markdown, NEWSLETTER_NAME, issue_number)
+    _write_issue_number(issue_file, issue_number)
 
     log_event(
         LOGGER,
