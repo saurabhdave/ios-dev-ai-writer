@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.7] - 2026-03-31
+
+### Fixed
+- **Empty Responses API text handling** (`utils/openai_logging.py`, `agents/article_agent.py`, `agents/code_agent.py`, `agents/editor_agent.py`, `agents/linkedin_agent.py`, `agents/newsletter_agent.py`, `agents/outline_agent.py`): Added a shared `response_output_text()` helper and routed agents through it so `output_text=None` no longer crashes the pipeline with `AttributeError`. Empty model responses now fall through to each agent's intended empty-output handling path.
+- **SDK-backed Swift validation and newsletter counter persistence** (`agents/code_agent.py`, `agents/linkedin_agent.py`, `agents/newsletter_agent.py`): Restored real iOS simulator SDK path capture by reading `xcrun --show-sdk-path` from `stdout`, which re-enables full typechecking instead of silently dropping to parse-only validation. Newsletter issue numbers are now persisted only after generation succeeds, so transient generation failures no longer burn an issue number.
+
 ## [1.6.6] - 2026-03-30
 
 ### Added
