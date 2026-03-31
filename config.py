@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 
@@ -9,6 +10,11 @@ from dotenv import load_dotenv
 
 # Load environment variables from a local .env file (if present).
 load_dotenv()
+
+LOGGER = logging.getLogger(__name__)
+_REASONING_EFFORT_VALUES = frozenset(
+    {"none", "minimal", "low", "medium", "high", "xhigh"}
+)
 
 
 def _normalize_swift_language_mode(value: str) -> str:
@@ -22,38 +28,145 @@ def _normalize_swift_language_mode(value: str) -> str:
     return "6"
 
 
-def _normalize_reasoning_effort(value: str) -> str:
-    """Normalize OpenAI reasoning effort level."""
-    cleaned = value.strip().lower()
-    if cleaned in {"minimal", "low", "medium", "high"}:
-        return cleaned
+def _normalized_model_name(model: str | None) -> str:
+    """Return a trimmed lowercase model identifier."""
+    return (model or OPENAI_MODEL).strip().lower()
+
+
+def _is_gpt5_family(model: str | None) -> bool:
+    """Return True for GPT-5 family models."""
+    return _normalized_model_name(model).startswith("gpt-5")
+
+
+def _is_gpt51_family(model: str | None) -> bool:
+    """Return True for GPT-5.1 models and snapshots."""
+    return _normalized_model_name(model).startswith("gpt-5.1")
+
+
+def _is_gpt5_pro_family(model: str | None) -> bool:
+    """Return True for GPT-5 Pro models."""
+    return _normalized_model_name(model).startswith("gpt-5-pro")
+
+
+def _is_o_series(model: str | None) -> bool:
+    """Return True for OpenAI o-series reasoning models."""
+    return _normalized_model_name(model).startswith("o")
+
+
+def openai_model_supports_reasoning(model: str | None = None) -> bool:
+    """Return whether the selected model supports the `reasoning` parameter."""
+    selected = _normalized_model_name(model)
+    return selected.startswith("gpt-5") or selected.startswith("o")
+
+
+def _default_reasoning_effort(model: str | None = None) -> str:
+    """Return the project default reasoning effort for the selected model."""
+    if _is_gpt5_pro_family(model):
+        return "high"
+    if _is_gpt51_family(model):
+        return "none"
     return "low"
+
+
+def _normalize_reasoning_effort(value: str | None, *, model: str | None = None) -> str:
+    """Normalize OpenAI reasoning effort with model-aware compatibility rules."""
+    selected = _normalized_model_name(model)
+    cleaned = (value or "").strip().lower()
+    default = _default_reasoning_effort(selected)
+
+    if not cleaned:
+        return default
+    if cleaned not in _REASONING_EFFORT_VALUES:
+        LOGGER.warning(
+            "Unsupported OPENAI_REASONING_EFFORT %r for model %s; using %s.",
+            value,
+            selected,
+            default,
+        )
+        return default
+
+    if _is_gpt5_pro_family(selected):
+        if cleaned != "high":
+            LOGGER.warning(
+                "Model %s only supports reasoning effort 'high'; using 'high'.",
+                selected,
+            )
+        return "high"
+
+    if _is_gpt51_family(selected):
+        if cleaned == "minimal":
+            LOGGER.warning(
+                "Model %s does not support reasoning effort 'minimal'; using 'low'.",
+                selected,
+            )
+            return "low"
+        if cleaned == "xhigh":
+            LOGGER.warning(
+                "Model %s does not support reasoning effort 'xhigh'; using 'high'.",
+                selected,
+            )
+            return "high"
+        return cleaned
+
+    if _is_gpt5_family(selected) and cleaned == "none":
+        LOGGER.warning(
+            "Model %s does not support reasoning effort 'none'; using %s.",
+            selected,
+            default,
+        )
+        return default
+
+    return cleaned
 
 # OpenAI credentials and model settings.
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")
 OPENAI_TEMPERATURE = float(os.getenv("OPENAI_TEMPERATURE", "0.7"))
+_OPENAI_REASONING_EFFORT_ENV = os.getenv("OPENAI_REASONING_EFFORT")
 OPENAI_REASONING_EFFORT = _normalize_reasoning_effort(
-    os.getenv("OPENAI_REASONING_EFFORT", "low")
+    _OPENAI_REASONING_EFFORT_ENV,
+    model=OPENAI_MODEL,
 )
 
 
-def openai_model_supports_temperature(model: str | None = None) -> bool:
+def openai_model_supports_temperature(
+    model: str | None = None,
+    *,
+    reasoning_effort: str | None = None,
+) -> bool:
     """Return whether the selected model accepts the `temperature` parameter."""
-    selected = (model or OPENAI_MODEL).strip().lower()
-    return not selected.startswith("gpt-5")
+    selected = _normalized_model_name(model)
+    if _is_gpt51_family(selected):
+        effective_reasoning = _normalize_reasoning_effort(
+            reasoning_effort if reasoning_effort is not None else _OPENAI_REASONING_EFFORT_ENV,
+            model=selected,
+        )
+        return effective_reasoning == "none"
+    return not _is_gpt5_family(selected)
 
 
-def openai_generation_kwargs(temperature: float | None = None) -> dict[str, object]:
+def openai_generation_kwargs(
+    temperature: float | None = None,
+    *,
+    model: str | None = None,
+    reasoning_effort: str | None = None,
+) -> dict[str, object]:
     """Build model-compatible optional generation arguments."""
+    selected = _normalized_model_name(model)
     kwargs: dict[str, object] = {}
-    if temperature is None:
-        pass
-    elif openai_model_supports_temperature():
-        kwargs["temperature"] = temperature
 
-    if not openai_model_supports_temperature():
-        kwargs["reasoning"] = {"effort": OPENAI_REASONING_EFFORT}
+    effective_reasoning = _normalize_reasoning_effort(
+        reasoning_effort if reasoning_effort is not None else _OPENAI_REASONING_EFFORT_ENV,
+        model=selected,
+    )
+    if openai_model_supports_reasoning(selected):
+        kwargs["reasoning"] = {"effort": effective_reasoning}
+
+    if temperature is not None and openai_model_supports_temperature(
+        selected,
+        reasoning_effort=effective_reasoning,
+    ):
+        kwargs["temperature"] = temperature
 
     return kwargs
 
@@ -201,4 +314,3 @@ VOICE_PASS_ENABLED = os.getenv("VOICE_PASS_ENABLED", "true").lower() in {
     "yes",
     "on",
 }
-

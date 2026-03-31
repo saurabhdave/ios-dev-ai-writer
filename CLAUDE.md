@@ -64,7 +64,7 @@ All settings in [config.py](config.py) are driven by environment variables. Impo
 ```
 OPENAI_API_KEY          # Required
 OPENAI_MODEL            # Default: gpt-5-mini
-OPENAI_REASONING_EFFORT # minimal|low|medium|high (for GPT-5 models)
+OPENAI_REASONING_EFFORT # none|minimal|low|medium|high|xhigh (for GPT-5 and o-series; gpt-5.1 defaults to none)
 
 CODEGEN_VALIDATION_MODE # snippet|compile|none (default: snippet)
 CODEGEN_FAILURE_MODE    # omit|error (default: omit — publishes without code on failure)
