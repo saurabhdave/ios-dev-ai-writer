@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.11] - 2026-03-31
+
+### Changed
+- **Repository docs synced with current pipeline behavior** (`README.md`, `CLAUDE.md`): Updated the documented pipeline shape to include the voice pass, deterministic article repair, newsletter/review stages, and current output artifacts; added the deterministic repair feature note, listed `utils/article_repair.py` and the focused OpenAI config test, and replaced the stale hard-coded release tag example with a generic `vX.Y.Z` flow.
+
 ## [1.6.10] - 2026-03-31
 
 ### Fixed
