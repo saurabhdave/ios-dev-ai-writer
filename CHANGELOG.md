@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.6.10] - 2026-03-31
+
+### Fixed
+- **Prompt contracts aligned with current pipeline behavior** (`prompts/code_prompt.txt`, `prompts/newsletter_prompt.txt`, `prompts/review_prompt.txt`, `agents/newsletter_agent.py`): Removed the code-generation contradiction that both required and forbade deprecated APIs in migration examples, unified the newsletter no-snippet placeholder so the `Worth Watching This Week` fallback can actually trigger, and updated the review prompt to reflect that self-review sees only the article body rather than an appended standalone Swift snippet.
+
 ## [1.6.9] - 2026-03-31
 
 ### Fixed
