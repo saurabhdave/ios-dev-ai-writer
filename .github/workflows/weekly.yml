@@ -66,25 +66,8 @@ jobs:
           print("Summary written.")
           EOF
 
-      - name: Publish articles to content repo
-        env:
-          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
-        run: |
-          git clone https://x-access-token:${DEPLOY_TOKEN}@github.com/saurabhdave/ios-ai-articles.git _content
-          mkdir -p _content/articles _content/linkedin _content/codegen _content/newsletter
-          find outputs/articles -maxdepth 1 -type f -name '*.md' -exec cp {} _content/articles/ \; || true
-          find outputs/linkedin -maxdepth 1 -type f -name '*.md' -exec cp {} _content/linkedin/ \; || true
-          find outputs/codegen -maxdepth 1 -type f -name '*.json' -exec cp {} _content/codegen/ \; || true
-          find outputs/newsletter -maxdepth 1 -type f \( -name '*.md' -o -name '*.html' \) -exec cp {} _content/newsletter/ \; || true
-          rm -f _content/newsletter/.issue_number
-          cd _content
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A articles/ linkedin/ codegen/ newsletter/
-          git diff --staged --quiet || git commit -m "article: $(date +%Y-%m-%d)"
-          git push
-
       - name: Commit and push generated content
+        id: persist-state
         run: |
           CHANGED_FILES=""
           if [ -n "$(git status --porcelain .newsletter_issue_number)" ]; then
@@ -98,7 +81,41 @@ jobs:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add -f ${CHANGED_FILES}
             git commit -m "chore: persist newsletter counter and quality history"
+            git pull --rebase
             git push
           else
             echo "No state files changed."
           fi
+
+      - name: Publish articles to content repo
+        if: steps.persist-state.outcome == 'success'
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          git clone https://x-access-token:${DEPLOY_TOKEN}@github.com/saurabhdave/ios-ai-articles.git _content
+          mkdir -p _content/articles _content/linkedin _content/codegen _content/newsletter
+          for src in outputs/articles/*.md; do
+            [ -f "$src" ] || continue
+            fname=$(basename "$src")
+            date_prefix=$(echo "$fname" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}')
+            if [ -n "$date_prefix" ]; then
+              for existing in _content/articles/${date_prefix}-*.md; do
+                [ -f "$existing" ] || continue
+                if [ "$(basename "$existing")" != "$fname" ]; then
+                  echo "Replacing same-date article: $(basename "$existing") -> $fname"
+                  rm "$existing"
+                fi
+              done
+            fi
+            cp "$src" _content/articles/
+          done
+          find outputs/linkedin -maxdepth 1 -type f -name '*.md' -exec cp {} _content/linkedin/ \; || true
+          find outputs/codegen -maxdepth 1 -type f -name '*.json' -exec cp {} _content/codegen/ \; || true
+          find outputs/newsletter -maxdepth 1 -type f \( -name '*.md' -o -name '*.html' \) -exec cp {} _content/newsletter/ \; || true
+          rm -f _content/newsletter/.issue_number
+          cd _content
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A articles/ linkedin/ codegen/ newsletter/
+          git diff --staged --quiet || git commit -m "article: $(date +%Y-%m-%d)"
+          git push
