@@ -878,5 +878,34 @@
       "Practical observability guidance using OSSignposter and profiler traces"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-04-01",
+    "slug": "find-swift-memory-leaks-with-xcode-memory-graph",
+    "topic": "Find Swift Memory Leaks with Xcode Memory Graph",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "Article body — no Swift version or deployment target stated for API guidance",
+      "Inspecting Objects With Xcode Memory Graph code snippet — uses Timer scheduledTimer without noting runloop/retention nuances",
+      "Validation & Observability — no guidance on automating Memory Graph capture in CI or available tools/commands",
+      "Repeated guidance — 'Use Memory Graph diffs...' is stated twice, creates minor redundancy",
+      "2. Closure Captures... — no small example showing a bad capture cycle for contrast"
+    ],
+    "review_strengths": [
+      "Practical checklist with specific, actionable items",
+      "Concrete Combine example showing per-owner AnyCancellable usage",
+      "Emphasizes baseline-and-diff workflow for reproducible triage",
+      "Addresses tradeoffs and failure modes, not just best practices",
+      "Calls out Instruments and OSSignposter for correlating runtime behavior"
+    ],
+    "review_repair_triggered": false
   }
 ]
