@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import logging
 import re
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -30,6 +32,7 @@ from agents.outline_agent import generate_outline
 from agents.topic_agent import generate_topic
 import config as _config_module
 from config import (
+    CROSS_REPO_DEDUP_ENABLED,
     EDITOR_PASS_ENABLED,
     FACT_GROUNDING_ENABLED,
     VOICE_PASS_ENABLED,
@@ -44,6 +47,7 @@ from config import (
     OUTPUT_NEWSLETTER_DIR,
     OUTPUT_QUALITY_HISTORY_PATH,
     LINKEDIN_POST_ENABLED,
+    PUBLISHED_REPO_API_URL,
     REVIEW_REPAIR_ENABLED,
     REVIEW_REPAIR_MIN_SCORE,
     SELF_REVIEW_ENABLED,
@@ -246,13 +250,51 @@ def _slugify(text: str) -> str:
     return cleaned.strip("-")[:90] or "ios-article"
 
 
+def _load_published_titles(max_items: int = 30) -> list[str]:
+    """Fetch article titles from the published output repo via GitHub API.
+
+    Reconstructs approximate titles from slug-form filenames. The reconstruction
+    is lossy (e.g. "Swift 6.3" becomes "Swift 63") but sufficient for dedup
+    since the checks use normalized word sets and embeddings, not exact matching.
+
+    Returns an empty list on any network or parse failure so dedup continues
+    with quality_history.json as the source of truth.
+    """
+    if not CROSS_REPO_DEDUP_ENABLED:
+        return []
+    try:
+        req = urllib.request.Request(
+            PUBLISHED_REPO_API_URL,
+            headers={"Accept": "application/vnd.github.v3+json", "User-Agent": "ios-dev-ai-writer"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            entries: list[dict] = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, json.JSONDecodeError, OSError) as exc:
+        log_event(LOGGER, "published_titles_fetch_failed", level=logging.WARNING, error=repr(exc))
+        return []
+
+    titles: list[str] = []
+    for entry in sorted(entries, key=lambda e: e.get("name", ""), reverse=True):
+        name = entry.get("name", "")
+        if not name.endswith(".md"):
+            continue
+        # Strip date prefix and extension: "2026-03-31-some-slug.md" -> "Some Slug"
+        slug = re.sub(r"^\d{4}-\d{2}-\d{2}-", "", name[:-3])
+        title = slug.replace("-", " ").title()
+        if title and title not in titles:
+            titles.append(title)
+        if len(titles) >= max_items:
+            break
+    return titles
+
+
 def _load_recent_titles(max_items: int = 20) -> list[str]:
     """Load recently generated article titles to avoid repetitive topics.
 
     Reads from quality_history.json first (all-time history committed to the
-    source repo), then falls back to local article markdown files so that
-    deduplication works on CI where only the current run's article is present
-    in outputs/articles/.
+    source repo), then falls back to local article markdown files, and finally
+    cross-checks the published output repo via GitHub API as defense-in-depth
+    against state drift.
     """
     titles: list[str] = []
 
@@ -288,6 +330,14 @@ def _load_recent_titles(max_items: int = 20) -> list[str]:
                         titles.append(title)
                     break
 
+            if len(titles) >= max_items:
+                break
+
+    # Defense-in-depth: also check published output repo to catch state drift
+    if len(titles) < max_items:
+        for title in _load_published_titles(max_items=max_items - len(titles)):
+            if title not in titles:
+                titles.append(title)
             if len(titles) >= max_items:
                 break
 

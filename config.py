@@ -314,3 +314,16 @@ VOICE_PASS_ENABLED = os.getenv("VOICE_PASS_ENABLED", "true").lower() in {
     "yes",
     "on",
 }
+
+# Cross-repo dedup: fetch published article titles from the output repo via GitHub API
+# to guard against state drift between source repo and published content.
+CROSS_REPO_DEDUP_ENABLED = os.getenv("CROSS_REPO_DEDUP_ENABLED", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+PUBLISHED_REPO_API_URL = os.getenv(
+    "PUBLISHED_REPO_API_URL",
+    "https://api.github.com/repos/saurabhdave/ios-ai-articles/contents/articles",
+)
