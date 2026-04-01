@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Fixed
+- **Dedup state now persisted before content is published** (`.github/workflows/weekly.yml`): Swapped step order so `quality_history.json` and `.newsletter_issue_number` are committed to the source repo first; the publish step is gated on that commit succeeding (`id: persist-state` + `if: steps.persist-state.outcome == 'success'`). Added `git pull --rebase` to handle rapid concurrent pushes. This eliminates the state-drift window that caused the March 31 duplicate.
+- **Same-date slug collision detection in publish step** (`.github/workflows/weekly.yml`): Article copy now removes any existing same-date file with a different slug before writing the new one, preventing accumulation of slug variants from reruns.
+- **Cross-repo dedup via GitHub API** (`workflows/weekly_pipeline.py`, `config.py`): `_load_recent_titles()` now calls `_load_published_titles()` as a third source, fetching article filenames from `ios-ai-articles` via the public GitHub Contents API and reconstructing approximate titles from slugs. Graceful fallback on network errors. Controlled by `CROSS_REPO_DEDUP_ENABLED` (default: `true`).
+
 ## [1.6.12] - 2026-03-31
 
 ### Fixed

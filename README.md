@@ -288,6 +288,8 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `NEWSLETTER_ENABLED` | `true` | Generate newsletter issue |
 | `NEWSLETTER_NAME` | `iOS Dev Weekly` | Newsletter display name |
 | `OUTPUT_QUALITY_HISTORY_PATH` | `outputs/quality_history.json` | Append-only quality record |
+| `CROSS_REPO_DEDUP_ENABLED` | `true` | Fetch published titles from the output repo via GitHub API to guard against state drift |
+| `PUBLISHED_REPO_API_URL` | *(ios-ai-articles articles API)* | GitHub Contents API URL used for cross-repo dedup |
 
 ---
 
@@ -319,7 +321,7 @@ Outputs are gitignored locally and auto-published to [saurabhdave/ios-ai-article
 | `OPENAI_API_KEY` | LLM API access |
 | `DEPLOY_TOKEN` | GitHub PAT with `contents: write` on `saurabhdave/ios-ai-articles` |
 
-**Pipeline steps:** checkout → install deps → `python main.py` → write run summary to GitHub Actions step summary → publish outputs to content repo → commit trend snapshot and quality history back to this repo.
+**Pipeline steps:** checkout → install deps → `python main.py` → write run summary to GitHub Actions step summary → commit quality history and newsletter counter back to this repo → publish outputs to content repo (skipped if state commit fails).
 
 A GitHub Release is created automatically when a `v*` tag is pushed (see `.github/workflows/release.yml`).
 
