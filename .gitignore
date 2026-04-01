@@ -31,3 +31,6 @@ outputs/run_summary.json
 
 # Temp content repo clone used by CI publish step
 _content/
+
+# Git worktrees
+.worktrees/
