@@ -907,5 +907,33 @@
       "Calls out Instruments and OSSignposter for correlating runtime behavior"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-04-02",
+    "slug": "dependency-injection-patterns-for-swiftui-apps",
+    "topic": "Dependency Injection Patterns for SwiftUI Apps",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "UserService fetchUser uses force-unwrapped URL(string:) in example (Service container section).",
+      "No Swift language or iOS deployment target specified for guidance or examples (global).",
+      "Article repeatedly recommends “signposts” without naming or showing the `os_signpost`/`OSSignpost` API (Validation section).",
+      "Opening paragraph is dense and could use a sharper, shorter hook (first paragraph)."
+    ],
+    "review_strengths": [
+      "Clear rule: show mutating dependency ownership in view constructors (blockquote).",
+      "Concrete decision guidance for Environment vs constructor injection (§1 and §2).",
+      "Practical checklist with actionable migration steps.",
+      "Calls out observability tools: `Instruments`, signposts, allocations, and profiler use.",
+      "Covers concurrency boundaries with `@MainActor` and `actor` guidance and failure modes."
+    ],
+    "review_repair_triggered": false
   }
 ]
