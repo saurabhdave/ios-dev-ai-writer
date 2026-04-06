@@ -935,5 +935,34 @@
       "Covers concurrency boundaries with `@MainActor` and `actor` guidance and failure modes."
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-04-06",
+    "slug": "app-intents-patterns-for-ios-shortcuts",
+    "topic": "App Intents Patterns for iOS Shortcuts",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "Opening paragraph is a bit generic; lacks a crisp one-line hook tying impact to measurable outcomes",
+      "Execution Context & Background Work section omits explicit background APIs like `BGTaskScheduler`/`BackgroundTasks`",
+      "No deployment target or minimum iOS/Swift version stated for `AppIntent` guidance",
+      "Example `perform()` shows synchronous return but doesn't demonstrate handing off to a background worker or idempotency keys",
+      "Validation & Observability suggests correlation IDs but provides no concrete log schema or example for support teams"
+    ],
+    "review_strengths": [
+      "Strong, concrete focus on common failure modes and root causes",
+      "Clear guidance to prefer typed `@Parameter` inputs over freeform strings",
+      "Good treatment of migration risks with practical compatibility-shim advice",
+      "Actionable observability recommendations: `XCTest`, `OSSignposter`, and `os_log` mentions",
+      "Practical checklist at article end makes rollout steps easy to follow"
+    ],
+    "review_repair_triggered": false
   }
 ]
