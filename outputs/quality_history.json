@@ -964,5 +964,34 @@
       "Practical checklist at article end makes rollout steps easy to follow"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-04-09",
+    "slug": "navigationstack-integration-in-modular-swift-packages",
+    "topic": "NavigationStack Integration in Modular Swift Packages",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "No deployment target or Swift toolchain version specified",
+      "No concrete decoder-fallback implementation example provided",
+      "Router example omits EnvironmentKey or injection usage demonstration",
+      "No explicit NavigationDestination registration sample shown",
+      "Opening hook could cite a concrete incident or example for stronger urgency"
+    ],
+    "review_strengths": [
+      "Concise, scannable structure with clear sections and checklist",
+      "Practical Router protocol and DefaultRouter implementation included",
+      "Strong migration guidance with staged rollout and compatibility shims",
+      "Good emphasis on observability: signposts, structured logs, telemetry",
+      "Actionable checklist ties recommendations to test and rollout practices"
+    ],
+    "review_repair_triggered": false
   }
 ]
