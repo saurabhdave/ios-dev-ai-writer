@@ -993,5 +993,34 @@
       "Actionable checklist ties recommendations to test and rollout practices"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-04-13",
+    "slug": "designing-custom-swiftui-environmentkeys",
+    "topic": "Designing Custom SwiftUI EnvironmentKeys",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "No deployment target or Swift version stated for behavioral assumptions",
+      "Doesn't explicitly mention `@Environment` and `@EnvironmentObject` distinctions in examples",
+      "No concrete example that demonstrates avoiding duplicate observable object injections",
+      "Opening anecdote lacks quantitative detail or reproducible symptom description",
+      "Migration section omits guidance for telemetry metrics names or schema to track shims"
+    ],
+    "review_strengths": [
+      "Strong real-world hook describing render churn from environment misuse",
+      "Clear decision criteria when to use EnvironmentKey versus explicit parameters",
+      "Good, concise code examples showing key, extension, and view modifier patterns",
+      "Includes migration shim pattern with fallback-first read logic",
+      "Practical checklist and observability guidance referencing `os_signpost` and Instruments"
+    ],
+    "review_repair_triggered": false
   }
 ]
