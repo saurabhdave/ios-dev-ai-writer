@@ -1022,5 +1022,33 @@
       "Practical checklist and observability guidance referencing `os_signpost` and Instruments"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-04-16",
+    "slug": "instrumenting-ios-apps-with-ossignposter",
+    "topic": "Instrumenting iOS Apps with OSSignposter",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 9,
+    "review_actionability": 8,
+    "review_issues": [
+      "No deployment-target or API-availability notes for `OSSignposter` and related APIs",
+      "Code lacks an example showing `OSSignpostID` propagation across `Task` hops",
+      "No concrete sampling/remote-config implementation or code snippet shown",
+      "Opening hook is a bit generic; lacks a short concrete example or metric to anchor urgency"
+    ],
+    "review_strengths": [
+      "Compact, scannable structure with clear headings and checklist",
+      "Concrete `OSSignposter` usage example with paired `OSLog` calls",
+      "Covers concurrency pitfalls and recommends explicit `OSSignpostID` propagation",
+      "Practical rollout guidance: feature flags, sampling, and CI integration checklist",
+      "Links signposts to platform tools (`Instruments`, `MetricKit`) and validation strategies"
+    ],
+    "review_repair_triggered": false
   }
 ]
