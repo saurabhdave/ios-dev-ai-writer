@@ -1050,5 +1050,34 @@
       "Links signposts to platform tools (`Instruments`, `MetricKit`) and validation strategies"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-04-20",
+    "slug": "automating-xcode-tasks-with-swift-package-plugins",
+    "topic": "Automating Xcode Tasks with Swift Package Plugins",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "No Swift toolchain or Swift version constraints specified — missing where relevant (throughout).",
+      "Hardcoded tool path `/usr/bin/clang-format` in example — fragile on developer machines (Tool Invocation example).",
+      "No concrete `Package.swift` examples showing how to add `PackagePlugin` targets (Plugin Types/Checklist).",
+      "Cancellation handling is recommended but not demonstrated; example lacks interruption support (Process example).",
+      "Security/sandboxing and code-signing implications for plugins not discussed (Integration with the Xcode Build System)."
+    ],
+    "review_strengths": [
+      "Strong, specific opening anecdote motivating the problem.",
+      "Clear decision guidance: `BuildToolPlugin` vs `CommandPlugin` with use cases.",
+      "Practical checklist with actionable rollout and rollback items.",
+      "Mentions concrete Apple APIs like `PackagePlugin`, `Process`, `FileManager`, and `os_signpost`.",
+      "Good coverage of tradeoffs, failure modes, and CI smoke-test strategy."
+    ],
+    "review_repair_triggered": false
   }
 ]
