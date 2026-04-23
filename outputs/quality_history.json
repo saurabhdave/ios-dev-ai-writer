@@ -1079,5 +1079,33 @@
       "Good coverage of tradeoffs, failure modes, and CI smoke-test strategy."
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-04-23",
+    "slug": "integrating-apple-intelligence-into-app-intents",
+    "topic": "Integrating Apple Intelligence into App Intents",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Duplicate Validation/Observability `##` sections detected — merge into one."
+    ],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "Opening hook is generic and could be more specific about scale/impact in opening paragraph",
+      "No deployment-target or OS-version guidance when recommending maintaining INIntent fallbacks",
+      "No concrete code examples for OSSignposter or MetricKit signposting despite recommending them"
+    ],
+    "review_strengths": [
+      "Clear decision guidance: when to use catch-all String versus typed @Parameter fields",
+      "Practical, scannable checklist mapping directly to engineering work",
+      "Accurate, precise API references: `AppIntent`, `INIntent`, `OSSignposter`, `MetricKit`, `XCTest`, `os_log`",
+      "Strong observability recommendations tying signposts, Instruments, and MetricKit to rollout gates"
+    ],
+    "review_repair_triggered": false
   }
 ]
