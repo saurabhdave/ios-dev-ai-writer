@@ -1107,5 +1107,33 @@
       "Strong observability recommendations tying signposts, Instruments, and MetricKit to rollout gates"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-04-27",
+    "slug": "designing-color-schemes-for-dark-mode-in-swiftui",
+    "topic": "Designing Color Schemes for Dark Mode in SwiftUI",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Opening hook is broad; could cite a concrete incident or metric for urgency",
+      "No deployment-target or Swift version guidance for runtime `Color`/asset behaviors",
+      "`ThemeState` example uses `@ObservedObject` where `@StateObject` may be more appropriate for ownership",
+      "Bridging example uses `UIColor(named:)` but omits trait-collection/semantic resolution details"
+    ],
+    "review_strengths": [
+      "Clear recommendation to centralize semantic tokens and avoid hex litter",
+      "Concrete guidance to prefer asset-catalog color sets with Light/Dark variants",
+      "Actionable rollout practices: feature flags, staged rollout, and telemetry guidance",
+      "Practical checklist with concrete CI and testing tasks",
+      "Covers cross-framework consistency and observable/traceable rollout instrumentation (signposts, Instruments)"
+    ],
+    "review_repair_triggered": false
   }
 ]
