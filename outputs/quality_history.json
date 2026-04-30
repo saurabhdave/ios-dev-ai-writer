@@ -1135,5 +1135,35 @@
       "Covers cross-framework consistency and observable/traceable rollout instrumentation (signposts, Instruments)"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-04-30",
+    "slug": "swift-63-macros-for-reducing-swiftui-boilerplate",
+    "topic": "Swift 6.3 Macros for Reducing SwiftUI Boilerplate",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Opening hook is abrupt and generic; lacks a specific motivating device-level anecdote",
+      "Title references Swift 6.3 but body doesn't state Swift or toolchain version requirements",
+      "Recommends signposts but never names `OSSignpost`/`os_signpost` or related APIs",
+      "No concrete macro example or generated-diff snippet demonstrating before/after output",
+      "No CI/testing commands or examples for including generated diffs in pipelines",
+      "Doesn't show a minimal SwiftSyntax macro or property-wrapper example to illustrate tradeoffs"
+    ],
+    "review_strengths": [
+      "Clear anti-pattern → preferred comparisons for state and API generation",
+      "Practical, specific checklist with actionable rollout items",
+      "Strong emphasis on observability: signposts, logs, Instruments on device",
+      "Concrete decision rules for choosing structural macros vs property wrappers",
+      "Good guidance on versioning and rollback for macro packages"
+    ],
+    "review_repair_triggered": false
   }
 ]
