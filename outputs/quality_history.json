@@ -1165,5 +1165,34 @@
       "Good guidance on versioning and rollback for macro packages"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-05-04",
+    "slug": "fixing-slow-swiftui-previews-in-xcode",
+    "topic": "Fixing Slow SwiftUI Previews in Xcode",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Opening hook lacks concrete metric or example to quantify 'long time' for previews",
+      "No Swift/Xcode version or deployment-target guidance for `@Observable` and observation APIs",
+      "Article omits explicit instructions or commands to capture `XCResult` bundles in CI",
+      "Focused preview example is minimal and doesn't show environment or dependency injection",
+      "No guidance on how to detect or log excessive `View.body` evaluations (e.g., lightweight debug counters)"
+    ],
+    "review_strengths": [
+      "Clear, scannable structure with focused sections and a concise closing takeaway",
+      "Practical, repo-level recommendations (BUILD_ACTIVE_ARCH_ONLY, preview targets, CI jobs)",
+      "Includes `OSSignposter` example and emphasizes correlating with Instruments traces",
+      "Good tradeoffs and pitfalls coverage acknowledging simulator vs device differences",
+      "Actionable checklist with concrete items developers can apply immediately"
+    ],
+    "review_repair_triggered": false
   }
 ]
