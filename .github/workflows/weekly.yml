@@ -76,11 +76,14 @@ jobs:
           if [ -n "$(git status --porcelain outputs/quality_history.json)" ]; then
             CHANGED_FILES="${CHANGED_FILES} outputs/quality_history.json"
           fi
+          if [ -n "$(git status --porcelain memory/family_picks.json)" ]; then
+            CHANGED_FILES="${CHANGED_FILES} memory/family_picks.json"
+          fi
           if [ -n "${CHANGED_FILES}" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add -f ${CHANGED_FILES}
-            git commit -m "chore: persist newsletter counter and quality history"
+            git commit -m "chore: persist newsletter counter, quality history, and family rotation"
             git pull --rebase
             git push
           else

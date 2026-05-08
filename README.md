@@ -304,6 +304,7 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | Newsletter (Markdown) | `outputs/newsletter/YYYY-MM-DD-issue-N.md` |
 | Newsletter (HTML) | `outputs/newsletter/YYYY-MM-DD-issue-N.html` |
 | Quality history | `outputs/quality_history.json` |
+| Topic family rotation state | `memory/family_picks.json` |
 | Run summary (CI only) | `outputs/run_summary.json` — ephemeral, not committed or published |
 
 Outputs are gitignored locally and auto-published to [saurabhdave/ios-ai-articles](https://github.com/saurabhdave/ios-ai-articles) on every CI run. `run_summary.json` is the exception — it is consumed by the "Write run summary" CI step to populate the GitHub Actions step summary and is never committed.

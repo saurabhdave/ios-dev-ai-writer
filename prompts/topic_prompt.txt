@@ -74,8 +74,16 @@ Framing preference:
     engineering techniques.
   - Avoid old→new migration framing unless a migration theme is explicitly
     listed in {topic_interests}.
-  - Draw from {topic_interests} first; use {trend_context} to sharpen
-    specificity, not to override the priority themes.
+  - {topic_interests} is a MANDATORY candidate pool — the first item
+    represents the family the rotation sampler chose for this run because
+    it has the lowest recent coverage. The chosen title MUST be drawn from
+    or directly aligned with the {topic_interests} list. Use {trend_context}
+    only to sharpen specificity, never to override the chosen family.
+  - When {theme_warnings} mentions PLATFORM DIVERSITY REQUIRED, the title
+    MUST be primarily about a non-iOS Apple platform or a cross-platform
+    framework (watchOS, visionOS, macOS, iPadOS, RealityKit, ARKit,
+    WidgetKit, AppKit, Mac Catalyst, CarPlay) — iOS-only topics will be
+    rejected.
   - For Swift patterns or practices topics, occasionally frame the title from
     the reader's growth perspective: e.g., "Swift Patterns Every iOS Engineer
     Should Know", "Concurrency Techniques Senior Engineers Reach For". Benefit-

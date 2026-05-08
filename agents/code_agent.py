@@ -33,6 +33,7 @@ from config import (
     SWIFT_LANGUAGE_VERSION,
     openai_generation_kwargs,
 )
+from utils.article_repair import strip_bindable_from_observable
 from utils.observability import get_logger, log_event
 from utils.openai_logging import create_openai_client, response_output_text, responses_create_logged
 
@@ -646,6 +647,22 @@ def generate_code_with_metadata(topic: str, article_body: str = "") -> CodeGener
             f"Code generation returned empty output for topic={topic!r}."
         )
 
+    # --- Deterministic pre-repair: strip @Bindable from @Observable bodies ---
+    # The model frequently emits `@Observable class M { @Bindable var x: ... }`
+    # which the prompt forbids; the repair loop often fails to fix it within
+    # MAX_REPAIR_ATTEMPTS. Strip the annotation here so the LLM repair budget
+    # is spent on real diagnostics.
+    code, auto_bindable_fixes = strip_bindable_from_observable(code)
+    if auto_bindable_fixes:
+        log_event(
+            LOGGER,
+            "code_auto_repaired_bindable",
+            level=logging.INFO,
+            topic=topic,
+            phase="initial",
+            fixes=auto_bindable_fixes,
+        )
+
     # --- Repair loop ---
     is_valid, compiler_diag = _validate_code(code, validation_mode)
     style_diag = _observation_style_issues(code)
@@ -678,6 +695,19 @@ def generate_code_with_metadata(topic: str, article_body: str = "") -> CodeGener
             log_event(LOGGER, "code_repair_empty", level=logging.WARNING, topic=topic, attempt=attempts + 1)
             break
         code = repaired
+        # Strip @Bindable again — the model often re-introduces the same mistake
+        # mid-repair when fixing other diagnostics.
+        code, repair_bindable_fixes = strip_bindable_from_observable(code)
+        if repair_bindable_fixes:
+            auto_bindable_fixes += repair_bindable_fixes
+            log_event(
+                LOGGER,
+                "code_auto_repaired_bindable",
+                level=logging.INFO,
+                topic=topic,
+                phase=f"repair_{attempts + 1}",
+                fixes=repair_bindable_fixes,
+            )
         is_valid, compiler_diag = _validate_code(code, validation_mode)
         style_diag = _observation_style_issues(code)
         attempts += 1
@@ -720,6 +750,11 @@ def generate_code_with_metadata(topic: str, article_body: str = "") -> CodeGener
             if advisory_diag
             else ""
         )
+        bindable_suffix = (
+            f" | auto_repaired_bindable={auto_bindable_fixes}"
+            if auto_bindable_fixes
+            else ""
+        )
         log_event(
             LOGGER,
             "code_generation_succeeded",
@@ -728,13 +763,14 @@ def generate_code_with_metadata(topic: str, article_body: str = "") -> CodeGener
             path=path,
             repair_attempts=attempts,
             has_advisory=bool(advisory_diag),
+            auto_bindable_fixes=auto_bindable_fixes,
         )
         return CodeGenerationResult(
             code=code,
             path=path,
             repair_attempts=attempts,
             diagnostics=(
-                f"[{validation_mode}] {compiler_diag[-RESULT_DIAG_MAX_CHARS:]}{advisory_suffix}"
+                f"[{validation_mode}] {compiler_diag[-RESULT_DIAG_MAX_CHARS:]}{advisory_suffix}{bindable_suffix}"
             ).strip(),
         )
 

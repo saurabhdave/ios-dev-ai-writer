@@ -20,7 +20,12 @@ __pycache__/
 
 # Claude Code local tooling
 .claude/
-memory/
+# Ignore everything under memory/ except files explicitly re-included below.
+# Note: must use `memory/*` (contents) not `memory/` (the directory itself) —
+# Git cannot un-ignore a file whose parent directory has been excluded.
+memory/*
+# Persist the topic-family rotation history so CI runs share state.
+!memory/family_picks.json
 
 # Generated outputs (published to saurabhdave/ios-ai-articles)
 outputs/*

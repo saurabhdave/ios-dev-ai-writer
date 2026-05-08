@@ -55,6 +55,28 @@ MIGRATION_FAMILY_WEIGHT_FACTOR: Final[float] = 0.5
 BASE_WEIGHT: Final[float] = 4.0
 WEIGHT_PENALTY_PER_MATCH: Final[float] = 1.5
 
+# Boost applied to families with zero recent picks within RECENT_PICKS_WINDOW.
+# Set to ~3x BASE_WEIGHT so under-covered families dominate the random pick.
+ZERO_COVERAGE_BOOST: Final[float] = 12.0
+# Number of recent family picks to consider when checking under-coverage.
+RECENT_PICKS_WINDOW: Final[int] = 8
+
+# Persistent file storing the chronological list of family picks (newest last).
+FAMILY_PICK_HISTORY_PATH: Final[Path] = Path("memory/family_picks.json")
+
+# Platform diversity gating.
+# If fewer than this many of the last PLATFORM_DIVERSITY_WINDOW titles mention a
+# non-iOS Apple platform, inject a warning into theme_warnings AND treat the
+# next candidate as a violation if it remains iOS-only.
+PLATFORM_DIVERSITY_WINDOW: Final[int] = 8
+PLATFORM_DIVERSITY_MIN_NON_IOS: Final[int] = 2
+
+_NON_IOS_PLATFORM_RE: Final[re.Pattern[str]] = re.compile(
+    r"\b(watchos|visionos|macos|ipados|realitykit|arkit|widgetkit|"
+    r"appkit|carplay|tvos|mac\s*catalyst)\b",
+    re.IGNORECASE,
+)
+
 # Embedding model used for semantic deduplication.
 EMBEDDING_MODEL: Final[str] = "text-embedding-3-small"
 
@@ -437,25 +459,114 @@ class _WeightedFamily:
     weight: float
 
 
-def _sample_topic_family(recent_titles: list[str]) -> tuple[str, list[str]]:
-    """Pick a topic family, biased away from recently used families and migration."""
-    weighted: list[_WeightedFamily] = []
+def _load_family_pick_history(
+    path: Path = FAMILY_PICK_HISTORY_PATH,
+) -> list[str]:
+    """Return chronological list of recent family picks (newest last).
 
-    for family_name, queries in TOPIC_FAMILIES:
-        # Count how many recent titles share keywords with this family.
-        matches = sum(
-            1 for title in recent_titles
-            if any(
-                re.search(r"\b" + re.escape(kw.lower().split()[0]) + r"\b", title.lower())
-                for kw in queries
-            )
+    Returns ``[]`` when the file is missing or unreadable so callers can
+    treat first-run and corruption alike. Failures are logged at DEBUG level.
+    """
+    import json as _json  # noqa: PLC0415
+
+    if not path.exists():
+        return []
+    try:
+        data = _json.loads(path.read_text(encoding="utf-8"))
+        picks = data.get("picks", []) if isinstance(data, dict) else []
+        return [p for p in picks if isinstance(p, str)]
+    except Exception as exc:  # noqa: BLE001
+        log_event(
+            LOGGER,
+            "family_pick_history_load_failed",
+            level=logging.WARNING,
+            path=str(path),
+            error=repr(exc),
         )
-        weight = max(1.0, BASE_WEIGHT - matches * WEIGHT_PENALTY_PER_MATCH)
+        return []
+
+
+def _record_family_pick(
+    family_name: str,
+    path: Path = FAMILY_PICK_HISTORY_PATH,
+    max_history: int = 256,
+) -> None:
+    """Append *family_name* to the persistent pick history, truncating to *max_history*.
+
+    Creates the parent directory if missing. Silent on write errors — pipeline
+    correctness must not depend on this side-channel.
+    """
+    import json as _json  # noqa: PLC0415
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        existing = _load_family_pick_history(path)
+        existing.append(family_name)
+        if len(existing) > max_history:
+            existing = existing[-max_history:]
+        path.write_text(_json.dumps({"picks": existing}, indent=2), encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001
+        log_event(
+            LOGGER,
+            "family_pick_history_write_failed",
+            level=logging.WARNING,
+            path=str(path),
+            error=repr(exc),
+        )
+
+
+def _sample_topic_family(
+    recent_titles: list[str],
+    recent_family_picks: list[str] | None = None,
+) -> tuple[str, list[str]]:
+    """Pick a topic family with strong bias toward zero-coverage families.
+
+    Weighting:
+      * If a family has **zero** picks in the last ``RECENT_PICKS_WINDOW``
+        runs, it gets ``ZERO_COVERAGE_BOOST`` (~3x normal weight) so it
+        dominates the random pick when several families are under-covered.
+      * Otherwise weight = ``max(1.0, BASE_WEIGHT - picks * WEIGHT_PENALTY_PER_MATCH)``.
+      * Migration is then multiplied by ``MIGRATION_FAMILY_WEIGHT_FACTOR``.
+
+    Falls back to keyword-match scanning of *recent_titles* when no family
+    pick history is provided (first runs after deploying this change).
+    """
+    picks = recent_family_picks if recent_family_picks is not None else _load_family_pick_history()
+    window = picks[-RECENT_PICKS_WINDOW:] if picks else []
+
+    weighted: list[_WeightedFamily] = []
+    for family_name, queries in TOPIC_FAMILIES:
+        if window:
+            recent_count = window.count(family_name)
+        else:
+            # Fallback for first run: count recent-title keyword matches.
+            recent_count = sum(
+                1 for title in recent_titles
+                if any(
+                    re.search(r"\b" + re.escape(kw.lower().split()[0]) + r"\b", title.lower())
+                    for kw in queries
+                )
+            )
+
+        if recent_count == 0:
+            weight = ZERO_COVERAGE_BOOST
+        else:
+            weight = max(1.0, BASE_WEIGHT - recent_count * WEIGHT_PENALTY_PER_MATCH)
+
         if family_name == "migration":
             weight *= MIGRATION_FAMILY_WEIGHT_FACTOR
         weighted.append(_WeightedFamily(name=family_name, queries=queries, weight=weight))
 
     chosen = random.choices(weighted, weights=[f.weight for f in weighted], k=1)[0]
+    log_event(
+        LOGGER,
+        "topic_family_sampled",
+        level=logging.INFO,
+        family=chosen.name,
+        weight=round(chosen.weight, 2),
+        zero_coverage=chosen.weight == ZERO_COVERAGE_BOOST,
+        history_window=len(window),
+    )
     return chosen.name, chosen.queries
 
 
@@ -467,9 +578,13 @@ def _sample_topic_family(recent_titles: list[str]) -> tuple[str, list[str]]:
 def _filtered_interests(
     topic_interests: list[str],
     recent_titles: list[str],
-) -> list[str]:
-    """Build a varied, family-weighted interest list for the current run."""
-    _family_name, family_queries = _sample_topic_family(recent_titles)
+) -> tuple[str, list[str]]:
+    """Build a varied, family-weighted interest list for the current run.
+
+    Returns ``(family_name, interests)`` so the caller can persist the
+    chosen family to the pick history on success.
+    """
+    family_name, family_queries = _sample_topic_family(recent_titles)
     supplemental = [
         item.strip() for item in topic_interests
         if item and item.strip()
@@ -477,7 +592,47 @@ def _filtered_interests(
         and not _matches_any(item, AI_WORD_PATTERNS)
         and not _matches_any(item, MIGRATION_WORD_PATTERNS)
     ]
-    return list(family_queries) + supplemental[:SUPPLEMENTAL_INTERESTS_LIMIT]
+    return family_name, list(family_queries) + supplemental[:SUPPLEMENTAL_INTERESTS_LIMIT]
+
+
+# ---------------------------------------------------------------------------
+# Platform diversity
+# ---------------------------------------------------------------------------
+
+
+def _mentions_non_ios_platform(title: str) -> bool:
+    """Return True when *title* mentions watchOS/visionOS/macOS/etc."""
+    return bool(_NON_IOS_PLATFORM_RE.search(title))
+
+
+def _platform_diversity_warning(recent_titles: list[str]) -> str:
+    """Return a prompt warning when iOS-only topics are over-saturated.
+
+    Triggers when fewer than ``PLATFORM_DIVERSITY_MIN_NON_IOS`` of the last
+    ``PLATFORM_DIVERSITY_WINDOW`` titles mention a non-iOS Apple platform.
+    Returns an empty string when diversity is healthy.
+    """
+    window = recent_titles[:PLATFORM_DIVERSITY_WINDOW]
+    if not window:
+        return ""
+    non_ios_count = sum(1 for t in window if _mentions_non_ios_platform(t))
+    if non_ios_count >= PLATFORM_DIVERSITY_MIN_NON_IOS:
+        return ""
+    return (
+        f"- PLATFORM DIVERSITY REQUIRED: only {non_ios_count} of the last "
+        f"{len(window)} articles mention a non-iOS Apple platform. "
+        "The next title MUST be primarily about watchOS, visionOS, macOS, "
+        "iPadOS, or a cross-platform Apple framework (RealityKit, ARKit, "
+        "WidgetKit, AppKit, Mac Catalyst, CarPlay). iOS-only topics will be "
+        "rejected this run."
+    )
+
+
+def _violates_platform_diversity(candidate: str, recent_titles: list[str]) -> bool:
+    """Return True when the platform-diversity gate is active and *candidate* is iOS-only."""
+    if not _platform_diversity_warning(recent_titles):
+        return False  # gate not active
+    return not _mentions_non_ios_platform(candidate)
 
 
 # ---------------------------------------------------------------------------
@@ -598,11 +753,17 @@ def generate_topic(
     client = create_openai_client()
     recent = recent_titles or []
     interests = topic_interests or TOPIC_INTERESTS
-    filtered = _filtered_interests(interests, recent)
+    chosen_family, filtered = _filtered_interests(interests, recent)
 
     recent_context = "\n".join(f"- {t}" for t in recent[:RECENT_TITLES_DISPLAY_LIMIT]) or "- None"
     interests_context = "\n".join(f"- {i}" for i in filtered) or "- SwiftUI"
-    theme_warnings = _theme_concentration_summary(recent)
+    base_warnings = _theme_concentration_summary(recent)
+    platform_warning = _platform_diversity_warning(recent)
+    theme_warnings = (
+        f"{base_warnings}\n{platform_warning}".strip()
+        if platform_warning
+        else base_warnings
+    )
     template = _load_template()
 
     for attempt in range(1, MAX_GENERATION_ATTEMPTS + 1):
@@ -645,6 +806,8 @@ def generate_topic(
             violations.append("migration_target_duplicate")
         if _is_theme_cluster_saturated(candidate, recent):
             violations.append("theme_cluster_saturated")
+        if _violates_platform_diversity(candidate, recent):
+            violations.append("platform_diversity_required")
 
         if violations:
             log_event(
@@ -663,7 +826,9 @@ def generate_topic(
             level=logging.INFO,
             attempt=attempt,
             topic=candidate,
+            family=chosen_family,
         )
+        _record_family_pick(chosen_family)
         return candidate
 
     log_event(

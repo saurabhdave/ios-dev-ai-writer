@@ -44,6 +44,82 @@ def repair_malformed_backticks(text: str) -> Tuple[str, List[str]]:
 
 
 # ---------------------------------------------------------------------------
+# Swift @Bindable / @Observable repair
+# ---------------------------------------------------------------------------
+
+# Detects an @Observable type declaration up to its body's opening brace.
+# Permissive: handles `@Observable\nfinal class M`, `@Observable @MainActor class M:
+# Proto1, Proto2 {`, etc. Stops at the first `{` (body opener).
+_OBSERVABLE_DECL_RE = re.compile(
+    r"@Observable\b[^{]*?(?:class|struct|actor)\s+\w+[^{]*?\{",
+    re.DOTALL,
+)
+
+# `@Bindable var foo` (or `let`) at the start of a line inside a class body.
+# The leading whitespace is preserved so indentation isn't lost.
+_BINDABLE_PROP_RE = re.compile(
+    r"^(\s*)@Bindable\s+((?:var|let)\s+)",
+    re.MULTILINE,
+)
+
+
+def strip_bindable_from_observable(code: str) -> Tuple[str, int]:
+    """Remove ``@Bindable`` from stored properties inside ``@Observable`` types.
+
+    The model frequently emits::
+
+        @Observable class M { @Bindable var x: Int = 0 }
+
+    which fails the repair loop's style check. This function strips the
+    ``@Bindable`` annotation from properties **only when they appear inside an
+    @Observable-annotated class/struct/actor body** — leaving correct
+    `View`-side ``@Bindable`` declarations untouched.
+
+    Returns ``(cleaned_code, count_of_fixes)``.
+    """
+    if not code or "@Observable" not in code or "@Bindable" not in code:
+        return code, 0
+
+    parts: List[str] = []
+    fixes = 0
+    cursor = 0
+
+    while cursor < len(code):
+        match = _OBSERVABLE_DECL_RE.search(code, cursor)
+        if not match:
+            parts.append(code[cursor:])
+            break
+
+        # Append everything up to and including the body-opening brace verbatim.
+        parts.append(code[cursor:match.end()])
+
+        # Walk the body, tracking brace depth, until the matching close brace.
+        body_start = match.end()
+        depth = 1
+        idx = body_start
+        while idx < len(code) and depth > 0:
+            ch = code[idx]
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+            idx += 1
+
+        body_end = idx - 1  # position of the matching closing brace
+        body = code[body_start:body_end]
+        cleaned_body, n = _BINDABLE_PROP_RE.subn(r"\1\2", body)
+        fixes += n
+        parts.append(cleaned_body)
+
+        # Append the closing brace, advance past it.
+        if body_end < len(code):
+            parts.append(code[body_end:idx])
+        cursor = idx
+
+    return "".join(parts), fixes
+
+
+# ---------------------------------------------------------------------------
 # Operational note label strip
 # ---------------------------------------------------------------------------
 

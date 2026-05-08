@@ -1,0 +1,26 @@
+{
+  "picks": [
+    "migration",
+    "migration",
+    "migration",
+    "concurrency",
+    "architecture",
+    "concurrency",
+    "performance",
+    "swiftui_features",
+    "swiftui_features",
+    "accessibility_design",
+    "tooling_debugging",
+    "performance",
+    "frameworks_apis",
+    "architecture",
+    "swiftui_features",
+    "performance",
+    "tooling_debugging",
+    "frameworks_apis",
+    "accessibility_design",
+    "frameworks_apis",
+    "tooling_debugging",
+    "swiftui_features"
+  ]
+}
