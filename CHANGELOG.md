@@ -19,6 +19,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Changed
 - **Topic prompt: `topic_interests` is now a mandatory candidate pool** (`prompts/topic_prompt.txt`): Tightened language so the model treats `{topic_interests}` as a required starting point for candidate generation rather than a soft preference, reducing off-topic or generic candidate lists.
+- **Auto-generated Pipeline Health section in README** (`scripts/update_readme.py`, `README.md`, `.github/workflows/weekly.yml`): New `scripts/update_readme.py` reads `outputs/quality_history.json` and `memory/family_picks.json` and regenerates the `<!-- PIPELINE_HEALTH_START/END -->` block in `README.md` with live metrics: total runs, codegen success rate (direct/repaired/omitted breakdown), average review score, cross-platform topic coverage, and zero-coverage family list. CI runs the script after each pipeline execution and auto-commits the updated README alongside quality history and family rotation state. Idempotent — no-ops when metrics haven't changed.
 
 ## [1.6.12] - 2026-03-31
 

@@ -66,6 +66,9 @@ jobs:
           print("Summary written.")
           EOF
 
+      - name: Regenerate Pipeline Health section in README
+        run: python scripts/update_readme.py
+
       - name: Commit and push generated content
         id: persist-state
         run: |
@@ -79,11 +82,14 @@ jobs:
           if [ -n "$(git status --porcelain memory/family_picks.json)" ]; then
             CHANGED_FILES="${CHANGED_FILES} memory/family_picks.json"
           fi
+          if [ -n "$(git status --porcelain README.md)" ]; then
+            CHANGED_FILES="${CHANGED_FILES} README.md"
+          fi
           if [ -n "${CHANGED_FILES}" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add -f ${CHANGED_FILES}
-            git commit -m "chore: persist newsletter counter, quality history, and family rotation"
+            git commit -m "chore: persist newsletter counter, quality history, family rotation, and pipeline health"
             git pull --rebase
             git push
           else
