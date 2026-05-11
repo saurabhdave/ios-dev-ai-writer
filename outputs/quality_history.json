@@ -1221,5 +1221,31 @@
       "Good coverage of tradeoffs, profiling, and observability for production readiness"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-05-11",
+    "slug": "realitykit-performance-tips-for-visionos",
+    "topic": "RealityKit Performance Tips for visionOS",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 9,
+    "review_actionability": 9,
+    "review_issues": [
+      "Opening hook is broad; could cite a concise concrete failure example early",
+      "No deployment target or Swift concurrency version stated for visionOS guidance",
+      "`@MainActor actor` vs `ModelEntity.load(contentsOf:)` threading assumptions not clarified"
+    ],
+    "review_strengths": [
+      "Concrete, scannable sections with practical headings",
+      "Provides a runnable bounded loader example for ModelEntity preloads",
+      "Actionable checklist suitable for engineering rollouts",
+      "Instrumentation guidance names OSSignposter, Instruments, MetricKit, and os_log specifically"
+    ],
+    "review_repair_triggered": false
   }
 ]
