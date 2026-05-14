@@ -1247,5 +1247,32 @@
       "Instrumentation guidance names OSSignposter, Instruments, MetricKit, and os_log specifically"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-05-14",
+    "slug": "migrating-appkit-views-to-swiftui-on-macos",
+    "topic": "Migrating AppKit Views to SwiftUI on macOS",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "No deployment target or Swift version stated for compatibility guidance",
+      "Only one small code snippet; lacks fuller concrete examples of interop patterns",
+      "Signposting referenced but specific API like `os_signpost`/`OSSignpost` not named",
+      "No sample rollback/feature-flag implementation shown for practical rollback guidance"
+    ],
+    "review_strengths": [
+      "Clear decision criteria for using `NSHostingView` vs native `NSView`",
+      "Pragmatic, production-focused validation guidance emphasizing device profiling",
+      "Actionable checklist with specific tooling: `Instruments`, `Time Profiler`, `Allocations`",
+      "Addresses lifecycle, Combine/ObservableObject ownership, and actor isolation tradeoffs"
+    ],
+    "review_repair_triggered": false
   }
 ]
