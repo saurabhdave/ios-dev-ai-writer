@@ -23,6 +23,7 @@
     "tooling_debugging",
     "swiftui_features",
     "frameworks_apis",
-    "migration"
+    "migration",
+    "concurrency"
   ]
 }
