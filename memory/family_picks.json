@@ -24,6 +24,7 @@
     "swiftui_features",
     "frameworks_apis",
     "migration",
-    "concurrency"
+    "concurrency",
+    "performance"
   ]
 }

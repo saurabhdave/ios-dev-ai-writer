@@ -1304,5 +1304,35 @@
       "Addresses instrumentation tradeoffs and recommends reducing heavy telemetry post-fix."
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-05-21",
+    "slug": "xcode-time-profiler-for-macos-hang-detection",
+    "topic": "Xcode Time Profiler for macOS hang detection",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Duplicate Validation/Observability `##` sections detected — merge into one."
+    ],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "Opening hook could be more specific with a short concrete example or metric",
+      "No explicit guidance on sample rates or default sampling settings in §1",
+      "No deployment-target or Swift version notes for the Swift snippet",
+      "Symbolication section omits which service/API to use for automated dSYM upload (e.g., upload endpoints)"
+    ],
+    "review_strengths": [
+      "Strong, concrete hook emphasizing device vs simulator differences",
+      "Well-structured, scannable sections with clear headings",
+      "Practical, realistic use of `OSSignposter` and `os_log` for correlation",
+      "Includes CI- and lab-focused validation steps using `XCTest` and Allocations",
+      "Actionable checklist covering captures, signposts, dSYM, and rollouts"
+    ],
+    "review_repair_triggered": false
   }
 ]
