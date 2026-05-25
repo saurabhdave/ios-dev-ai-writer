@@ -25,6 +25,7 @@
     "frameworks_apis",
     "migration",
     "concurrency",
-    "performance"
+    "performance",
+    "frameworks_apis"
   ]
 }
