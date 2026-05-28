@@ -26,6 +26,7 @@
     "migration",
     "concurrency",
     "performance",
-    "frameworks_apis"
+    "frameworks_apis",
+    "accessibility_design"
   ]
 }

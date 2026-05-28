@@ -1361,5 +1361,34 @@
       "Correct, precise API mentions: `AppIntent`, `@Parameter`, `WidgetCenter.shared.reloadTimelines(ofKind:)`, `OSSignposter`, `os_log`"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-05-28",
+    "slug": "voiceover-for-custom-swiftui-controls-on-macos",
+    "topic": "VoiceOver for Custom SwiftUI Controls on macOS",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Apple API names aren’t formatted in code style (backticks) throughout prose",
+      "No stated minimum macOS deployment target or Swift toolchain guidance",
+      "No concrete example for debouncing NSAccessibility.post frequency",
+      "Localization guidance missing for accessibility strings and resource extraction",
+      "No explicit example showing how to instrument focus moves with signposts/logging"
+    ],
+    "review_strengths": [
+      "Strong opening anecdote that establishes a real production failure",
+      "Clear, scannable sectioning with pragmatic headings and checklist",
+      "Provides a working NSViewRepresentable bridge example with notification call",
+      "Covers tradeoffs, failure modes, and testing/observability guidance",
+      "Actionable checklist that maps directly to implementation tasks"
+    ],
+    "review_repair_triggered": false
   }
 ]
