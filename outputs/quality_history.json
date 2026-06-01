@@ -1390,5 +1390,34 @@
       "Actionable checklist that maps directly to implementation tasks"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-06-01",
+    "slug": "on-device-marathon-coach-patterns-for-watchos-apps",
+    "topic": "On-device Marathon Coach Patterns for watchOS Apps",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [
+      "Duplicate Validation/Observability `##` sections detected — merge into one."
+    ],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "No deployment-target or Swift-version guidance for watchOS APIs and energy tradeoffs",
+      "Code snippet uses `HKWorkoutSession` initialization without showing HealthStore lifecycle or error propagation",
+      "Migration guidance omits concrete Core Data migration strategy (lightweight vs manual)"
+    ],
+    "review_strengths": [
+      "Strong, specific opening hook tied to real-world failure mode",
+      "Clear decision criteria (when to prefer HKWorkoutSession vs ephemeral timers)",
+      "Concrete API calls and tooling: `HKWorkoutSession`, `HKLiveWorkoutBuilder`, `OSSignposter`, `MetricKit`",
+      "Practical testing guidance including synthetic inputs, Instruments, and MetricKit correlation",
+      "Actionable checklist with concrete, non-trivial items for implementation and rollout"
+    ],
+    "review_repair_triggered": false
   }
 ]

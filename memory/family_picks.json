@@ -27,6 +27,7 @@
     "concurrency",
     "performance",
     "frameworks_apis",
-    "accessibility_design"
+    "accessibility_design",
+    "concurrency"
   ]
 }
