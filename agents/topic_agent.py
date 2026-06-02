@@ -17,6 +17,7 @@ Design principles
 from __future__ import annotations
 
 import logging
+import os
 import random
 import re
 from dataclasses import dataclass
@@ -575,6 +576,40 @@ def _sample_topic_family(
 # ---------------------------------------------------------------------------
 
 
+_KNOWN_FAMILY_NAMES: Final[frozenset[str]] = frozenset(name for name, _ in TOPIC_FAMILIES)
+
+
+def _resolve_forced_family() -> tuple[str, list[str]] | None:
+    """Return ``(family_name, queries)`` when ``FORCED_FAMILY`` env var picks a known family.
+
+    Treats blank or ``"auto"`` (case-insensitive) as "no override". Unknown
+    family names are ignored with a warning so a typo in workflow_dispatch
+    inputs does not silently change behaviour.
+    """
+    forced = os.environ.get("FORCED_FAMILY", "").strip().lower()
+    if not forced or forced == "auto":
+        return None
+    if forced not in _KNOWN_FAMILY_NAMES:
+        log_event(
+            LOGGER,
+            "forced_family_unknown",
+            level=logging.WARNING,
+            forced_family=forced,
+            known_families=sorted(_KNOWN_FAMILY_NAMES),
+        )
+        return None
+    for name, queries in TOPIC_FAMILIES:
+        if name == forced:
+            log_event(
+                LOGGER,
+                "forced_family_applied",
+                level=logging.INFO,
+                family=name,
+            )
+            return name, list(queries)
+    return None
+
+
 def _filtered_interests(
     topic_interests: list[str],
     recent_titles: list[str],
@@ -583,8 +618,15 @@ def _filtered_interests(
 
     Returns ``(family_name, interests)`` so the caller can persist the
     chosen family to the pick history on success.
+
+    Honors the ``FORCED_FAMILY`` env var (used by ``workflow_dispatch``)
+    before falling back to the weighted sampler.
     """
-    family_name, family_queries = _sample_topic_family(recent_titles)
+    forced = _resolve_forced_family()
+    if forced is not None:
+        family_name, family_queries = forced
+    else:
+        family_name, family_queries = _sample_topic_family(recent_titles)
     supplemental = [
         item.strip() for item in topic_interests
         if item and item.strip()
@@ -749,6 +791,25 @@ def generate_topic(
         When the prompt template file is missing.
     """
     _ = topic_mode  # Deprecated; retained for backward compatibility.
+
+    # workflow_dispatch override: skip LLM generation entirely when the operator
+    # supplied an explicit title. Length constraints are still enforced so the
+    # downstream filename / Medium layout assumptions hold.
+    forced_topic = os.environ.get("FORCED_TOPIC", "").strip()
+    if forced_topic:
+        constrained = _constrain_title_length(forced_topic)
+        log_event(
+            LOGGER,
+            "topic_forced",
+            level=logging.INFO,
+            raw=forced_topic,
+            topic=constrained,
+        )
+        if not constrained:
+            raise RuntimeError(
+                f"FORCED_TOPIC '{forced_topic}' is empty after length constraints."
+            )
+        return constrained
 
     client = create_openai_client()
     recent = recent_titles or []

@@ -4,11 +4,38 @@ on:
   # Run automatically every Monday and Thursday at 10:00 UTC.
   schedule:
     - cron: "0 10 * * 1,4"
-  # Also allow manual runs from the GitHub Actions tab.
+  # Also allow manual runs from the GitHub Actions tab, with override knobs.
   workflow_dispatch:
+    inputs:
+      forced_topic:
+        description: "Override the generated title (max 60 chars). Leave blank to let the pipeline decide."
+        type: string
+        required: false
+        default: ""
+      forced_family:
+        description: "Force a topic family. 'auto' = use the weighted sampler."
+        type: choice
+        required: false
+        default: auto
+        options:
+          - auto
+          - architecture
+          - performance
+          - concurrency
+          - swiftui_features
+          - tooling_debugging
+          - frameworks_apis
+          - accessibility_design
+          - migration
+      dry_run:
+        description: "Run the pipeline but skip git persistence and publishing to the content repo."
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   generate-article:
@@ -33,6 +60,9 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: gpt-5-mini
           OPENAI_TEMPERATURE: "0.7"
+          # Manual overrides from workflow_dispatch. Empty / "auto" means no override.
+          FORCED_TOPIC: ${{ github.event.inputs.forced_topic }}
+          FORCED_FAMILY: ${{ github.event.inputs.forced_family }}
         run: python main.py
 
       - name: Write run summary
@@ -67,10 +97,12 @@ jobs:
           EOF
 
       - name: Regenerate Pipeline Health section in README
+        if: github.event.inputs.dry_run != 'true'
         run: python scripts/update_readme.py
 
       - name: Commit and push generated content
         id: persist-state
+        if: github.event.inputs.dry_run != 'true'
         run: |
           CHANGED_FILES=""
           if [ -n "$(git status --porcelain .newsletter_issue_number)" ]; then
@@ -97,7 +129,7 @@ jobs:
           fi
 
       - name: Publish articles to content repo
-        if: steps.persist-state.outcome == 'success'
+        if: steps.persist-state.outcome == 'success' && github.event.inputs.dry_run != 'true'
         env:
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
@@ -128,3 +160,46 @@ jobs:
           git add -A articles/ linkedin/ codegen/ newsletter/
           git diff --staged --quiet || git commit -m "article: $(date +%Y-%m-%d)"
           git push
+
+      - name: Open issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EVENT_NAME: ${{ github.event_name }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          DATE=$(date -u +%Y-%m-%d)
+          TITLE="Weekly pipeline failure on ${DATE}"
+          SUMMARY="(no run summary produced)"
+          if [ -f outputs/run_summary.json ]; then
+            SUMMARY=$(cat outputs/run_summary.json)
+          fi
+          BODY=$(cat <<EOF
+          The weekly pipeline run failed.
+
+          - Run: ${RUN_URL}
+          - Triggered by: ${EVENT_NAME}
+          - Commit: ${COMMIT_SHA}
+
+          Common failure modes:
+          - OpenAI hiccup (re-run the workflow)
+          - Codegen omit (inspect \`outputs/codegen/*.json\` diagnostics_excerpt)
+          - Editorial gate quarantine
+          - Forced topic/family input invalid
+
+          Run summary (if any):
+          \`\`\`json
+          ${SUMMARY}
+          \`\`\`
+
+          Auto-created by the pipeline failure handler in \`.github/workflows/weekly.yml\`.
+          EOF
+          )
+          # Ensure the label exists; ignore errors so a duplicate-create doesn't fail the step.
+          gh label create pipeline-failure --color "d93f0b" --description "Auto-created by the pipeline failure handler" 2>/dev/null || true
+          gh issue create \
+            --title "${TITLE}" \
+            --body "${BODY}" \
+            --label pipeline-failure
