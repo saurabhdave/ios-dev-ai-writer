@@ -28,6 +28,7 @@
     "performance",
     "frameworks_apis",
     "accessibility_design",
-    "concurrency"
+    "concurrency",
+    "architecture"
   ]
 }
