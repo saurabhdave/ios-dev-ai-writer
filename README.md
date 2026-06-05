@@ -347,7 +347,8 @@ Inputs available when triggering the workflow manually; scheduled runs ignore th
 | Code metadata | `outputs/codegen/YYYY-MM-DD-{slug}-codegen.json` |
 | Newsletter (Markdown) | `outputs/newsletter/YYYY-MM-DD-issue-N.md` |
 | Newsletter (HTML) | `outputs/newsletter/YYYY-MM-DD-issue-N.html` |
-| Quality history | `outputs/quality_history.json` |
+| Quality history | `outputs/quality_history.json` (capped at the last 200 runs) |
+| Quality history meta | `outputs/quality_history_meta.json` — lifetime run count + first-run date that survive the 200-run cap |
 | Topic family rotation state | `memory/family_picks.json` |
 | Run summary (CI only) | `outputs/run_summary.json` — ephemeral, not committed or published |
 | Health regression body (CI only) | `outputs/health_regression.md` — written only on a health-check trip; used as the issue body, not committed or published |

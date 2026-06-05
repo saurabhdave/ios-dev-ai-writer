@@ -23,6 +23,7 @@ from typing import Final
 
 ROOT: Final[Path] = Path(__file__).resolve().parent.parent
 QUALITY_HISTORY_PATH: Final[Path] = ROOT / "outputs" / "quality_history.json"
+QUALITY_HISTORY_META_PATH: Final[Path] = ROOT / "outputs" / "quality_history_meta.json"
 FAMILY_PICKS_PATH: Final[Path] = ROOT / "memory" / "family_picks.json"
 README_PATH: Final[Path] = ROOT / "README.md"
 
@@ -121,7 +122,17 @@ def render_pipeline_health() -> str:
     family_counts = Counter(family_window)
     zero_coverage = [f for f in FAMILIES if family_counts.get(f, 0) == 0]
 
-    date_range = f"{history[0].get('date', '?')} → {history[-1].get('date', '?')}"
+    # Lifetime count/first-run date come from the meta sidecar when present, so
+    # the cap on quality_history.json doesn't silently shrink "Total runs" or
+    # drift the start date forward. Fall back to the file for pre-sidecar runs.
+    meta = _load_json(QUALITY_HISTORY_META_PATH, None)
+    total_runs = meta["total_runs"] if isinstance(meta, dict) and "total_runs" in meta else len(history)
+    first_date = (
+        meta["first_run_date"]
+        if isinstance(meta, dict) and meta.get("first_run_date")
+        else history[0].get("date", "?")
+    )
+    date_range = f"{first_date} → {history[-1].get('date', '?')}"
     rotation_str = (
         " → ".join(reversed(family_window)) if family_window else "_(no picks recorded yet)_"
     )
@@ -135,7 +146,7 @@ def render_pipeline_health() -> str:
         "",
         "| Metric | Value |",
         "|---|---|",
-        f"| Total runs | {len(history)} ({date_range}) |",
+        f"| Total runs | {total_runs} ({date_range}) |",
         f"| Codegen success (last {len(runs_window)}) | "
         f"{success_pct}% — {direct} direct, {repaired} repaired, {omitted} omitted |",
         f"| Avg review score (last {len(runs_window)}) | {avg_review:.1f} / 10 |",

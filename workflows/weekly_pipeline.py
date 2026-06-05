@@ -687,8 +687,61 @@ def _save_codegen_metadata(title: str, metadata: dict[str, str | int]) -> Path:
     return output_path
 
 
+# Trailing window kept in quality_history.json. The dashboard, README, and
+# health_check.py all read from the tail; older entries are dead weight on
+# every read while the file grows unbounded.
+QUALITY_HISTORY_MAX_ENTRIES: int = 200
+
+# Cumulative counters that must survive the trailing-window cap above. Once the
+# history file is trimmed, len(history) and history[0] no longer reflect the
+# lifetime run count or the true first-run date, so the README "Total runs"
+# metric reads these instead. Committed by CI alongside quality_history.json.
+QUALITY_HISTORY_META_PATH: Path = OUTPUT_QUALITY_HISTORY_PATH.with_name("quality_history_meta.json")
+
+
+def _update_quality_history_meta(existing_before_append: list[dict], record: dict) -> None:
+    """Bump the lifetime run count / first-run date in the meta sidecar.
+
+    Takes the history list *before* the new record is appended so the seed
+    count is correct. On the first run after this sidecar was introduced (no
+    meta file yet) the lifetime total is seeded from the still-untrimmed
+    history file, preserving runs that predate the sidecar.
+    """
+    meta: dict | None = None
+    if QUALITY_HISTORY_META_PATH.exists():
+        try:
+            loaded = json.loads(QUALITY_HISTORY_META_PATH.read_text(encoding="utf-8"))
+            meta = loaded if isinstance(loaded, dict) else None
+        except (json.JSONDecodeError, ValueError):
+            meta = None
+
+    record_date = str(record.get("date") or "")
+    if meta is None or "total_runs" not in meta:
+        total = len(existing_before_append)
+        dates = [str(e.get("date") or "") for e in existing_before_append if e.get("date")]
+        first_date = min(dates) if dates else record_date
+    else:
+        total = int(meta.get("total_runs", 0))
+        first_date = str(meta.get("first_run_date") or "")
+
+    total += 1
+    if record_date:
+        first_date = min(first_date, record_date) if first_date else record_date
+
+    QUALITY_HISTORY_META_PATH.write_text(
+        json.dumps({"total_runs": total, "first_run_date": first_date}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
 def _append_quality_history(record: dict) -> None:
-    """Append a quality record to the running quality_history.json file."""
+    """Append a quality record to the running quality_history.json file.
+
+    Capped at ``QUALITY_HISTORY_MAX_ENTRIES`` so the file stays bounded — the
+    dashboard and the post-run health check both read from the trailing window.
+    Lifetime totals that the cap would otherwise erase are kept in
+    ``quality_history_meta.json`` (see ``_update_quality_history_meta``).
+    """
     path = OUTPUT_QUALITY_HISTORY_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
     existing: list[dict] = []
@@ -699,7 +752,12 @@ def _append_quality_history(record: dict) -> None:
                 existing = []
         except (json.JSONDecodeError, ValueError):
             existing = []
+    # Update cumulative meta before trimming, while ``existing`` still holds the
+    # full (untrimmed) history needed to seed the count on first use.
+    _update_quality_history_meta(existing, record)
     existing.append(record)
+    if len(existing) > QUALITY_HISTORY_MAX_ENTRIES:
+        existing = existing[-QUALITY_HISTORY_MAX_ENTRIES:]
     path.write_text(json.dumps(existing, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 

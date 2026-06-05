@@ -30,6 +30,7 @@ memory/*
 # Generated outputs (published to saurabhdave/ios-ai-articles)
 outputs/*
 !outputs/quality_history.json
+!outputs/quality_history_meta.json
 outputs/newsletter/
 # Ephemeral per-run summary (written by pipeline, consumed by CI step summary)
 outputs/run_summary.json
