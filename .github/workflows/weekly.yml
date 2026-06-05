@@ -128,6 +128,40 @@ jobs:
             echo "No state files changed."
           fi
 
+      - name: Check pipeline health
+        id: health
+        if: github.event.inputs.dry_run != 'true'
+        continue-on-error: true
+        run: python scripts/health_check.py
+
+      - name: File health-regression issue
+        if: steps.health.outcome == 'failure' && github.event.inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Dedupe: if an open issue with this label exists, comment on it instead
+          # of filing a new one — prevents two-issues-per-week spam during a regression run.
+          EXISTING=$(gh issue list \
+            --label pipeline-health-regression \
+            --state open \
+            --json number \
+            --jq 'length')
+          gh label create pipeline-health-regression \
+            --color "fbca04" \
+            --description "Auto-created when the post-run health check trips a threshold" \
+            2>/dev/null || true
+          if [ "$EXISTING" -gt 0 ]; then
+            ISSUE=$(gh issue list --label pipeline-health-regression --state open --json number --jq '.[0].number')
+            echo "Open health-regression issue #${ISSUE} already exists; appending today's snapshot."
+            gh issue comment "$ISSUE" --body-file outputs/health_regression.md
+          else
+            gh issue create \
+              --title "Pipeline health regression — $(date -u +%Y-%m-%d)" \
+              --body-file outputs/health_regression.md \
+              --label pipeline-health-regression
+          fi
+
       - name: Publish articles to content repo
         if: steps.persist-state.outcome == 'success' && github.event.inputs.dry_run != 'true'
         env:
