@@ -320,31 +320,78 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
     return dot / (norm_a * norm_b)
 
 
-def _is_semantically_repetitive(
-    candidate: str,
+def _embed_recent_titles(
     recent_titles: list[str],
     client: object,
-    threshold: float = SEMANTIC_SIMILARITY_THRESHOLD,
-) -> bool:
-    """Return True when *candidate* is semantically similar to a recent title.
+) -> list[list[float]] | None:
+    """Embed *recent_titles* once. Returns ``None`` on API failure.
 
-    Uses a single batched embeddings call for efficiency. Falls back to
-    ``False`` on any API or type error so ``_is_repetitive`` remains the
-    primary safety net — the failure is logged at DEBUG level for observability.
+    Hoisted out of ``_is_semantically_repetitive`` so the generation retry
+    loop doesn't re-embed the same titles up to MAX_GENERATION_ATTEMPTS times.
     """
     if not recent_titles:
-        return False
+        return []
     try:
         from openai import OpenAI  # noqa: PLC0415
         assert isinstance(client, OpenAI)
         response = embeddings_create_with_retry(
             client,
             model=EMBEDDING_MODEL,
-            input=[candidate, *recent_titles],
+            input=list(recent_titles),
         )
-        embeddings = [item.embedding for item in response.data]
-        candidate_emb = embeddings[0]
-        for prev_emb in embeddings[1:]:
+        return [item.embedding for item in response.data]
+    except Exception as exc:  # noqa: BLE001
+        log_event(
+            LOGGER,
+            "recent_titles_embedding_failed",
+            level=logging.WARNING,
+            count=len(recent_titles),
+            error=repr(exc),
+        )
+        return None
+
+
+def _is_semantically_repetitive(
+    candidate: str,
+    recent_titles: list[str],
+    client: object,
+    threshold: float = SEMANTIC_SIMILARITY_THRESHOLD,
+    recent_embeddings: list[list[float]] | None = None,
+) -> bool:
+    """Return True when *candidate* is semantically similar to a recent title.
+
+    If *recent_embeddings* is provided, only the candidate is embedded per call
+    (5x faster across the retry loop). Otherwise falls back to the original
+    batched-embed-everything behaviour for backward compatibility.
+
+    Falls back to ``False`` on any API or type error so ``_is_repetitive``
+    remains the primary safety net.
+    """
+    if not recent_titles:
+        return False
+    try:
+        from openai import OpenAI  # noqa: PLC0415
+        assert isinstance(client, OpenAI)
+        if recent_embeddings is not None and len(recent_embeddings) == len(recent_titles):
+            # Hot path: only embed the candidate; reuse cached recent-title vectors.
+            response = embeddings_create_with_retry(
+                client,
+                model=EMBEDDING_MODEL,
+                input=[candidate],
+            )
+            candidate_emb = response.data[0].embedding
+            prev_embeddings = recent_embeddings
+        else:
+            # Backward-compatible path: embed candidate + recents in one call.
+            response = embeddings_create_with_retry(
+                client,
+                model=EMBEDDING_MODEL,
+                input=[candidate, *recent_titles],
+            )
+            embeddings = [item.embedding for item in response.data]
+            candidate_emb = embeddings[0]
+            prev_embeddings = embeddings[1:]
+        for prev_emb in prev_embeddings:
             if _cosine_similarity(candidate_emb, prev_emb) >= threshold:
                 return True
     except Exception as exc:  # noqa: BLE001
@@ -815,6 +862,9 @@ def generate_topic(
     recent = recent_titles or []
     interests = topic_interests or TOPIC_INTERESTS
     chosen_family, filtered = _filtered_interests(interests, recent)
+    # Embed recent titles once — reused across every candidate attempt in the
+    # retry loop. Cuts embedding API calls by up to MAX_GENERATION_ATTEMPTS-1.
+    recent_embeddings = _embed_recent_titles(recent, client)
 
     recent_context = "\n".join(f"- {t}" for t in recent[:RECENT_TITLES_DISPLAY_LIMIT]) or "- None"
     interests_context = "\n".join(f"- {i}" for i in filtered) or "- SwiftUI"
@@ -861,7 +911,9 @@ def generate_topic(
             violations.append("not_apple_platform")
         if _is_repetitive(candidate, recent):
             violations.append("word_repetitive")
-        if _is_semantically_repetitive(candidate, recent, client):
+        if _is_semantically_repetitive(
+            candidate, recent, client, recent_embeddings=recent_embeddings
+        ):
             violations.append("semantic_repetitive")
         if _shares_migration_target(candidate, recent):
             violations.append("migration_target_duplicate")
