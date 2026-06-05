@@ -18,8 +18,12 @@ __pycache__/
 # Personal editor settings
 .vscode/
 
-# Claude Code local tooling
+# Claude Code local tooling & context — kept per-machine, never tracked
 .claude/
+CLAUDE.md
+CLAUDE.local.md
+# CLAUDE.md context companions (architecture.md, ci.md, configuration.md, …)
+docs/
 # Ignore everything under memory/ except files explicitly re-included below.
 # Note: must use `memory/*` (contents) not `memory/` (the directory itself) —
 # Git cannot un-ignore a file whose parent directory has been excluded.
