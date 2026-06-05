@@ -169,6 +169,9 @@ ios-dev-ai-writer/
 ├── workflows/
 │   └── weekly_pipeline.py      # main orchestrator
 ├── prompts/                    # all LLM prompt templates
+├── scripts/
+│   ├── update_readme.py        # regenerates the Pipeline Health README block
+│   └── health_check.py         # post-run health-regression check → CI issue
 ├── utils/
 │   ├── article_repair.py       # deterministic post-processing for article cleanup
 │   ├── observability.py        # structured JSON logging
@@ -176,9 +179,11 @@ ios-dev-ai-writer/
 ├── tests/
 │   └── test_openai_config.py   # focused compatibility tests for OpenAI config helpers
 ├── outputs/                    # gitignored — published to ios-ai-articles
-├── .github/workflows/
-│   ├── weekly.yml              # scheduled pipeline
-│   └── release.yml             # GitHub Release on v* tag
+├── .github/
+│   ├── dependabot.yml          # weekly pip + github-actions updates
+│   └── workflows/
+│       ├── weekly.yml          # scheduled pipeline
+│       └── release.yml         # GitHub Release on v* tag
 ├── config.py                   # all env-var configuration
 └── main.py
 ```
@@ -310,6 +315,26 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `CROSS_REPO_DEDUP_ENABLED` | `true` | Fetch published titles from the output repo via GitHub API to guard against state drift |
 | `PUBLISHED_REPO_API_URL` | *(ios-ai-articles articles API)* | GitHub Contents API URL used for cross-repo dedup |
 
+### Pipeline Health Thresholds
+
+Read by `scripts/health_check.py` after each run. A trip writes `outputs/health_regression.md` and files (or comments on) a `pipeline-health-regression` issue.
+
+| Variable | Default | Description |
+|---|---|---|
+| `HEALTH_MIN_CODEGEN_SUCCESS_PCT` | `70` | Min codegen success rate (%) over the last 10 runs before flagging a regression |
+| `HEALTH_MAX_ZERO_COVERAGE_FAMILIES` | `4` | Max number of zero-coverage topic families (last 8 picks) before flagging |
+| `HEALTH_MIN_AVG_REVIEW` | `7.5` | Min average review score over the last 10 runs before flagging |
+
+### Manual-Run Overrides (`workflow_dispatch`)
+
+Inputs available when triggering the workflow manually; scheduled runs ignore them.
+
+| Input | Default | Description |
+|---|---|---|
+| `forced_topic` | *(blank)* | Override the generated title (max 60 chars); skips LLM topic generation. Maps to env var `FORCED_TOPIC` |
+| `forced_family` | `auto` | Force a topic family by name, or `auto` to use the weighted sampler. Unknown names are ignored with a warning. Maps to env var `FORCED_FAMILY` |
+| `dry_run` | `false` | Run the pipeline but skip README regen, state persistence, and publishing to the content repo |
+
 ---
 
 ## Output Artifacts
@@ -325,6 +350,7 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | Quality history | `outputs/quality_history.json` |
 | Topic family rotation state | `memory/family_picks.json` |
 | Run summary (CI only) | `outputs/run_summary.json` — ephemeral, not committed or published |
+| Health regression body (CI only) | `outputs/health_regression.md` — written only on a health-check trip; used as the issue body, not committed or published |
 
 Outputs are gitignored locally and auto-published to [saurabhdave/ios-ai-articles](https://github.com/saurabhdave/ios-ai-articles) on every CI run. `run_summary.json` is the exception — it is consumed by the "Write run summary" CI step to populate the GitHub Actions step summary and is never committed.
 
@@ -341,7 +367,13 @@ Outputs are gitignored locally and auto-published to [saurabhdave/ios-ai-article
 | `OPENAI_API_KEY` | LLM API access |
 | `DEPLOY_TOKEN` | GitHub PAT with `contents: write` on `saurabhdave/ios-ai-articles` |
 
-**Pipeline steps:** checkout → install deps → `python main.py` → write run summary to GitHub Actions step summary → commit quality history and newsletter counter back to this repo → publish outputs to content repo (skipped if state commit fails).
+**Pipeline steps:** checkout → install deps → `python main.py` → write run summary to GitHub Actions step summary → regenerate README Pipeline Health block → commit quality history, family rotation, and newsletter counter back to this repo → run health check (files/comments on a `pipeline-health-regression` issue if a threshold trips) → publish outputs to content repo (skipped if state commit fails).
+
+**Manual runs:** trigger via `workflow_dispatch` with optional `forced_topic`, `forced_family`, and `dry_run` inputs (see [Manual-Run Overrides](#manual-run-overrides-workflow_dispatch)). A `dry_run` skips README regen, state persistence, and publishing.
+
+**On failure:** an `Open issue on failure` step files a labeled issue with the run URL, trigger, and run summary so failed scheduled runs are surfaced without manual log-watching.
+
+**Dependencies:** Dependabot (`.github/dependabot.yml`) opens weekly `pip` and `github-actions` update PRs on Monday 06:00 UTC — four hours ahead of the pipeline so bumped deps are exercised the same day.
 
 A GitHub Release is created automatically when a `v*` tag is pushed (see `.github/workflows/release.yml`).
 
