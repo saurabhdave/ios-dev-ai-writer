@@ -53,15 +53,17 @@ _NON_IOS_PLATFORM_RE: Final[re.Pattern[str]] = re.compile(
 
 # Topic family classifier — order matters; first match wins. Keep in sync
 # with the artifact dashboard at outputs/ios-dev-ai-writer-gaps.html.
+# All stems use \w* suffixes — a bare \bconcurrenc\b only matches "concurrenc"
+# itself, not "concurrency", which previously sent ~27% of titles to 'other'.
 _FAMILY_RULES: Final[list[tuple[str, re.Pattern[str]]]] = [
-    ("migration",            re.compile(r"\b(migrat|migrate|deprecat|legacy|combine to|urlsession to)\b", re.I)),
-    ("frameworks_apis",      re.compile(r"\b(app intent|apple intelligence|widgetkit|macro|foundation model|appintent)\b", re.I)),
-    ("accessibility_design", re.compile(r"\b(accessibilit|voiceover|dynamic type|dark mode|color scheme|haptic)\b", re.I)),
-    ("concurrency",          re.compile(r"\b(async|await|actor|task group|concurrenc|combine|continuation)\b", re.I)),
-    ("performance",          re.compile(r"\b(profil|instrument|memory leak|memory graph|launch time|signpost)\b", re.I)),
-    ("tooling_debugging",    re.compile(r"\b(xcode build|swift package|preview|build time|explicit module|swift testing)\b", re.I)),
-    ("architecture",         re.compile(r"\b(architecture|dependency injection|modular|navigationstack|composable navig|mvvm)\b", re.I)),
-    ("swiftui_features",     re.compile(r"\b(swiftui|layout protocol|modifier|environmentkey|phaseanimator|keyframe)\b", re.I)),
+    ("migration",            re.compile(r"\b(migrat\w*|deprecat\w*|legacy|combine to|urlsession to)\b", re.I)),
+    ("frameworks_apis",      re.compile(r"\b(app intent\w*|appintent\w*|apple intelligence|widgetkit|macro\w*|foundation model\w*|realitykit|arkit)\b", re.I)),
+    ("accessibility_design", re.compile(r"\b(accessibilit\w*|voiceover|dynamic type|dark mode|color scheme|haptic\w*)\b", re.I)),
+    ("concurrency",          re.compile(r"\b(async|await|actor\w*|task group|concurren\w*|combine|continuation\w*)\b", re.I)),
+    ("performance",          re.compile(r"\b(profil\w*|instrument\w*|memory leak|memory graph|launch time|signpost\w*|ossignposter|time profiler|hang detection|on-device)\b", re.I)),
+    ("tooling_debugging",    re.compile(r"\b(xcode build|swift package\w*|preview\w*|build time|explicit (swift )?module\w*|swift testing|swift module\w*)\b", re.I)),
+    ("architecture",         re.compile(r"\b(architectur\w*|dependency injection|modular|navigationstack|composable navig|mvvm)\b", re.I)),
+    ("swiftui_features",     re.compile(r"\b(swiftui|layout protocol|modifier\w*|environmentkey|phaseanimator|keyframe\w*|view builder)\b", re.I)),
 ]
 
 
