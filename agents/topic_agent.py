@@ -65,12 +65,17 @@ RECENT_PICKS_WINDOW: Final[int] = 8
 # Persistent file storing the chronological list of family picks (newest last).
 FAMILY_PICK_HISTORY_PATH: Final[Path] = Path("memory/family_picks.json")
 
-# Platform diversity gating.
-# If fewer than this many of the last PLATFORM_DIVERSITY_WINDOW titles mention a
-# non-iOS Apple platform, inject a warning into theme_warnings AND treat the
-# next candidate as a violation if it remains iOS-only.
+# Platform diversity gating — bounded on both sides so the rotation can't
+# park in either iOS-only or non-iOS-only mode.
+#   - If fewer than MIN of the last WINDOW titles mention a non-iOS Apple
+#     platform, force the next candidate to be non-iOS.
+#   - If MORE than MAX of the last WINDOW are non-iOS, force the next
+#     candidate to be iOS — otherwise the gate can over-correct (observed:
+#     7/8 macOS+watchOS+visionOS after 2026-05-07) and steer codegen into
+#     known-weak AppKit territory.
 PLATFORM_DIVERSITY_WINDOW: Final[int] = 8
 PLATFORM_DIVERSITY_MIN_NON_IOS: Final[int] = 2
+PLATFORM_DIVERSITY_MAX_NON_IOS: Final[int] = 5
 
 _NON_IOS_PLATFORM_RE: Final[re.Pattern[str]] = re.compile(
     r"\b(watchos|visionos|macos|ipados|realitykit|arkit|widgetkit|"
@@ -694,34 +699,75 @@ def _mentions_non_ios_platform(title: str) -> bool:
     return bool(_NON_IOS_PLATFORM_RE.search(title))
 
 
-def _platform_diversity_warning(recent_titles: list[str]) -> str:
-    """Return a prompt warning when iOS-only topics are over-saturated.
+def _platform_diversity_mode(recent_titles: list[str]) -> str:
+    """Return ``'force_non_ios'``, ``'force_ios'``, or ``''`` (no constraint).
 
-    Triggers when fewer than ``PLATFORM_DIVERSITY_MIN_NON_IOS`` of the last
-    ``PLATFORM_DIVERSITY_WINDOW`` titles mention a non-iOS Apple platform.
-    Returns an empty string when diversity is healthy.
+    Two-sided gating: the rotation can be under- OR over-corrected toward
+    non-iOS. The caller treats the empty string as "no platform constraint".
     """
     window = recent_titles[:PLATFORM_DIVERSITY_WINDOW]
     if not window:
         return ""
     non_ios_count = sum(1 for t in window if _mentions_non_ios_platform(t))
-    if non_ios_count >= PLATFORM_DIVERSITY_MIN_NON_IOS:
+    if non_ios_count < PLATFORM_DIVERSITY_MIN_NON_IOS:
+        return "force_non_ios"
+    if non_ios_count > PLATFORM_DIVERSITY_MAX_NON_IOS:
+        return "force_ios"
+    return ""
+
+
+def _platform_diversity_warning(recent_titles: list[str]) -> str:
+    """Return a prompt warning when platform mix is out of bounds (either direction)."""
+    window = recent_titles[:PLATFORM_DIVERSITY_WINDOW]
+    if not window:
         return ""
-    return (
-        f"- PLATFORM DIVERSITY REQUIRED: only {non_ios_count} of the last "
-        f"{len(window)} articles mention a non-iOS Apple platform. "
-        "The next title MUST be primarily about watchOS, visionOS, macOS, "
-        "iPadOS, or a cross-platform Apple framework (RealityKit, ARKit, "
-        "WidgetKit, AppKit, Mac Catalyst, CarPlay). iOS-only topics will be "
-        "rejected this run."
-    )
+    non_ios_count = sum(1 for t in window if _mentions_non_ios_platform(t))
+    mode = _platform_diversity_mode(recent_titles)
+    if mode == "force_non_ios":
+        return (
+            f"- PLATFORM DIVERSITY REQUIRED: only {non_ios_count} of the last "
+            f"{len(window)} articles mention a non-iOS Apple platform. "
+            "The next title MUST be primarily about watchOS, visionOS, macOS, "
+            "iPadOS, or a cross-platform Apple framework (RealityKit, ARKit, "
+            "WidgetKit, AppKit, Mac Catalyst, CarPlay). iOS-only topics will be "
+            "rejected this run."
+        )
+    if mode == "force_ios":
+        return (
+            f"- iOS FOCUS REQUIRED: {non_ios_count} of the last "
+            f"{len(window)} articles are on non-iOS Apple platforms — the "
+            "rotation has over-corrected. The next title MUST be primarily "
+            "about iOS, Swift, or SwiftUI on iPhone. Non-iOS-only topics will "
+            "be rejected this run."
+        )
+    return ""
 
 
 def _violates_platform_diversity(candidate: str, recent_titles: list[str]) -> bool:
-    """Return True when the platform-diversity gate is active and *candidate* is iOS-only."""
-    if not _platform_diversity_warning(recent_titles):
-        return False  # gate not active
-    return not _mentions_non_ios_platform(candidate)
+    """Return True when the platform-diversity gate is active and *candidate* violates it.
+
+    - ``force_non_ios`` mode rejects candidates that don't mention a non-iOS platform.
+    - ``force_ios`` mode rejects candidates that mention ONLY non-iOS platforms.
+    """
+    mode = _platform_diversity_mode(recent_titles)
+    if mode == "force_non_ios":
+        return not _mentions_non_ios_platform(candidate)
+    if mode == "force_ios":
+        # iOS-flavored is fine even if it also mentions a non-iOS platform
+        # (cross-platform articles are healthy). Only pure non-iOS is blocked.
+        return _mentions_non_ios_platform(candidate) and not _mentions_ios_platform(candidate)
+    return False
+
+
+_IOS_PLATFORM_RE: Final[re.Pattern[str]] = re.compile(
+    r"\b(ios|iphone|swiftui|uikit|swift\s*\d+|xcode)\b",
+    re.IGNORECASE,
+)
+
+
+def _mentions_ios_platform(title: str) -> bool:
+    """Return True when *title* explicitly mentions iOS or an iOS-anchored tool."""
+    return bool(_IOS_PLATFORM_RE.search(title))
 
 
 # ---------------------------------------------------------------------------
