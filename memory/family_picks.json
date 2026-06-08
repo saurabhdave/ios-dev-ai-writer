@@ -29,6 +29,7 @@
     "frameworks_apis",
     "accessibility_design",
     "concurrency",
-    "architecture"
+    "architecture",
+    "tooling_debugging"
   ]
 }

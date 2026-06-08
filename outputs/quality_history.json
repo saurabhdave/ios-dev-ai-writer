@@ -1448,5 +1448,33 @@
       "Actionable checklist and rollout guidance with feature flags and canary cohorts"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-06-08",
+    "slug": "structured-concurrency-patterns-for-ios-networking",
+    "topic": "Structured Concurrency Patterns for iOS Networking",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Example cancellation Task uses a freshly spawned `Task { if Task.isCancelled { ... } }` which won't observe parent cancellation (Example adapter block)",
+      "No deployment target or Swift version stated when discussing async/await and URLSession async semantics (General/intro)",
+      "Use of `@Observable` is ambiguous — not clarified whether referring to SwiftData or a custom API (Actor isolation section)",
+      "Article warns Task cancellation won't propagate but doesn't mention `URLSession` async `data(for:delegate:)` behavior in modern SDKs (Cancellation section)"
+    ],
+    "review_strengths": [
+      "Strong, specific opening hook that frames migration as a semantics change",
+      "Well-structured, scannable sections with concrete API symbols in backticks",
+      "Practical checklist at the end with actionable rollout gates",
+      "Good coverage of failure modes: cancellation, lifetime, and bounded concurrency",
+      "Emphasis on observability, tests, and staged rollouts with concrete testing guidance"
+    ],
+    "review_repair_triggered": false
   }
 ]
