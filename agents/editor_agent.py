@@ -47,8 +47,13 @@ FACTUALITY_TEMPERATURE: Final[float] = 0.30
 VOICE_TEMPERATURE: Final[float] = 0.40
 
 # Layout rubric thresholds.
-LAYOUT_MAX_SCORE: Final[int] = 14
+LAYOUT_MAX_SCORE: Final[int] = 15
 LAYOUT_DEFAULT_MIN_SCORE: Final[int] = 7
+
+# Minimum fenced code blocks inside the article body. The article prompt
+# requires inline snippets per core section, but LLM compliance is imperfect
+# and inline code is the biggest editorial-quality lever — enforce it here.
+INLINE_CODE_BLOCK_MIN: Final[int] = 1
 
 # Acceptable h2 section count range for a well-structured Medium article.
 H2_MIN: Final[int] = 6
@@ -102,6 +107,7 @@ _CLOSING_PLAIN_TEXT_RE: Final[re.Pattern[str]] = re.compile(
     re.IGNORECASE,
 )
 _TITLE_H1_RE: Final[re.Pattern[str]] = re.compile(r"^#\s+.+\n?")
+_FENCED_CODE_RE: Final[re.Pattern[str]] = re.compile(r"```[\s\S]*?```")
 
 # ---------------------------------------------------------------------------
 # Prompt loading
@@ -342,7 +348,19 @@ def assess_medium_layout(
     else:
         _fail("Use only `##` and `###` headings — avoid `####` and deeper levels.")
 
-    # 14. No duplicate semantic sections (required — no points, flag only)
+    # 14. Inline code snippet in the body (1 pt, required)
+    # Runs before code_agent appends the standalone example, so every fence
+    # counted here is an inline snippet inside the article body.
+    if len(_FENCED_CODE_RE.findall(body)) >= INLINE_CODE_BLOCK_MIN:
+        score += 1
+    else:
+        _fail(
+            "Add at least one short fenced ```swift snippet (3–8 lines) inside "
+            "a core section to ground the key pattern in code.",
+            required=True,
+        )
+
+    # 15. No duplicate semantic sections (required — no points, flag only)
     # Check for duplicate validation/observability sections which the layout repair LLM
     # sometimes adds when a numbered core section already covers it.
     validation_headings = [h for h in h2_headings if _any_heading_contains([h], _VALIDATION_KEYWORDS)]
