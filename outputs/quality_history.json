@@ -1476,5 +1476,31 @@
       "Emphasis on observability, tests, and staged rollouts with concrete testing guidance"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-06-09",
+    "slug": "getting-your-ios-app-ready-for-ios-27-betas",
+    "topic": "Getting Your iOS App Ready for iOS 27 Betas",
+    "layout_score": 14,
+    "layout_max_score": 14,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "Opening paragraph is generic; lacks a specific, attention-grabbing beta-era example (opening hook)",
+      "No deployment-target or Swift language version guidance when recommending iOS 27 APIs (Compatibility & SDK Changes)",
+      "Minor grammar/clarity: “Validate betas early in a gated pipeline so CI and canaries catch regressions” is awkwardly phrased (Why This Matters)"
+    ],
+    "review_strengths": [
+      "Concrete, practical checklist with CI, telemetry, and rollout items",
+      "Correct, specific API mentions like `withCheckedThrowingContinuation`, `OSSignposter`, `MetricKit`, and `#available`",
+      "Good discussion of concurrency migration tradeoffs and cancellation failure modes",
+      "Actionable observability guidance: signposts, sampled metrics, and Instrument traces for beta canaries"
+    ],
+    "review_repair_triggered": false
   }
 ]
