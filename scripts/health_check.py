@@ -26,6 +26,7 @@ from typing import Final
 
 ROOT: Final[Path] = Path(__file__).resolve().parent.parent
 QUALITY_HISTORY_PATH: Final[Path] = ROOT / "outputs" / "quality_history.json"
+QUALITY_HISTORY_META_PATH: Final[Path] = ROOT / "outputs" / "quality_history_meta.json"
 FAMILY_PICKS_PATH: Final[Path] = ROOT / "memory" / "family_picks.json"
 REGRESSION_BODY_PATH: Final[Path] = ROOT / "outputs" / "health_regression.md"
 
@@ -61,6 +62,39 @@ def _load(path: Path, default):
         return default
 
 
+def _lifetime_total_runs(history: list, meta: object) -> int:
+    """Return the lifetime run count from the meta sidecar, or len(history).
+
+    quality_history.json is capped at a trailing window, so len(history) stops
+    being the lifetime total once trimming starts; quality_history_meta.json
+    persists the cumulative count. A lifetime total can never be smaller than
+    the window on disk, so an implausible meta value falls back to len(history).
+    """
+    if isinstance(meta, dict):
+        total = meta.get("total_runs")
+        if isinstance(total, int) and total >= len(history):
+            return total
+    return len(history)
+
+
+def _avg_review_score(window: list) -> float | None:
+    """Average review_overall across *window*, ignoring unscored entries.
+
+    Returns None when no entry carries a numeric score (e.g. self-review was
+    disabled for the whole window) so callers can skip the review threshold
+    instead of averaging zeros into a false regression.
+    """
+    scores = [
+        float(e["review_overall"])
+        for e in window
+        if isinstance(e.get("review_overall"), (int, float))
+        and not isinstance(e.get("review_overall"), bool)
+    ]
+    if not scores:
+        return None
+    return sum(scores) / len(scores)
+
+
 def main() -> int:
     history = _load(QUALITY_HISTORY_PATH, [])
     if not isinstance(history, list):
@@ -87,9 +121,7 @@ def main() -> int:
     omitted = code_paths.get("omitted", 0)
     success_pct = round(((direct + repaired) / len(window)) * 100)
 
-    avg_review = (
-        sum(float(e.get("review_overall", 0) or 0) for e in window) / len(window)
-    )
+    avg_review = _avg_review_score(window)
 
     fam_counts = Counter(fam_window)
     zero_cov = [f for f in FAMILIES if fam_counts.get(f, 0) == 0]
@@ -105,20 +137,23 @@ def main() -> int:
             f"- **Zero-coverage families: {len(zero_cov)} of {len(FAMILIES)}** "
             f"(threshold ≤{MAX_ZERO_COVERAGE_FAMILIES}) — missing: `{', '.join(zero_cov)}`"
         )
-    if avg_review < MIN_AVG_REVIEW:
+    if avg_review is not None and avg_review < MIN_AVG_REVIEW:
         breaches.append(
             f"- **Avg review score {avg_review:.1f}/10** (threshold {MIN_AVG_REVIEW}) "
             f"over last {len(window)} runs"
         )
 
+    avg_review_label = f"{avg_review:.1f}/10" if avg_review is not None else "n/a (no scored runs)"
+
     if not breaches:
         print(
             f"Pipeline health OK — codegen success {success_pct}%, "
-            f"avg review {avg_review:.1f}/10, "
+            f"avg review {avg_review_label}, "
             f"{len(zero_cov)} zero-coverage families."
         )
         return 0
 
+    total_runs = _lifetime_total_runs(history, _load(QUALITY_HISTORY_META_PATH, None))
     date_range = f"{history[0].get('date', '?')} → {history[-1].get('date', '?')}"
     rotation = " → ".join(reversed(fam_window)) if fam_window else "_(no picks yet)_"
 
@@ -128,9 +163,9 @@ def main() -> int:
         + "\n".join(breaches)
         + "\n\n"
         "**Context:**\n"
-        f"- Total runs: {len(history)} ({date_range})\n"
+        f"- Total runs: {total_runs} (window on disk: {len(history)}, {date_range})\n"
         f"- Last {len(window)} runs — codegen: {direct} direct, {repaired} repaired, {omitted} omitted\n"
-        f"- Avg review: {avg_review:.1f}/10\n"
+        f"- Avg review: {avg_review_label}\n"
         f"- Recent family rotation (newest first): {rotation}\n\n"
         "**Where to dig:**\n"
         "- `outputs/quality_history.json` — full run-level metrics\n"
