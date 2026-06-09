@@ -314,6 +314,7 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `OUTPUT_QUALITY_HISTORY_PATH` | `outputs/quality_history.json` | Append-only quality record |
 | `CROSS_REPO_DEDUP_ENABLED` | `true` | Fetch published titles from the output repo via GitHub API to guard against state drift |
 | `PUBLISHED_REPO_API_URL` | *(ios-ai-articles articles API)* | GitHub Contents API URL used for cross-repo dedup |
+| `GITHUB_TOKEN` | *(unset)* | Optional — authenticates the cross-repo dedup API call (avoids the 60/hr unauthenticated rate limit). CI passes the built-in Actions token automatically |
 
 ### Pipeline Health Thresholds
 
