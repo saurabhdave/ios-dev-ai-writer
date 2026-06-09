@@ -176,24 +176,42 @@ jobs:
         run: |
           git clone https://x-access-token:${DEPLOY_TOKEN}@github.com/saurabhdave/ios-ai-articles.git _content
           mkdir -p _content/articles _content/linkedin _content/codegen _content/newsletter
-          for src in outputs/articles/*.md; do
-            [ -f "$src" ] || continue
-            fname=$(basename "$src")
-            date_prefix=$(echo "$fname" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}')
-            if [ -n "$date_prefix" ]; then
-              for existing in _content/articles/${date_prefix}-*.md; do
-                [ -f "$existing" ] || continue
-                if [ "$(basename "$existing")" != "$fname" ]; then
-                  echo "Replacing same-date article: $(basename "$existing") -> $fname"
-                  rm "$existing"
-                fi
-              done
-            fi
-            cp "$src" _content/articles/
-          done
-          find outputs/linkedin -maxdepth 1 -type f -name '*.md' -exec cp {} _content/linkedin/ \; || true
-          find outputs/codegen -maxdepth 1 -type f -name '*.json' -exec cp {} _content/codegen/ \; || true
-          find outputs/newsletter -maxdepth 1 -type f \( -name '*.md' -o -name '*.html' \) -exec cp {} _content/newsletter/ \; || true
+          # Copy each artifact type, removing same-date files with a different
+          # slug/issue first. A same-date re-run (e.g. workflow_dispatch with a
+          # new forced topic) replaces the article — the LinkedIn post, codegen
+          # metadata, and newsletter issue from the replaced topic must go with
+          # it, or the content repo ends up with artifacts for different topics
+          # on the same date (observed: orphaned 2026-03-31 LinkedIn post).
+          sync_artifacts() {
+            src_dir=$1; dest_dir=$2
+            for src in "$src_dir"/*; do
+              [ -f "$src" ] || continue
+              fname=$(basename "$src")
+              case "$fname" in
+                *.md|*.html|*.json) ;;
+                *) continue ;;
+              esac
+              date_prefix=$(echo "$fname" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}')
+              if [ -n "$date_prefix" ]; then
+                # Compare stems (name minus extension) so paired files of the
+                # same artifact (newsletter .md + .html) don't delete each other.
+                stem="${fname%.*}"
+                for existing in "$dest_dir/${date_prefix}"-*; do
+                  [ -f "$existing" ] || continue
+                  existing_name=$(basename "$existing")
+                  if [ "${existing_name%.*}" != "$stem" ]; then
+                    echo "Replacing same-date artifact: $existing_name -> $fname"
+                    rm "$existing"
+                  fi
+                done
+              fi
+              cp "$src" "$dest_dir/"
+            done
+          }
+          sync_artifacts outputs/articles   _content/articles
+          sync_artifacts outputs/linkedin   _content/linkedin
+          sync_artifacts outputs/codegen    _content/codegen
+          sync_artifacts outputs/newsletter _content/newsletter
           rm -f _content/newsletter/.issue_number
           cd _content
           git config user.name "github-actions[bot]"
