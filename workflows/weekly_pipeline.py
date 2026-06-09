@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import urllib.error
 import urllib.request
@@ -250,6 +251,24 @@ def _slugify(text: str) -> str:
     return cleaned.strip("-")[:90] or "ios-article"
 
 
+def _github_api_request(url: str) -> urllib.request.Request:
+    """Build a GitHub API request, authenticated when GITHUB_TOKEN is set.
+
+    Unauthenticated requests share a 60/hour per-IP limit, which GitHub
+    Actions runner pools exhaust routinely — without a token the cross-repo
+    dedup fetch silently 403s in CI. The workflow passes GITHUB_TOKEN so this
+    becomes an authenticated call with a per-repo rate limit.
+    """
+    headers = {
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "ios-dev-ai-writer",
+    }
+    token = os.environ.get("GITHUB_TOKEN", "").strip()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return urllib.request.Request(url, headers=headers)
+
+
 def _load_published_titles(max_items: int = 30) -> list[str]:
     """Fetch article titles from the published output repo via GitHub API.
 
@@ -263,10 +282,7 @@ def _load_published_titles(max_items: int = 30) -> list[str]:
     if not CROSS_REPO_DEDUP_ENABLED:
         return []
     try:
-        req = urllib.request.Request(
-            PUBLISHED_REPO_API_URL,
-            headers={"Accept": "application/vnd.github.v3+json", "User-Agent": "ios-dev-ai-writer"},
-        )
+        req = _github_api_request(PUBLISHED_REPO_API_URL)
         with urllib.request.urlopen(req, timeout=10) as resp:
             entries: list[dict] = json.loads(resp.read().decode("utf-8"))
     except (urllib.error.URLError, json.JSONDecodeError, OSError) as exc:

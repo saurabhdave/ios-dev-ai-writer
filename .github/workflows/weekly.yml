@@ -60,6 +60,10 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: gpt-5-mini
           OPENAI_TEMPERATURE: "0.7"
+          # Authenticates the cross-repo dedup fetch (_load_published_titles) —
+          # unauthenticated GitHub API calls share a 60/hr per-IP limit that
+          # Actions runner pools exhaust, silently disabling the dedup check.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Manual overrides from workflow_dispatch. Empty / "auto" means no override.
           FORCED_TOPIC: ${{ github.event.inputs.forced_topic }}
           FORCED_FAMILY: ${{ github.event.inputs.forced_family }}
