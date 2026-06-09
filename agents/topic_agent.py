@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Final, Iterable
 
 from config import OPENAI_MODEL, OPENAI_TEMPERATURE, TOPIC_INTERESTS, TOPIC_SIMILARITY_THRESHOLD, openai_generation_kwargs
+from utils.content_filters import AI_EXCLUSION_PATTERNS, APPLE_INTELLIGENCE_ALLOWLIST
 from utils.observability import get_logger, log_event
 from utils.openai_logging import create_openai_client, embeddings_create_with_retry, responses_create_logged
 
@@ -140,22 +141,12 @@ APPLE_WORD_PATTERNS: Final[list[str]] = [
     r"\bboilerplate\b",
 ]
 
-AI_WORD_PATTERNS: Final[list[str]] = [
-    r"\bai\b", r"\bagentic\b", r"\bagent(s)?\b", r"\bgenerative\b",
-    r"\bllm(s)?\b", r"\bprompt(s)?\b", r"\binference\b",
-    r"\bautomation\b", r"\bmachine learning\b", r"\bcore\s?ml\b",
-]
+# Shared with trend_scanner and weekly_pipeline — single source of truth.
+AI_WORD_PATTERNS: Final[tuple[str, ...]] = AI_EXCLUSION_PATTERNS
 
 MIGRATION_WORD_PATTERNS: Final[list[str]] = [
     r"\bmigration\b", r"\bmigrate\b", r"\bdeprecated?\b",
     r"\blegacy\b", r"\bswift\s*6\b", r"\bstrict concurrency\b",
-]
-
-APPLE_INTELLIGENCE_ALLOWLIST: Final[list[str]] = [
-    r"\bapple intelligence\b",
-    r"\bapple intelligence api(s)?\b",
-    r"\bfoundation models?\b",
-    r"\bapp\sintents?\b",
 ]
 
 # ---------------------------------------------------------------------------
@@ -275,7 +266,7 @@ def normalise_title(title: str) -> set[str]:
 # ---------------------------------------------------------------------------
 
 
-def _matches_any(text: str, patterns: list[str]) -> bool:
+def _matches_any(text: str, patterns: Iterable[str]) -> bool:
     lowered = text.lower()
     return any(re.search(p, lowered) for p in patterns)
 

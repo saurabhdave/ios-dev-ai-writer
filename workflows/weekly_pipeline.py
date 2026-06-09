@@ -58,6 +58,7 @@ from config import (
     TREND_DISCOVERY_ENABLED,
 )
 from scanners.trend_scanner import TrendSignal, discover_ios_trends, save_trend_snapshot
+from utils.content_filters import has_allowed_intelligence_context, is_excluded_ai_topic
 from utils.observability import get_logger, log_event, reset_run_context, set_run_context, timed_step
 
 REFERENCE_TOKEN_STOPWORDS = {
@@ -214,33 +215,6 @@ def _seed_reference_items(topic: str) -> list[tuple[str, str, str]]:
         results.append(_SWIFT_ORG_SEED)
 
     return results
-
-REFERENCE_EXCLUSION_PATTERNS = [
-    r"\bai\b",
-    r"\bagent(s)?\b",
-    r"\bagentic\b",
-    r"\bgenerative\b",
-    r"\bllm(s)?\b",
-    r"\bprompt(s)?\b",
-    r"\binference\b",
-    r"\bautomation\b",
-    r"\bmachine learning\b",
-    r"\bcore\s?ml\b",
-]
-
-REFERENCE_ALLOWED_INTELLIGENCE_PATTERNS = [
-    r"\bapple intelligence\b",
-    r"\bapple intelligence api(s)?\b",
-    r"\bfoundation models?\b",
-    r"\bapp\sintents?\b",
-]
-
-
-def _has_allowed_intelligence_context(text: str) -> bool:
-    """Allow explicit Apple Intelligence contexts while filtering generic AI noise."""
-    lowered = text.lower()
-    return any(re.search(pattern, lowered) for pattern in REFERENCE_ALLOWED_INTELLIGENCE_PATTERNS)
-
 
 def _slugify(text: str) -> str:
     """Build a filesystem-safe slug from article title text."""
@@ -399,10 +373,7 @@ def _is_reference_relevant(source: str, title: str, topic_terms: set[str]) -> bo
         return True
 
     text = f"{source} {title}".lower()
-    if (
-        any(re.search(pattern, text) for pattern in REFERENCE_EXCLUSION_PATTERNS)
-        and not _has_allowed_intelligence_context(text)
-    ):
+    if is_excluded_ai_topic(text):
         return False
     has_ios_anchor = any(anchor in text for anchor in IOS_ANCHOR_TERMS)
 
@@ -509,15 +480,12 @@ def _reference_items(
             continue
         if not _is_specific_reference_url(url):
             continue
-        if (
-            any(re.search(pattern, combined_text) for pattern in REFERENCE_EXCLUSION_PATTERNS)
-            and not _has_allowed_intelligence_context(combined_text)
-        ):
+        if is_excluded_ai_topic(combined_text):
             continue
         if not _is_reference_relevant(source, title, topic_terms):
             continue
         quality_score = _reference_quality_score(source, title, url, topic_terms)
-        if any(term in lowered_title for term in blocked_title_terms) and not _has_allowed_intelligence_context(
+        if any(term in lowered_title for term in blocked_title_terms) and not has_allowed_intelligence_context(
             combined_text
         ):
             continue
