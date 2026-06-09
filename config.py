@@ -186,6 +186,8 @@ TREND_DISCOVERY_ENABLED = os.getenv("TREND_DISCOVERY_ENABLED", "true").lower() i
 }
 TREND_MAX_ITEMS_PER_SOURCE = int(os.getenv("TREND_MAX_ITEMS_PER_SOURCE", "10"))
 TREND_HTTP_TIMEOUT_SECONDS = int(os.getenv("TREND_HTTP_TIMEOUT_SECONDS", "12"))
+# Concurrent source fetchers during trend discovery; 1 = sequential.
+TREND_FETCH_MAX_WORKERS = max(1, int(os.getenv("TREND_FETCH_MAX_WORKERS", "8")))
 REDDIT_USER_AGENT = os.getenv(
     "REDDIT_USER_AGENT",
     "ios-dev-ai-writer/1.0 (weekly trend scanner)",

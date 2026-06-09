@@ -29,6 +29,7 @@ from urllib.parse import quote_plus
 
 import feedparser
 import requests
+from concurrent.futures import ThreadPoolExecutor
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -36,10 +37,12 @@ from config import (
     CUSTOM_TRENDS_FILE,
     OUTPUT_TRENDS_DIR,
     REDDIT_USER_AGENT,
+    TREND_FETCH_MAX_WORKERS,
     TREND_HTTP_TIMEOUT_SECONDS,
     TREND_MAX_ITEMS_PER_SOURCE,
     TREND_SOURCES,
 )
+from utils.content_filters import is_excluded_ai_topic
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -82,28 +85,6 @@ _IOS_KEYWORD_PATTERNS: Final[list[str]] = [
     r"\basync\b",
     r"\bconcurrency\b",
     r"\bwwdc\b",
-]
-
-_EXCLUSION_PATTERNS: Final[list[str]] = [
-    r"\bai\b",
-    r"\bagent(s)?\b",
-    r"\bagentic\b",
-    r"\bgenerative\b",
-    r"\bllm(s)?\b",
-    r"\bprompt(s)?\b",
-    r"\binference\b",
-    r"\bautomation\b",
-    r"\bmachine learning\b",
-    r"\bcore\s?ml\b",
-]
-
-# Exclusion exceptions: items matching these are allowed through even if they
-# also match an exclusion pattern (Apple Intelligence is intentional).
-_INTELLIGENCE_ALLOWLIST: Final[list[str]] = [
-    r"\bapple intelligence\b",
-    r"\bapple intelligence api(s)?\b",
-    r"\bfoundation models?\b",
-    r"\bapp\sintents?\b",
 ]
 
 _LOW_SIGNAL_PATTERNS: Final[list[str]] = [
@@ -227,9 +208,7 @@ def _is_ios_related(text: str) -> bool:
     """Return True when *text* is Apple-platform programming relevant."""
     normalized = text.lower()
     has_signal = any(re.search(p, normalized) for p in _IOS_KEYWORD_PATTERNS)
-    is_excluded = any(re.search(p, normalized) for p in _EXCLUSION_PATTERNS)
-    is_allowed = any(re.search(p, normalized) for p in _INTELLIGENCE_ALLOWLIST)
-    return has_signal and (not is_excluded or is_allowed)
+    return has_signal and not is_excluded_ai_topic(normalized)
 
 
 def _is_low_signal(title: str) -> bool:
@@ -371,32 +350,40 @@ def _per_item_limit(total_limit: int, num_sources: int) -> int:
 # ---------------------------------------------------------------------------
 
 
+#: Recency window for the HN Algolia popularity search.
+_HN_LOOKBACK_SECONDS: Final[int] = 48 * 3600
+
+#: Candidate stories pulled per HN request (matches the old top-80 breadth).
+_HN_CANDIDATE_COUNT: Final[int] = 80
+
+
 def fetch_hackernews_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[TrendSignal]:
-    """Fetch iOS-relevant top stories from Hacker News."""
-    top_ids: list[int] = _get_json(  # type: ignore[assignment]
-        "https://hacker-news.firebaseio.com/v0/topstories.json"
+    """Fetch iOS-relevant popular stories from Hacker News.
+
+    Uses the Algolia HN search API: one request returns the most popular
+    stories of the last 48 hours with points and comment counts included,
+    replacing the previous 1+80 serial Firebase item fetches.
+    """
+    cutoff = int(datetime.now(timezone.utc).timestamp()) - _HN_LOOKBACK_SECONDS
+    payload: dict = _get_json(  # type: ignore[assignment]
+        "https://hn.algolia.com/api/v1/search"
+        f"?tags=story&hitsPerPage={_HN_CANDIDATE_COUNT}&numericFilters=created_at_i>{cutoff}"
     )
+    hits = payload.get("hits", []) if isinstance(payload, dict) else []
 
     signals: list[TrendSignal] = []
-    for story_id in top_ids[:80]:
-        try:
-            item: dict = _get_json(  # type: ignore[assignment]
-                f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
-            )
-        except Exception as exc:
-            log.debug("hn_item_fetch_error id=%s error=%r", story_id, exc)
+    for hit in hits:
+        if not isinstance(hit, dict):
             continue
 
-        if not isinstance(item, dict):
-            continue
-
-        title = str(item.get("title", "")).strip()
-        url = str(item.get("url", f"https://news.ycombinator.com/item?id={story_id}")).strip()
+        title = str(hit.get("title") or "").strip()
+        object_id = str(hit.get("objectID") or "").strip()
+        url = str(hit.get("url") or f"https://news.ycombinator.com/item?id={object_id}").strip()
 
         if not title or _is_low_signal(title) or not _is_ios_related(f"{title} {url}"):
             continue
 
-        unix_time = int(item.get("time", 0) or 0)
+        unix_time = int(hit.get("created_at_i", 0) or 0)
         published_at = (
             datetime.fromtimestamp(unix_time, tz=timezone.utc).isoformat()
             if unix_time
@@ -409,8 +396,8 @@ def fetch_hackernews_trends(limit: int = TREND_MAX_ITEMS_PER_SOURCE) -> list[Tre
                 title=title,
                 url=url,
                 score=round(
-                    _to_float(item.get("score"), 0.0)
-                    + _to_float(item.get("descendants"), 0.0) * 0.5,
+                    _to_float(hit.get("points"), 0.0)
+                    + _to_float(hit.get("num_comments"), 0.0) * 0.5,
                     3,
                 ),
                 published_at=published_at,
@@ -653,6 +640,36 @@ SOURCE_FETCHERS: Final[dict[str, Callable[[int], list[TrendSignal]]]] = {
 # ---------------------------------------------------------------------------
 
 
+def _fetch_source(
+    key: str,
+    fetcher: Callable[[int], list[TrendSignal]],
+    limit_per_source: int,
+) -> list[TrendSignal]:
+    """Run one source fetcher with timing logs; swallow its failure.
+
+    One source failure must never abort the pipeline run, and exceptions
+    must not escape into the discovery thread pool.
+    """
+    start = time.monotonic()
+    try:
+        batch = fetcher(limit_per_source)
+        log.info(
+            "source_fetched source=%s count=%d elapsed_ms=%.0f",
+            key,
+            len(batch),
+            (time.monotonic() - start) * 1000,
+        )
+        return batch
+    except Exception as exc:
+        log.warning(
+            "source_fetch_error source=%s elapsed_ms=%.0f error=%r",
+            key,
+            (time.monotonic() - start) * 1000,
+            exc,
+        )
+        return []
+
+
 def discover_ios_trends(
     limit_per_source: int = TREND_MAX_ITEMS_PER_SOURCE,
     enabled_sources: list[str] | None = None,
@@ -674,31 +691,27 @@ def discover_ios_trends(
     """
     source_keys = [k.strip().lower() for k in (enabled_sources or list(TREND_SOURCES)) if k]
 
-    collected: list[TrendSignal] = []
+    fetch_plan: list[tuple[str, Callable[[int], list[TrendSignal]]]] = []
     for key in source_keys:
         fetcher = SOURCE_FETCHERS.get(key)
         if fetcher is None:
             log.warning("unknown_source_key key=%s", key)
             continue
+        fetch_plan.append((key, fetcher))
 
-        start = time.monotonic()
-        try:
-            batch = fetcher(limit_per_source)
-            collected.extend(batch)
-            log.info(
-                "source_fetched source=%s count=%d elapsed_ms=%.0f",
-                key,
-                len(batch),
-                (time.monotonic() - start) * 1000,
-            )
-        except Exception as exc:
-            # One source failure must never abort the pipeline run.
-            log.warning(
-                "source_fetch_error source=%s elapsed_ms=%.0f error=%r",
-                key,
-                (time.monotonic() - start) * 1000,
-                exc,
-            )
+    collected: list[TrendSignal] = []
+    if fetch_plan:
+        # Sources are independent network fetches, so they run concurrently.
+        # Results are collected in submission order to keep dedup precedence
+        # identical to the previous sequential implementation.
+        max_workers = min(TREND_FETCH_MAX_WORKERS, len(fetch_plan))
+        with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="trend-fetch") as pool:
+            futures = [
+                pool.submit(_fetch_source, key, fetcher, limit_per_source)
+                for key, fetcher in fetch_plan
+            ]
+            for future in futures:
+                collected.extend(future.result())
 
     # Deduplicate by URL or normalised title.
     seen: set[str] = set()
