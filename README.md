@@ -115,7 +115,7 @@ flowchart TD
 | **Editor pass** | Polish for clarity, tone, and Medium readability |
 | **Voice pass** | Strips AI writing patterns — "Choose X/Z" constructs, hedge phrases, passive recommendations, vague claims |
 | **Factual grounding** | Conservative rewrite pass to reduce hallucinated claims |
-| **Layout repair loop** | Iteratively scores article against a 14-point Medium rubric and repairs until score ≥ threshold |
+| **Layout repair loop** | Iteratively scores article against a 15-point Medium rubric — including a required inline `swift` snippet in the body — and repairs until score ≥ threshold |
 | **Deterministic repair** | Post-process fixes malformed backticks and strips `Operational note:` template artifacts before publication |
 | **Self-review** | LLM scores each article on overall quality, technical depth, and actionability |
 | **Review-triggered repair** | Re-runs editor pass when review score falls below threshold |
@@ -123,10 +123,10 @@ flowchart TD
 ### Topic Discovery
 | Feature | Detail |
 |---|---|
-| **8 trend sources** | HackerNews, Reddit, Apple Docs, WWDC, viral/social, platforms, custom JSON, web search |
+| **8 trend sources** | HackerNews, Reddit, Apple Docs, WWDC, viral/social, platforms, custom JSON, web search — fetched concurrently; HackerNews uses a single Algolia API request |
 | **Embedding dedup** | `text-embedding-3-small` cosine similarity catches near-duplicate topics with low lexical overlap |
 | **Theme cluster guard** | Hard limit on same-cluster articles (Swift concurrency, UIKit migration, SwiftUI profiling) per rolling window |
-| **Apple-platform only** | Topics filtered to iOS/Swift/SwiftUI/Xcode — AI-first subjects explicitly excluded |
+| **Apple-platform only** | Topics filtered to iOS/Swift/SwiftUI/Xcode — AI-first subjects excluded via a shared filter (`utils/content_filters.py`) used by scanner, pipeline, and topic agent |
 
 ### Code Generation
 | Feature | Detail |
@@ -174,10 +174,11 @@ ios-dev-ai-writer/
 │   └── health_check.py         # post-run health-regression check → CI issue
 ├── utils/
 │   ├── article_repair.py       # deterministic post-processing for article cleanup
+│   ├── content_filters.py      # shared AI-exclusion patterns + Apple Intelligence allowlist
 │   ├── observability.py        # structured JSON logging
 │   └── openai_logging.py       # OpenAI client + token tracking
-├── tests/
-│   └── test_openai_config.py   # focused compatibility tests for OpenAI config helpers
+├── tests/                      # unittest suite: OpenAI config, trend scanner/discovery,
+│                               # content filters, layout rubric, health check, dedup auth
 ├── outputs/                    # gitignored — published to ios-ai-articles
 ├── .github/
 │   ├── dependabot.yml          # weekly pip + github-actions updates
@@ -276,7 +277,7 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `FACT_GROUNDING_MAX_PASSES` | `1` | Max factual grounding iterations |
 | `MEDIUM_LAYOUT_REINFORCEMENT_ENABLED` | `true` | Iterative layout repair loop |
 | `MEDIUM_LAYOUT_MAX_REPAIR_PASSES` | `2` | Max layout repair iterations |
-| `MEDIUM_LAYOUT_MIN_SCORE` | `8` | Minimum passing layout score (out of 14) |
+| `MEDIUM_LAYOUT_MIN_SCORE` | `8` | Minimum passing layout score (out of 15) |
 | `SELF_REVIEW_ENABLED` | `true` | LLM self-review scoring pass |
 | `REVIEW_REPAIR_ENABLED` | `true` | Re-run editor pass if review score is low |
 | `REVIEW_REPAIR_MIN_SCORE` | `7` | Score threshold that triggers repair |
@@ -289,6 +290,7 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `TREND_SOURCES` | *(all 8)* | Comma-separated: `hackernews,reddit,apple,wwdc,viral,social,platforms,custom,websearch` |
 | `TREND_MAX_ITEMS_PER_SOURCE` | `10` | Items fetched per source |
 | `TREND_HTTP_TIMEOUT_SECONDS` | `12` | HTTP timeout for trend fetches |
+| `TREND_FETCH_MAX_WORKERS` | `8` | Concurrent source fetchers during trend discovery (`1` = sequential) |
 | `REDDIT_USER_AGENT` | `ios-dev-ai-writer/1.0 (weekly trend scanner)` | User-agent string for Reddit RSS requests |
 | `CUSTOM_TRENDS_FILE` | `scanners/custom_trends.json` | Path to custom trends JSON |
 | `TOPIC_INTERESTS` | *(19 topics — see config.py)* | Comma-separated list of preferred topic areas fed to the topic agent |
