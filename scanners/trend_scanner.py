@@ -292,9 +292,20 @@ def _parse_rss_feed(
     limit: int,
     apply_topic_filter: bool = True,
 ) -> list[TrendSignal]:
-    """Parse an RSS/Atom feed and return normalised TrendSignal list."""
+    """Parse an RSS/Atom feed and return normalised TrendSignal list.
+
+    The feed is fetched through the retry-configured session with an explicit
+    timeout, then the raw bytes are handed to feedparser. Passing the URL to
+    ``feedparser.parse`` directly would bypass both the timeout and the retry
+    policy (feedparser fetches via urllib with no timeout and can hang a run).
+    """
     try:
-        parsed = feedparser.parse(feed_url)
+        response = _SESSION.get(feed_url, timeout=TREND_HTTP_TIMEOUT_SECONDS)
+        response.raise_for_status()
+        parsed = feedparser.parse(response.content)
+    except requests.RequestException as exc:
+        log.warning("feed_fetch_error source=%s url=%s error=%r", source_name, feed_url, exc)
+        return []
     except Exception as exc:  # feedparser rarely raises, but guard anyway
         log.warning("feed_parse_error source=%s url=%s error=%r", source_name, feed_url, exc)
         return []
