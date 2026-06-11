@@ -1502,5 +1502,36 @@
       "Actionable observability guidance: signposts, sampled metrics, and Instrument traces for beta canaries"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-06-11",
+    "slug": "scalable-dynamic-type-in-swiftui",
+    "topic": "Scalable Dynamic Type in SwiftUI",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [
+      "Duplicate Validation/Observability `##` sections detected — merge into one."
+    ],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "No deployment-target or Swift/SwiftUI version stated for compatibility guidance",
+      "Article references splitting `@Observable` but offers no concrete code example",
+      "OSSignposter is recommended but no short example or snippet demonstrates usage",
+      "Performance claims lack empirical numbers or representative benchmark guidance",
+      "The `LabelRow` snippet omits accessibility text scaling testing hints inline"
+    ],
+    "review_strengths": [
+      "Strong, concrete opening anecdote illustrating real-world failure mode",
+      "Clear, scannable sections with actionable headings and checklist",
+      "Precise Apple API references like `@ScaledMetric`, `UIFontMetrics`, `@Environment`",
+      "Pragmatic adapter pattern example for mixed UIKit/SwiftUI hierarchies",
+      "Emphasis on profiling, OSSignposter, and staged rollouts for safe deployment"
+    ],
+    "review_repair_triggered": false
   }
 ]
