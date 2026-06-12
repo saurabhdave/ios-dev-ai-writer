@@ -116,7 +116,7 @@ flowchart TD
 | **Voice pass** | Strips AI writing patterns — "Choose X/Z" constructs, hedge phrases, passive recommendations, vague claims |
 | **Factual grounding** | Conservative rewrite pass to reduce hallucinated claims |
 | **Layout repair loop** | Iteratively scores article against a 15-point Medium rubric — including a required inline `swift` snippet in the body — and repairs until score ≥ threshold |
-| **Deterministic repair** | Post-process fixes malformed backticks and strips `Operational note:` template artifacts before publication |
+| **Deterministic repair** | Post-process fixes malformed backticks, strips `Operational note:` template artifacts, and inserts a standard iOS/Swift baseline note after the intro |
 | **Self-review** | LLM scores each article on overall quality, technical depth, and actionability |
 | **Review-triggered repair** | Re-runs editor pass when review score falls below threshold |
 
