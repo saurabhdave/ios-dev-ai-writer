@@ -154,6 +154,10 @@ Deprecated APIs:
   the article on it. Do not reference `os_signpost` — use `OSSignposter`. Do not
   reference `ObservableObject`, `@Published`, `@StateObject`, `@ObservedObject`, or
   `@EnvironmentObject` except in an explicit migration context naming the replacement.
+  HARD RULE for fenced code: deprecated APIs must NEVER appear inside ```swift
+  blocks — not as a "Before" example, not in comments. The publication gate
+  deletes any article whose code blocks contain `@Published`, `ObservableObject`,
+  or `os_signpost`. Describe legacy approaches in prose only.
 
 SwiftUI State:
   For Swift 6+ codebases, treat Swift Observation (`@Observable`) as the

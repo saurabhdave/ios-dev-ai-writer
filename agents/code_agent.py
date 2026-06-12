@@ -401,15 +401,16 @@ def _extract_unknown_symbol_lines(diagnostics: str) -> str:
 
 
 def _observation_style_issues(code: str) -> str:
-    """Detect Swift 6 observation anti-patterns in the modern ("After") block.
+    """Detect Swift 6 observation anti-patterns anywhere in the snippet.
 
-    The intentional legacy block is stripped first to avoid false positives
-    on before/after comparison snippets.
+    No Before-block exemption: the content repo's editorial gate deletes
+    articles whose swift blocks contain legacy observation APIs regardless of
+    labelling, so the repair loop must be equally strict.
     """
     if not code.strip():
         return ""
 
-    modern_code = _BEFORE_BLOCK_RE.sub("", code)
+    modern_code = code
     issues: list[str] = []
 
     if any(re.search(p, modern_code) for p in _LEGACY_OBSERVATION_PATTERNS):
@@ -625,14 +626,20 @@ def validate_inline_snippets(article: str) -> tuple[str, list[str]]:
     def _check_and_fix(match: re.Match) -> str:
         code = match.group(1)
         fixed, _ = strip_bindable_from_observable(code)
+        first_line = next(
+            (line.strip() for line in fixed.splitlines() if line.strip()), ""
+        )
+        # The content repo's editorial gate deletes articles whose swift
+        # blocks contain these (no Before-block exemption).
+        banned = [api for api in ("@Published", "ObservableObject", "os_signpost(") if api in fixed]
+        if banned:
+            issues.append(
+                f"inline block ({first_line[:60]!r}): gate-banned API(s) {', '.join(banned)}"
+            )
         ok, diagnostics = _swift_parse_validate(fixed)
         if not ok:
-            block_index = len(issues) + 1
-            first_line = next(
-                (line.strip() for line in fixed.splitlines() if line.strip()), ""
-            )
             detail = diagnostics.strip().splitlines()[-1] if diagnostics.strip() else "parse failed"
-            issues.append(f"inline block {block_index} ({first_line[:60]!r}): {detail[:200]}")
+            issues.append(f"inline block ({first_line[:60]!r}): {detail[:200]}")
         return match.group(0).replace(match.group(1), fixed)
 
     repaired = _INLINE_FENCE_RE.sub(_check_and_fix, article)

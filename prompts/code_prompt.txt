@@ -29,10 +29,12 @@ Generate one production-quality Swift/SwiftUI snippet that matches the topic and
 ## DEPRECATED API RULES
 ================================================================================
 
-Do not present deprecated APIs as the recommended final pattern.
-Deprecated or legacy APIs may appear ONLY inside an explicit `// ❌ Before`
-block when the topic is about migration, deprecation, or modernisation.
-Outside that block, use only the modern replacement.
+Do not present deprecated APIs as the recommended final pattern, and NEVER
+write deprecated API symbols inside the snippet — not in `// ❌ Before`
+blocks, not in comments. The publication gate deletes any article whose
+swift code blocks contain `@Published`, `ObservableObject`, or `os_signpost`.
+Use only the modern replacement in code; describe legacy approaches in
+generic words.
 
 Examples of deprecated APIs that must NEVER appear as the recommended final code:
   - `os_signpost` → use `OSSignposter` (available since iOS 15 / Swift 5.5)
@@ -43,9 +45,10 @@ Examples of deprecated APIs that must NEVER appear as the recommended final code
   - Any API marked `@available(*, deprecated)` in the iOS 26 SDK
 
 If a topic involves showing a migration FROM a deprecated API:
-  - Keep the `// ❌ Before` side minimal and clearly labelled as legacy.
-  - A comment-only legacy block is acceptable when it explains the contrast
-    more cleanly than compiling old code.
+  - The `// ❌ Before` side must be comment-only and describe the legacy
+    approach generically WITHOUT naming deprecated symbols (e.g.
+    "// Before: view model used the legacy observation protocol; every
+    property needed a publisher wrapper").
   - The `// ✅ After` block must be the production-ready target.
 
 ================================================================================
@@ -55,14 +58,15 @@ If a topic involves showing a migration FROM a deprecated API:
 Apply a before/after structure ONLY when the topic involves migration,
 deprecation, or modernisation of an existing API or pattern:
 
-  - Open with a `// ❌ Before` block showing the legacy/deprecated approach.
-  - Follow with a blank line, then a `// ✅ After` comment block showing the
-    modern replacement.
+  - Open with a comment-only `// ❌ Before` block DESCRIBING the legacy
+    approach generically — never write deprecated symbols, even in comments.
+  - Follow with a blank line, then a `// ✅ After` block showing the modern
+    replacement as real code.
   - Each block must be self-contained and clearly labelled.
 
 Example shape:
-  // ❌ Before — ObservableObject (deprecated pattern)
-  class OldViewModel: ObservableObject { @Published var count = 0 }
+  // ❌ Before — legacy observation: the view model conformed to the legacy
+  // observation protocol and every property needed a publisher wrapper.
 
   // ✅ After — @Observable (Swift 6+)
   @Observable class ViewModel { var count = 0 }

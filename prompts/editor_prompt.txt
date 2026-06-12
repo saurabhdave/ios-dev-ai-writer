@@ -209,6 +209,10 @@ Version Statements:
 
 Deprecated APIs:
   NEVER recommend or reproduce deprecated APIs — not in prose, not in code context.
+  HARD RULE for fenced code: deprecated APIs must NEVER appear inside ```swift
+  blocks — not as a "Before" example, not in comments (the publication gate
+  deletes articles whose code contains `@Published`, `ObservableObject`, or
+  `os_signpost`). Describe legacy approaches in prose only.
   If the draft contains a deprecated API, replace it with its modern equivalent:
     - `os_signpost` → replace with `OSSignposter`
     - `ObservableObject` / `@Published` / `@StateObject` / `@ObservedObject` /

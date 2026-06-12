@@ -91,5 +91,35 @@ class InlineCodeRubricTests(unittest.TestCase):
         self.assertEqual(with_code, without_code + 1)
 
 
+class GateBannedApiRubricTests(unittest.TestCase):
+    """The content repo's editorial gate deletes articles whose swift blocks
+    contain legacy APIs — the rubric must flag them as required issues so the
+    layout repair loop rewrites the snippet before publication."""
+
+    def test_published_in_inline_code_is_required_issue(self):
+        bad = _ARTICLE_TEMPLATE.format(
+            snippet="```swift\nclass M: ObservableObject {\n    @Published var n = 0\n}\n```"
+        )
+        assessment = assess_medium_layout(bad)
+        flagged = [i for i in assessment.required_issues if "legacy APIs" in i]
+        self.assertEqual(len(flagged), 1)
+        self.assertTrue(assessment.needs_repair)
+
+    def test_modern_snippet_not_flagged(self):
+        assessment = assess_medium_layout(_WITH_CODE)
+        self.assertFalse(any("legacy APIs" in i for i in assessment.issues))
+
+    def test_legacy_api_in_prose_is_allowed(self):
+        # Only fenced code is gate-scanned; prose migration discussion is fine.
+        prose = _ARTICLE_TEMPLATE.format(
+            snippet=_SNIPPET
+        ).replace(
+            "Replace `ObservableObject` conformances incrementally",
+            "Replace legacy `ObservableObject` and `@Published` usage incrementally",
+        )
+        assessment = assess_medium_layout(prose)
+        self.assertFalse(any("legacy APIs" in i for i in assessment.issues))
+
+
 if __name__ == "__main__":
     unittest.main()

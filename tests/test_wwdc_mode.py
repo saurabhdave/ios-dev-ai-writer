@@ -88,7 +88,8 @@ final class Cart {
         broken = "Intro.\n\n```swift\nlet x = { missing brace\n```\n"
         _, issues = code_agent.validate_inline_snippets(broken)
         self.assertEqual(len(issues), 1)
-        self.assertIn("inline block 1", issues[0])
+        self.assertIn("inline block", issues[0])
+        self.assertIn("missing brace", issues[0])
 
     def test_clean_article_reports_no_issues(self):
         clean = "Intro.\n\n```swift\nlet total = items.reduce(0, +)\n```\n"

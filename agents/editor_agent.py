@@ -108,6 +108,11 @@ _CLOSING_PLAIN_TEXT_RE: Final[re.Pattern[str]] = re.compile(
 )
 _TITLE_H1_RE: Final[re.Pattern[str]] = re.compile(r"^#\s+.+\n?")
 _FENCED_CODE_RE: Final[re.Pattern[str]] = re.compile(r"```[\s\S]*?```")
+# APIs the content repo's editorial gate deletes articles for when found in
+# ANY swift block — the gate has no "Before block" exemption, so neither do we.
+_GATE_BANNED_API_RE: Final[re.Pattern[str]] = re.compile(
+    r"@Published\b|\bObservableObject\b|\bos_signpost\s*\("
+)
 
 # ---------------------------------------------------------------------------
 # Prompt loading
@@ -351,12 +356,25 @@ def assess_medium_layout(
     # 14. Inline code snippet in the body (1 pt, required)
     # Runs before code_agent appends the standalone example, so every fence
     # counted here is an inline snippet inside the article body.
-    if len(_FENCED_CODE_RE.findall(body)) >= INLINE_CODE_BLOCK_MIN:
+    fenced_blocks = _FENCED_CODE_RE.findall(body)
+    if len(fenced_blocks) >= INLINE_CODE_BLOCK_MIN:
         score += 1
     else:
         _fail(
             "Add at least one short fenced ```swift snippet (3–8 lines) inside "
             "a core section to ground the key pattern in code.",
+            required=True,
+        )
+
+    # 14b. No gate-banned legacy APIs in body code (required — no points).
+    # The content repo's editorial gate deletes articles whose swift blocks
+    # contain these, with no migration/Before exemption.
+    if _GATE_BANNED_API_RE.search("\n".join(fenced_blocks)):
+        _fail(
+            "Inline code uses legacy APIs (`@Published`, `ObservableObject`, or "
+            "`os_signpost`) — rewrite snippets with `@Observable` / `OSSignposter`. "
+            "Never show deprecated APIs inside code blocks, even as a 'Before' "
+            "example; describe the legacy approach in prose instead.",
             required=True,
         )
 
