@@ -1589,5 +1589,39 @@
     "inline_snippet_issues": [
       "inline block 1 ('import Foundation'): command timed out after 12s"
     ]
+  },
+  {
+    "date": "2026-06-12",
+    "slug": "what-the-wwdc-2026-keynote-means-for-ios-teams",
+    "topic": "What the WWDC 2026 Keynote Means for iOS Teams",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [
+      "Duplicate Validation/Observability `##` sections detected — merge into one."
+    ],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 9,
+    "review_actionability": 8,
+    "review_issues": [
+      "Opening hook is a bit abstract; lacks a short, specific user-impact example near the top",
+      "Observability sections repeat MetricKit/OSSignposter guidance across multiple headings",
+      "No concrete method shown for detecting leaked Task instances in telemetry",
+      "Code snippet is minimal — doesn't demonstrate cancellation or Task-survival detection",
+      "Checklist item about XCTest hardware CI lacks guidance on test run frequency or selection"
+    ],
+    "review_strengths": [
+      "Clear recommendation to treat migrations as operational events",
+      "Specific Apple APIs named with backticks (OSSignposter, MetricKit, os_log)",
+      "Practical checklist with actionable, testable items",
+      "Good coverage of concurrency pitfalls like withCheckedThrowingContinuation misuse",
+      "Strong tradeoffs section that contrasts fast adoption versus dual-path maintenance"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('import Foundation'): command timed out after 12s"
+    ]
   }
 ]
