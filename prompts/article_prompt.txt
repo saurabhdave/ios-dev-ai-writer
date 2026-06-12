@@ -30,6 +30,13 @@ Verified source links (admissible only in a closing references section outside
 this body — do not embed URLs or links inside the article body):
 {allowed_references}
 
+Source excerpts fetched from the verified references above. Use them to ground
+time-sensitive claims, version facts, and announcement details — paraphrase in
+your own words, never copy sentences verbatim, and never cite URLs in the body.
+When the topic concerns a recent announcement or release, prefer facts from
+these excerpts over your own training knowledge:
+{reference_excerpts}
+
 ================================================================================
 ## TASK
 ================================================================================

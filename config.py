@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -188,6 +189,43 @@ TREND_MAX_ITEMS_PER_SOURCE = int(os.getenv("TREND_MAX_ITEMS_PER_SOURCE", "10"))
 TREND_HTTP_TIMEOUT_SECONDS = int(os.getenv("TREND_HTTP_TIMEOUT_SECONDS", "12"))
 # Concurrent source fetchers during trend discovery; 1 = sequential.
 TREND_FETCH_MAX_WORKERS = max(1, int(os.getenv("TREND_FETCH_MAX_WORKERS", "8")))
+
+# Reference-content injection: fetch trusted reference pages and inject text
+# excerpts into the article + factual-grounding prompts so claims are grounded
+# in real page content instead of titles alone.
+REFERENCE_CONTENT_ENABLED = os.getenv("REFERENCE_CONTENT_ENABLED", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+REFERENCE_CONTENT_MAX_PAGES = max(0, int(os.getenv("REFERENCE_CONTENT_MAX_PAGES", "3")))
+REFERENCE_CONTENT_MAX_CHARS = max(200, int(os.getenv("REFERENCE_CONTENT_MAX_CHARS", "1500")))
+
+# WWDC mode: explicit yearly window (Apple's dates move — never auto-guess).
+# When today falls inside the window, topic generation prioritizes WWDC
+# announcement coverage and CI runs daily instead of twice a week.
+WWDC_START_DATE = os.getenv("WWDC_START_DATE", "").strip()
+WWDC_END_DATE = os.getenv("WWDC_END_DATE", "").strip()
+
+
+def wwdc_window_active(today: date | None = None) -> bool:
+    """True when *today* (UTC) falls inside the configured WWDC window."""
+    if not WWDC_START_DATE or not WWDC_END_DATE:
+        return False
+    try:
+        start = date.fromisoformat(WWDC_START_DATE)
+        end = date.fromisoformat(WWDC_END_DATE)
+    except ValueError:
+        LOGGER.warning(
+            "Invalid WWDC window dates: start=%r end=%r — WWDC mode disabled.",
+            WWDC_START_DATE,
+            WWDC_END_DATE,
+        )
+        return False
+    if today is None:
+        today = datetime.now(timezone.utc).date()
+    return start <= today <= end
 REDDIT_USER_AGENT = os.getenv(
     "REDDIT_USER_AGENT",
     "ios-dev-ai-writer/1.0 (weekly trend scanner)",

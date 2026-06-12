@@ -526,12 +526,15 @@ def enforce_factual_grounding(
     article: str,
     allowed_references: str,
     max_passes: int = 1,
+    reference_excerpts: str = "",
 ) -> str:
     """Rewrite unsupported claims conservatively to reduce hallucination risk.
 
     Each pass sends the current article body through the factuality prompt.
-    An empty model response stops the loop early and returns the last
-    successfully rewritten version.
+    ``reference_excerpts`` carries fetched page content from the allowed
+    references; claims consistent with it count as supported. An empty model
+    response stops the loop early and returns the last successfully rewritten
+    version.
 
     Returns the original article unchanged when ``max_passes`` is zero.
     """
@@ -547,6 +550,7 @@ def enforce_factual_grounding(
             template
             .replace("{topic}", topic)
             .replace("{allowed_references}", allowed_references.strip() or "- None")
+            .replace("{reference_excerpts}", reference_excerpts.strip() or "- None available this run.")
             .replace("{article}", current)
         )
         log_event(

@@ -341,7 +341,12 @@ def _call_model(
 # ---------------------------------------------------------------------------
 
 
-def generate_article(topic: str, outline: str, allowed_references: str) -> str:
+def generate_article(
+    topic: str,
+    outline: str,
+    allowed_references: str,
+    reference_excerpts: str = "",
+) -> str:
     """Generate a professional Medium-style markdown body from topic + outline.
 
     Parameters
@@ -353,6 +358,9 @@ def generate_article(topic: str, outline: str, allowed_references: str) -> str:
     allowed_references:
         Verified source URLs/titles the article may reference. Passed to the
         prompt template; the model is instructed not to cite other sources.
+    reference_excerpts:
+        Plain-text excerpts fetched from the trusted reference pages; used to
+        ground claims in real source content (may be empty).
 
     Returns
     -------
@@ -380,6 +388,7 @@ def generate_article(topic: str, outline: str, allowed_references: str) -> str:
         .replace("{topic}", topic)
         .replace("{outline}", outline)
         .replace("{allowed_references}", allowed_references.strip() or "- None")
+        .replace("{reference_excerpts}", reference_excerpts.strip() or "- None available this run.")
     )
 
     # --- Reference quality check (warn only, never block) ---

@@ -11,6 +11,10 @@ Allowed references (the only permitted external grounding for time-sensitive
 or concrete claims — treat all other external sources as inadmissible):
 {allowed_references}
 
+Source excerpts fetched from the allowed references (claims directly
+consistent with these excerpts count as supported under Rule 1a):
+{reference_excerpts}
+
 Draft article body (markdown, no top-level title):
 {article}
 
