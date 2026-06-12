@@ -1559,5 +1559,35 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-06-12",
+    "slug": "what-the-wwdc-2026-keynote-means-for-ios-teams",
+    "topic": "What the WWDC 2026 Keynote Means for iOS Teams",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 9,
+    "review_actionability": 9,
+    "review_issues": [
+      "Opening hook is generic; lacks explicit WWDC-2026 feature callouts tying advice to announcements",
+      "ImageFetcher example omits URLResponse validation and status-code handling",
+      "No recommended signpost naming conventions or telemetry examples for OSSignposter integration"
+    ],
+    "review_strengths": [
+      "Concrete TaskGroup example demonstrating cancellation and actor cache",
+      "Practical checklist with actionable, non-trivial rollout items",
+      "Names specific Apple APIs and tools: OSSignposter, MetricKit, os_log, Instruments",
+      "Covers failure modes and testing strategies including XCTest async tests",
+      "Emphasis on phased rollouts and feature-flag gating for real-world safety"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block 1 ('import Foundation'): command timed out after 12s"
+    ]
   }
 ]
