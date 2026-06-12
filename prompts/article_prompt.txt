@@ -137,9 +137,11 @@ API & Type Formatting:
     ❌  withCheckedThrowingContinuation, @Observable, URLSession.data(for:)
 
 Version Statements:
-  Assume a minimum deployment target of iOS 18 / Swift 6. Do not add version
-  callouts for APIs that have been available since iOS 18 or earlier — those are
-  the assumed baseline. Only note APIs that require iOS 18.1+ or later.
+  Assume a minimum deployment target of iOS 26 / Swift 6 (the latest shipped
+  OS generation — never the current beta). Do not add version callouts for
+  APIs that have been available since iOS 26 or earlier — those are the
+  assumed baseline. Only note APIs that require something newer than the
+  baseline, and never present beta-only APIs as shippable.
   Do not assert version facts that are not verifiable from the allowed references.
   A standard baseline note ("*All code in this article targets <platform
   baseline>+ and Swift 6.x unless noted otherwise.*", platform-matched to the

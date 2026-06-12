@@ -282,6 +282,7 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `MEDIUM_LAYOUT_REINFORCEMENT_ENABLED` | `true` | Iterative layout repair loop |
 | `MEDIUM_LAYOUT_MAX_REPAIR_PASSES` | `2` | Max layout repair iterations |
 | `MEDIUM_LAYOUT_MIN_SCORE` | `8` | Minimum passing layout score (out of 15) |
+| `APPLE_OS_BASELINE` | `26` | Assumed deployment-baseline generation across Apple platforms (latest *shipped* OS generation, never the beta); used by the version-baseline note |
 | `REFERENCE_CONTENT_ENABLED` | `true` | Fetch reference pages and inject text excerpts into article + grounding prompts |
 | `REFERENCE_CONTENT_MAX_PAGES` | `3` | Max reference pages whose excerpts are injected per run |
 | `REFERENCE_CONTENT_MAX_CHARS` | `1500` | Max excerpt characters per page |

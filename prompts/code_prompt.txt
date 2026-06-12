@@ -7,7 +7,7 @@ Topic:
 
 Swift language version: {swift_language_version}
 Swift compiler language mode: {swift_language_mode}
-Minimum deployment target: iOS 18 / Swift 6
+Minimum deployment target: iOS 26 / Swift 6 (latest shipped generation — never beta-only APIs)
 
 Generate one production-quality Swift/SwiftUI snippet that matches the topic and satisfies all requirements below.
 
@@ -40,7 +40,7 @@ Examples of deprecated APIs that must NEVER appear as the recommended final code
     `@EnvironmentObject` → use `@Observable` (Swift 6+)
   - `URLSession` completion-handler overloads → use `async/await` variants
   - `UIAlertView`, `UIActionSheet` → use `UIAlertController`
-  - Any API marked `@available(*, deprecated)` in the iOS 18 SDK
+  - Any API marked `@available(*, deprecated)` in the iOS 26 SDK
 
 If a topic involves showing a migration FROM a deprecated API:
   - Keep the `// ❌ Before` side minimal and clearly labelled as legacy.

@@ -201,10 +201,11 @@ SwiftUI State:
   migration or legacy support.
 
 Version Statements:
-  Assume a minimum deployment target of iOS 18 / Swift 6. Do not add version
-  callouts for APIs available since iOS 18 or earlier — those are the assumed
-  baseline. Only note APIs that require iOS 18.1+ or later. Remove version claims
-  that cannot be verified from the allowed references.
+  Assume a minimum deployment target of iOS 26 / Swift 6 (latest shipped
+  generation, never the current beta). Do not add version callouts for APIs
+  available since iOS 26 or earlier — those are the assumed baseline. Only
+  note APIs that require something newer than the baseline. Remove version
+  claims that cannot be verified from the allowed references.
 
 Deprecated APIs:
   NEVER recommend or reproduce deprecated APIs — not in prose, not in code context.

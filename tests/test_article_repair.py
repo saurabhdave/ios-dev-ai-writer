@@ -32,7 +32,7 @@ class BaselineNoteTests(unittest.TestCase):
         result, inserted = ensure_version_baseline_note(_ARTICLE, "6.2.4")
         self.assertTrue(inserted)
         intro, _, rest = result.partition("## 1.")
-        self.assertIn("targets iOS 18+ and Swift 6.2", intro)
+        self.assertIn("targets iOS 26+ and Swift 6.2", intro)
         self.assertNotIn("targets iOS", rest)
 
     def test_swift_version_trimmed_to_major_minor(self):
@@ -63,12 +63,12 @@ class BaselineNoteTests(unittest.TestCase):
     def test_repair_article_reports_insertion(self):
         repaired, report = repair_article(_ARTICLE, swift_version="6.2.4")
         self.assertTrue(report["version_note_inserted"])
-        self.assertIn("targets iOS 18+", repaired)
+        self.assertIn("targets iOS 26+", repaired)
 
     def test_repair_article_skips_note_without_swift_version(self):
         repaired, report = repair_article(_ARTICLE)
         self.assertFalse(report["version_note_inserted"])
-        self.assertNotIn("targets iOS 18+", repaired)
+        self.assertNotIn("targets iOS 26+", repaired)
 
 
 class PlatformAwareBaselineTests(unittest.TestCase):
@@ -80,7 +80,7 @@ class PlatformAwareBaselineTests(unittest.TestCase):
         )
         result, inserted = ensure_version_baseline_note(article, "6.2.4")
         self.assertTrue(inserted)
-        self.assertIn("targets macOS 15+", result)
+        self.assertIn("targets macOS 26+", result)
         self.assertNotIn("targets iOS", result)
 
     def test_visionos_article_gets_visionos_baseline(self):
@@ -89,16 +89,16 @@ class PlatformAwareBaselineTests(unittest.TestCase):
             "visionOS windows and visionOS volumes differ. visionOS input matters.\n"
         )
         result, _ = ensure_version_baseline_note(article, "6.2.4")
-        self.assertIn("targets visionOS 2+", result)
+        self.assertIn("targets visionOS 26+", result)
 
     def test_no_platform_mentions_default_to_ios(self):
         result, _ = ensure_version_baseline_note(_ARTICLE, "6.2.4")
-        self.assertIn("targets iOS 18+", result)
+        self.assertIn("targets iOS 26+", result)
 
     def test_ios_wins_ties_with_other_platforms(self):
         article = "Sharing code between iOS and macOS.\n\n## 1. Targets\n\nDetails.\n"
         result, _ = ensure_version_baseline_note(article, "6.2.4")
-        self.assertIn("targets iOS 18+", result)
+        self.assertIn("targets iOS 26+", result)
 
     def test_existing_macos_baseline_note_is_idempotent(self):
         article = "macOS tips.\n\n## 1. A\n\nmacOS macOS macOS.\n"

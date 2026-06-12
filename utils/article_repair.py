@@ -14,6 +14,8 @@ from __future__ import annotations
 import re
 from typing import Dict, List, Tuple
 
+from config import APPLE_OS_BASELINE
+
 # ---------------------------------------------------------------------------
 # Backtick repair
 # ---------------------------------------------------------------------------
@@ -184,40 +186,41 @@ _BASELINE_STATEMENT_RE = re.compile(
 
 _FIRST_H2_RE = re.compile(r"^##\s+", re.MULTILINE)
 
-# Era-equivalent platform baselines (the iOS 18 SDK generation). The note
-# names the article's dominant platform so a macOS piece doesn't claim an
-# iOS deployment target — that mismatch was flagged by self-review.
-_PLATFORM_BASELINES: List[Tuple[str, str]] = [
-    ("ios", "iOS 18"),
-    ("ipados", "iPadOS 18"),
-    ("macos", "macOS 15"),
-    ("watchos", "watchOS 11"),
-    ("visionos", "visionOS 2"),
-    ("tvos", "tvOS 18"),
+# The note names the article's dominant platform so a macOS piece doesn't
+# claim an iOS deployment target — that mismatch was flagged by self-review.
+# Apple unified version numbering across platforms in 2025, so one configured
+# generation (APPLE_OS_BASELINE) applies to every platform label.
+_PLATFORM_KEYWORDS: List[Tuple[str, str]] = [
+    ("ios", "iOS"),
+    ("ipados", "iPadOS"),
+    ("macos", "macOS"),
+    ("watchos", "watchOS"),
+    ("visionos", "visionOS"),
+    ("tvos", "tvOS"),
 ]
-
-_DEFAULT_PLATFORM_BASELINE: str = "iOS 18"
 
 
 def _dominant_platform_baseline(text: str) -> str:
-    """Return the baseline label for the platform the article is about."""
+    """Return e.g. ``"macOS 26"`` for the platform the article is about."""
     lowered = text.lower()
-    best_label = _DEFAULT_PLATFORM_BASELINE
+    best_label = "iOS"
     best_count = 0
-    for keyword, label in _PLATFORM_BASELINES:
+    for keyword, label in _PLATFORM_KEYWORDS:
         count = len(re.findall(rf"\b{keyword}\b", lowered))
         # Strictly greater: ties keep the earlier (iOS-first) entry.
         if count > best_count:
             best_count = count
             best_label = label
-    return best_label
+    return f"{best_label} {APPLE_OS_BASELINE}"
 
 
 def build_version_baseline_note(
     swift_version: str,
-    platform_baseline: str = _DEFAULT_PLATFORM_BASELINE,
+    platform_baseline: str | None = None,
 ) -> str:
     """Render the standard one-line baseline note (Swift trimmed to major.minor)."""
+    if platform_baseline is None:
+        platform_baseline = f"iOS {APPLE_OS_BASELINE}"
     major_minor = ".".join(swift_version.split(".")[:2]) or swift_version
     return (
         f"*All code in this article targets {platform_baseline}+ and "

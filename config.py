@@ -202,6 +202,13 @@ REFERENCE_CONTENT_ENABLED = os.getenv("REFERENCE_CONTENT_ENABLED", "true").lower
 REFERENCE_CONTENT_MAX_PAGES = max(0, int(os.getenv("REFERENCE_CONTENT_MAX_PAGES", "3")))
 REFERENCE_CONTENT_MAX_CHARS = max(200, int(os.getenv("REFERENCE_CONTENT_MAX_CHARS", "1500")))
 
+# Assumed deployment baseline generation across Apple platforms (unified
+# numbering since 2025: iOS/macOS/watchOS/visionOS/tvOS share the number).
+# Latest *shipped* generation, never the current beta — bump yearly each fall.
+# The static prompt files (article/editor/code) state the same baseline in
+# prose; update them together when bumping this.
+APPLE_OS_BASELINE = os.getenv("APPLE_OS_BASELINE", "26").strip() or "26"
+
 # WWDC mode: explicit yearly window (Apple's dates move — never auto-guess).
 # When today falls inside the window, topic generation prioritizes WWDC
 # announcement coverage and CI runs daily instead of twice a week.
