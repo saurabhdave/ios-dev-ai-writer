@@ -25,9 +25,9 @@ _Auto-generated from `outputs/quality_history.json` and `memory/family_picks.jso
 
 | Metric | Value |
 |---|---|
-| Total runs | 60 (2026-03-13 → 2026-06-12) |
-| Codegen success (last 10) | 90% — 2 direct, 7 repaired, 1 omitted |
-| Avg review score (last 10) | 8.4 / 10 |
+| Total runs | 61 (2026-03-13 → 2026-06-12) |
+| Codegen success (last 10) | 90% — 3 direct, 6 repaired, 1 omitted |
+| Avg review score (last 10) | 8.3 / 10 |
 | Cross-platform topics (last 8) | 1 of 8 mention non-iOS Apple platforms |
 | Zero-coverage families (last 8) | 2 of 8 — `swiftui_features, migration` |
 

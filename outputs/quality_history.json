@@ -1681,5 +1681,35 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-06-12",
+    "slug": "xcode-27-tooling-updates-from-wwdc-2026",
+    "topic": "Xcode 27 Tooling Updates From WWDC 2026",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [
+      "Duplicate Validation/Observability `##` sections detected — merge into one."
+    ],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 8,
+    "review_issues": [
+      "No concrete CI commands or sample cache-key formats in CI/caching sections",
+      "No `simctl` usage examples in the simctl/CI guidance",
+      "Checklist duplicates earlier validation/observability content without added detail"
+    ],
+    "review_strengths": [
+      "Strong operational hook framing toolchain bumps as an engineering project",
+      "Clear, scannable sections with decision criteria (choose X when …)",
+      "Concrete Apple APIs named and backticked (OSSignposter, MetricKit, XCTest)",
+      "Practical checklist provides immediate migration tasks",
+      "Tradeoffs and failure modes discussed with actionable mitigations"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
