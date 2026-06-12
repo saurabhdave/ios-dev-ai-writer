@@ -1651,5 +1651,35 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-06-12",
+    "slug": "swift-concurrency-updates-announced-at-wwdc-2026",
+    "topic": "Swift Concurrency Updates Announced at WWDC 2026",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [
+      "Duplicate Validation/Observability `##` sections detected — merge into one."
+    ],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 9,
+    "review_actionability": 9,
+    "review_issues": [
+      "Opening hook is slightly generic; could use a short concrete production symptom example.",
+      "Actor cache snippet lacks a comment clarifying call sites must await actor methods (could confuse readers).",
+      "No mention of AsyncSequence/AsyncStream alternatives when bridging streamy callback APIs.",
+      "Test example uses Task.sleep for timing, which can be flaky in CI or under load."
+    ],
+    "review_strengths": [
+      "Clear, specific guidance to treat Task.detached as an escape hatch.",
+      "Practical rollout guidance including feature flags and rollback with continuation shims.",
+      "Strong observability recommendations: OSSignposter, os_log, Instruments templates called out.",
+      "Concrete checklist with actionable, non-trivial items for teams to follow."
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
