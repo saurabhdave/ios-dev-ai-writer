@@ -21,10 +21,19 @@ import os
 import random
 import re
 from dataclasses import dataclass
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Final, Iterable
 
-from config import OPENAI_MODEL, OPENAI_TEMPERATURE, TOPIC_INTERESTS, TOPIC_SIMILARITY_THRESHOLD, openai_generation_kwargs
+from config import (
+    OPENAI_MODEL,
+    OPENAI_TEMPERATURE,
+    TOPIC_INTERESTS,
+    TOPIC_SIMILARITY_THRESHOLD,
+    WWDC_START_DATE,
+    openai_generation_kwargs,
+    wwdc_window_active,
+)
 from utils.content_filters import AI_EXCLUSION_PATTERNS, APPLE_INTELLIGENCE_ALLOWLIST
 from utils.observability import get_logger, log_event
 from utils.openai_logging import create_openai_client, embeddings_create_with_retry, responses_create_logged
@@ -138,7 +147,7 @@ APPLE_WORD_PATTERNS: Final[list[str]] = [
     r"\bstructured concurrency\b", r"\bmodifier(s)?\b",
     r"\bperformance\b", r"\binstruments?\b", r"\bapple intelligence\b",
     r"\bfoundation models?\b", r"\bmacro(s)?\b", r"\bswift\s*6\.?3\b",
-    r"\bboilerplate\b",
+    r"\bboilerplate\b", r"\bwwdc\b",
 ]
 
 # Shared with trend_scanner and weekly_pipeline — single source of truth.
@@ -148,6 +157,66 @@ MIGRATION_WORD_PATTERNS: Final[list[str]] = [
     r"\bmigration\b", r"\bmigrate\b", r"\bdeprecated?\b",
     r"\blegacy\b", r"\bswift\s*6\b", r"\bstrict concurrency\b",
 ]
+
+# ---------------------------------------------------------------------------
+# WWDC mode
+# ---------------------------------------------------------------------------
+
+WWDC_FAMILY_NAME: Final[str] = "wwdc_event"
+
+#: One angle per conference day; cycled by day offset from WWDC_START_DATE.
+#: Editorial guardrail: announcement-summary / "what it means for teams"
+#: coverage — never deep tutorials on brand-new APIs, which are the year's
+#: highest hallucination risk (training data predates the keynote).
+_WWDC_ANGLE_QUERIES: Final[list[str]] = [
+    "WWDC {year} keynote: what iOS teams must plan for",
+    "SwiftUI changes announced at WWDC {year}",
+    "Swift language and concurrency updates from WWDC {year}",
+    "Xcode and developer tooling updates from WWDC {year}",
+    "Platform updates beyond iPhone announced at WWDC {year}",
+    "Apple Intelligence and App Intents updates from WWDC {year}",
+]
+
+
+@dataclass(frozen=True)
+class _WwdcTopicContext:
+    family: str
+    queries: list[str]
+    directive: str
+
+
+def _wwdc_topic_context(today: date | None = None) -> _WwdcTopicContext | None:
+    """Return the WWDC-mode topic context when the window is active, else None."""
+    if not wwdc_window_active(today):
+        return None
+    start = date.fromisoformat(WWDC_START_DATE)
+    if today is None:
+        today = datetime.now(timezone.utc).date()
+    year = start.year
+    day_index = max(0, (today - start).days) % len(_WWDC_ANGLE_QUERIES)
+    todays_angle = _WWDC_ANGLE_QUERIES[day_index].format(year=year)
+    queries = [todays_angle] + [
+        q.format(year=year) for i, q in enumerate(_WWDC_ANGLE_QUERIES) if i != day_index
+    ]
+    directive = (
+        f"WWDC {year} WINDOW ACTIVE — the title MUST cover WWDC {year} announcements "
+        f"from a 'what this means for Apple-platform teams' angle (announcement summary, "
+        f"adoption planning, migration impact), NOT a deep tutorial on brand-new APIs. "
+        f"Today's required angle: {todays_angle}. "
+        f"Reusing the 'WWDC {year}' or new OS-version tokens across recent titles is "
+        f"expected and allowed during the conference window."
+    )
+    return _WwdcTopicContext(family=WWDC_FAMILY_NAME, queries=queries, directive=directive)
+
+
+def _is_exact_duplicate(candidate: str, recent_titles: Iterable[str]) -> bool:
+    """Normalized exact-match check — the only novelty gate kept in WWDC mode."""
+    normalized = _WHITESPACE_RE.sub(" ", candidate.lower().strip(_TITLE_STRIP_CHARS + " "))
+    for title in recent_titles:
+        if normalized == _WHITESPACE_RE.sub(" ", title.lower().strip(_TITLE_STRIP_CHARS + " ")):
+            return True
+    return False
+
 
 # ---------------------------------------------------------------------------
 # Topic families
@@ -898,20 +967,38 @@ def generate_topic(
     client = create_openai_client()
     recent = recent_titles or []
     interests = topic_interests or TOPIC_INTERESTS
-    chosen_family, filtered = _filtered_interests(interests, recent)
+
+    # WWDC window: announcement coverage overrides the family rotation, and
+    # all novelty gates except exact-duplicate are suspended (daily WWDC
+    # titles necessarily share the "WWDC <year>" token).
+    wwdc_ctx = _wwdc_topic_context()
+    if wwdc_ctx is not None:
+        chosen_family, filtered = wwdc_ctx.family, wwdc_ctx.queries
+        log_event(
+            LOGGER,
+            "wwdc_mode_active",
+            level=logging.INFO,
+            family=chosen_family,
+            todays_angle=filtered[0],
+        )
+    else:
+        chosen_family, filtered = _filtered_interests(interests, recent)
     # Embed recent titles once — reused across every candidate attempt in the
     # retry loop. Cuts embedding API calls by up to MAX_GENERATION_ATTEMPTS-1.
     recent_embeddings = _embed_recent_titles(recent, client)
 
     recent_context = "\n".join(f"- {t}" for t in recent[:RECENT_TITLES_DISPLAY_LIMIT]) or "- None"
     interests_context = "\n".join(f"- {i}" for i in filtered) or "- SwiftUI"
-    base_warnings = _theme_concentration_summary(recent)
-    platform_warning = _platform_diversity_warning(recent)
-    theme_warnings = (
-        f"{base_warnings}\n{platform_warning}".strip()
-        if platform_warning
-        else base_warnings
-    )
+    if wwdc_ctx is not None:
+        theme_warnings = wwdc_ctx.directive
+    else:
+        base_warnings = _theme_concentration_summary(recent)
+        platform_warning = _platform_diversity_warning(recent)
+        theme_warnings = (
+            f"{base_warnings}\n{platform_warning}".strip()
+            if platform_warning
+            else base_warnings
+        )
     template = _load_template()
 
     for attempt in range(1, MAX_GENERATION_ATTEMPTS + 1):
@@ -946,18 +1033,24 @@ def generate_topic(
         violations: list[str] = []
         if not _is_apple_programming_topic(candidate):
             violations.append("not_apple_platform")
-        if _is_repetitive(candidate, recent):
-            violations.append("word_repetitive")
-        if _is_semantically_repetitive(
-            candidate, recent, client, recent_embeddings=recent_embeddings
-        ):
-            violations.append("semantic_repetitive")
-        if _shares_migration_target(candidate, recent):
-            violations.append("migration_target_duplicate")
-        if _is_theme_cluster_saturated(candidate, recent):
-            violations.append("theme_cluster_saturated")
-        if _violates_platform_diversity(candidate, recent):
-            violations.append("platform_diversity_required")
+        if wwdc_ctx is not None:
+            # Relaxed novelty: daily WWDC titles legitimately share event and
+            # OS-version tokens, so only exact repeats are rejected.
+            if _is_exact_duplicate(candidate, recent):
+                violations.append("exact_duplicate")
+        else:
+            if _is_repetitive(candidate, recent):
+                violations.append("word_repetitive")
+            if _is_semantically_repetitive(
+                candidate, recent, client, recent_embeddings=recent_embeddings
+            ):
+                violations.append("semantic_repetitive")
+            if _shares_migration_target(candidate, recent):
+                violations.append("migration_target_duplicate")
+            if _is_theme_cluster_saturated(candidate, recent):
+                violations.append("theme_cluster_saturated")
+            if _violates_platform_diversity(candidate, recent):
+                violations.append("platform_diversity_required")
 
         if violations:
             log_event(

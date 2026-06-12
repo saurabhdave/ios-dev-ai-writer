@@ -4,6 +4,10 @@ on:
   # Run automatically every Monday and Thursday at 10:00 UTC.
   schedule:
     - cron: "0 10 * * 1,4"
+    # WWDC daily cadence: the remaining five days. The wwdc-gate job lets
+    # these runs through only inside the WWDC_START_DATE..WWDC_END_DATE
+    # window, so the rest of the year they are skipped within seconds.
+    - cron: "0 10 * * 0,2,3,5,6"
   # Also allow manual runs from the GitHub Actions tab, with override knobs.
   workflow_dispatch:
     inputs:
@@ -37,9 +41,38 @@ permissions:
   contents: write
   issues: write
 
+# WWDC window — update these two dates once a year when Apple announces the
+# conference (never auto-guessed). Inside the window the pipeline runs daily
+# and topic generation switches to WWDC announcement coverage.
+env:
+  WWDC_START_DATE: "2026-06-08"
+  WWDC_END_DATE: "2026-06-12"
+
 jobs:
+  wwdc-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.gate.outputs.proceed }}
+    steps:
+      - name: Decide whether this run proceeds
+        id: gate
+        run: |
+          proceed=true
+          # Only the daily WWDC cron is gated; Mon/Thu and manual runs always proceed.
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "0 10 * * 0,2,3,5,6" ]; then
+            today=$(date -u +%F)
+            if [ -z "$WWDC_START_DATE" ] || [ -z "$WWDC_END_DATE" ] \
+               || [ "$today" \< "$WWDC_START_DATE" ] || [ "$today" \> "$WWDC_END_DATE" ]; then
+              proceed=false
+            fi
+          fi
+          echo "proceed=$proceed" >> "$GITHUB_OUTPUT"
+          echo "Gate decision: proceed=$proceed (event=${{ github.event_name }}, schedule='${{ github.event.schedule }}')"
+
   generate-article:
     runs-on: ubuntu-latest
+    needs: wwdc-gate
+    if: needs.wwdc-gate.outputs.proceed == 'true'
 
     steps:
       - name: Checkout repository
