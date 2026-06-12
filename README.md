@@ -174,7 +174,8 @@ ios-dev-ai-writer/
 ├── prompts/                    # all LLM prompt templates
 ├── scripts/
 │   ├── update_readme.py        # regenerates the Pipeline Health README block
-│   └── health_check.py         # post-run health-regression check → CI issue
+│   ├── health_check.py         # post-run health-regression check → CI issue
+│   └── publish_burst.py        # sequential multi-article workflow_dispatch orchestrator
 ├── utils/
 │   ├── article_repair.py       # deterministic post-processing for article cleanup
 │   ├── content_filters.py      # shared AI-exclusion patterns + Apple Intelligence allowlist
@@ -348,6 +349,15 @@ Inputs available when triggering the workflow manually; scheduled runs ignore th
 | `forced_family` | `auto` | Force a topic family by name, or `auto` to use the weighted sampler. Unknown names are ignored with a warning. Maps to env var `FORCED_FAMILY` |
 | `dry_run` | `false` | Run the pipeline but skip README regen, state persistence, and publishing to the content repo |
 | `multi_per_day` | `false` | Keep existing same-date articles instead of replacing them — publish several articles on one day (e.g. WWDC coverage bursts) |
+
+**Burst publishing:** to publish several articles in one day without touching the CI design, `scripts/publish_burst.py` triggers sequential `workflow_dispatch` runs (each with `multi_per_day=true`) and waits for each to finish:
+
+```bash
+python scripts/publish_burst.py "Topic One" "Topic Two"
+python scripts/publish_burst.py --topics-file wwdc_topics.txt
+```
+
+Requires an authenticated GitHub CLI. Topics must respect the 60-char / 10-word title limits; runs are strictly sequential to avoid state races.
 
 ---
 
