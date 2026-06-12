@@ -1038,6 +1038,10 @@ def generate_topic(
             # OS-version tokens, so only exact repeats are rejected.
             if _is_exact_duplicate(candidate, recent):
                 violations.append("exact_duplicate")
+            # The published site files WWDC coverage by the "WWDC" title token
+            # — enforce it so in-window articles always land in the WWDC hub.
+            if "wwdc" not in candidate.lower():
+                violations.append("missing_wwdc_token")
         else:
             if _is_repetitive(candidate, recent):
                 violations.append("word_repetitive")

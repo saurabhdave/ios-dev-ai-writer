@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
 [![OpenAI](https://img.shields.io/badge/OpenAI-API-412991?style=flat-square&logo=openai&logoColor=white)](https://platform.openai.com)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/saurabhdave/ios-dev-ai-writer/weekly.yml?style=flat-square&label=2x%2Fweek%20pipeline)](https://github.com/saurabhdave/ios-dev-ai-writer/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/saurabhdave/ios-dev-ai-writer/weekly.yml?style=flat-square&label=scheduled%20pipeline)](https://github.com/saurabhdave/ios-dev-ai-writer/actions)
 
 ---
 
@@ -69,7 +69,7 @@ Auto-commit to ios-ai-articles
 
 ```mermaid
 flowchart TD
-    A[GitHub Actions · Mon & Thu 10:00 UTC] --> B[main.py]
+    A[GitHub Actions · Mon & Thu 10:00 UTC · daily in WWDC window] --> B[main.py]
     B --> C[weekly_pipeline.py]
 
     C --> S[trend_scanner.py]
@@ -325,6 +325,7 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `NEWSLETTER_ENABLED` | `true` | Generate newsletter issue |
 | `NEWSLETTER_NAME` | `iOS Dev Weekly` | Newsletter display name |
 | `OUTPUT_QUALITY_HISTORY_PATH` | `outputs/quality_history.json` | Append-only quality record |
+| `NEWSLETTER_ISSUE_FILE` | `.newsletter_issue_number` | Counter file for the auto-incrementing newsletter issue number |
 | `CROSS_REPO_DEDUP_ENABLED` | `true` | Fetch published titles from the output repo via GitHub API to guard against state drift |
 | `PUBLISHED_REPO_API_URL` | *(ios-ai-articles articles API)* | GitHub Contents API URL used for cross-repo dedup |
 | `GITHUB_TOKEN` | *(unset)* | Optional — authenticates the cross-repo dedup API call (avoids the 60/hr unauthenticated rate limit). CI passes the built-in Actions token automatically |
