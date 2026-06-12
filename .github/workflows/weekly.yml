@@ -36,6 +36,11 @@ on:
         type: boolean
         required: false
         default: false
+      multi_per_day:
+        description: "Keep existing same-date articles instead of replacing them (publish several articles in one day)."
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -206,6 +211,7 @@ jobs:
         if: steps.persist-state.outcome == 'success' && github.event.inputs.dry_run != 'true'
         env:
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          MULTI_PER_DAY: ${{ github.event.inputs.multi_per_day }}
         run: |
           git clone https://x-access-token:${DEPLOY_TOKEN}@github.com/saurabhdave/ios-ai-articles.git _content
           mkdir -p _content/articles _content/linkedin _content/codegen _content/newsletter
@@ -215,6 +221,8 @@ jobs:
           # metadata, and newsletter issue from the replaced topic must go with
           # it, or the content repo ends up with artifacts for different topics
           # on the same date (observed: orphaned 2026-03-31 LinkedIn post).
+          # Exception: multi_per_day=true keeps same-date artifacts so several
+          # articles can be published on one day (e.g. WWDC coverage bursts).
           sync_artifacts() {
             src_dir=$1; dest_dir=$2
             for src in "$src_dir"/*; do
@@ -225,7 +233,7 @@ jobs:
                 *) continue ;;
               esac
               date_prefix=$(echo "$fname" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}')
-              if [ -n "$date_prefix" ]; then
+              if [ -n "$date_prefix" ] && [ "$MULTI_PER_DAY" != "true" ]; then
                 # Compare stems (name minus extension) so paired files of the
                 # same artifact (newsletter .md + .html) don't delete each other.
                 stem="${fname%.*}"

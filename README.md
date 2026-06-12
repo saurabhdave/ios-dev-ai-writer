@@ -347,6 +347,7 @@ Inputs available when triggering the workflow manually; scheduled runs ignore th
 | `forced_topic` | *(blank)* | Override the generated title (max 60 chars); skips LLM topic generation. Maps to env var `FORCED_TOPIC` |
 | `forced_family` | `auto` | Force a topic family by name, or `auto` to use the weighted sampler. Unknown names are ignored with a warning. Maps to env var `FORCED_FAMILY` |
 | `dry_run` | `false` | Run the pipeline but skip README regen, state persistence, and publishing to the content repo |
+| `multi_per_day` | `false` | Keep existing same-date articles instead of replacing them — publish several articles on one day (e.g. WWDC coverage bursts) |
 
 ---
 
