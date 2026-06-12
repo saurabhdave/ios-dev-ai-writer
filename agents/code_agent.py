@@ -601,6 +601,43 @@ def _make_article_context(article_body: str) -> str:
 # Public API
 # ---------------------------------------------------------------------------
 
+# Fenced swift (or unlabelled) blocks inside an article body.
+_INLINE_FENCE_RE: Final[re.Pattern[str]] = re.compile(
+    r"```(?:swift)?[ \t]*\n([\s\S]*?)```"
+)
+
+
+def validate_inline_snippets(article: str) -> tuple[str, list[str]]:
+    """Validate the fenced Swift blocks inside an article body.
+
+    Inline body snippets are written by the article/editor LLMs and were
+    previously never validated (only the standalone appended example was) —
+    review history shows real won't-compile bugs slipping through. Each block
+    gets the deterministic ``@Bindable``-in-``@Observable`` fix applied in
+    place, then a syntax-only parse check (no-op when swiftc is unavailable).
+
+    Returns ``(article, issues)`` where *article* may contain deterministic
+    fixes and *issues* describes blocks that failed to parse. Diagnostic:
+    callers log issues but never block the pipeline on them.
+    """
+    issues: list[str] = []
+
+    def _check_and_fix(match: re.Match) -> str:
+        code = match.group(1)
+        fixed, _ = strip_bindable_from_observable(code)
+        ok, diagnostics = _swift_parse_validate(fixed)
+        if not ok:
+            block_index = len(issues) + 1
+            first_line = next(
+                (line.strip() for line in fixed.splitlines() if line.strip()), ""
+            )
+            detail = diagnostics.strip().splitlines()[-1] if diagnostics.strip() else "parse failed"
+            issues.append(f"inline block {block_index} ({first_line[:60]!r}): {detail[:200]}")
+        return match.group(0).replace(match.group(1), fixed)
+
+    repaired = _INLINE_FENCE_RE.sub(_check_and_fix, article)
+    return repaired, issues
+
 
 def generate_code_with_metadata(topic: str, article_body: str = "") -> CodeGenerationResult:
     """Generate Swift code and return full validation metadata.

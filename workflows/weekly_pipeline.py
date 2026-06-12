@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 from agents.article_agent import generate_article
-from agents.code_agent import generate_code_with_metadata
+from agents.code_agent import generate_code_with_metadata, validate_inline_snippets
 from utils.article_repair import ensure_version_baseline_note, repair_article as _repair_article
 
 from agents.review_agent import review_article
@@ -49,6 +49,7 @@ from config import (
     OUTPUT_QUALITY_HISTORY_PATH,
     LINKEDIN_POST_ENABLED,
     PUBLISHED_REPO_API_URL,
+    REFERENCE_CONTENT_ENABLED,
     REVIEW_REPAIR_ENABLED,
     REVIEW_REPAIR_MIN_SCORE,
     SELF_REVIEW_ENABLED,
@@ -59,6 +60,7 @@ from config import (
 )
 from scanners.trend_scanner import TrendSignal, discover_ios_trends, save_trend_snapshot
 from utils.content_filters import has_allowed_intelligence_context, is_excluded_ai_topic
+from utils.reference_content import fetch_reference_excerpts
 from utils.observability import get_logger, log_event, reset_run_context, set_run_context, timed_step
 
 REFERENCE_TOKEN_STOPWORDS = {
@@ -784,11 +786,26 @@ def run_weekly_pipeline() -> Path:
                 0 if reference_context == "- None" else 1
             )
 
+        reference_excerpts = ""
+        with timed_step(
+            LOGGER,
+            "fetch_reference_content",
+            topic=topic,
+            enabled=REFERENCE_CONTENT_ENABLED,
+        ) as step:
+            if REFERENCE_CONTENT_ENABLED:
+                excerpt_refs = _reference_items(trends, topic=topic, max_items=8)
+                excerpt_refs += _seed_reference_items(topic)
+                reference_excerpts = fetch_reference_excerpts(excerpt_refs)
+                step["excerpt_pages"] = reference_excerpts.count("— ") if reference_excerpts else 0
+                step["excerpt_chars"] = len(reference_excerpts)
+
         with timed_step(LOGGER, "generate_article", topic=topic):
             article = generate_article(
                 topic=topic,
                 outline=outline,
                 allowed_references=reference_context,
+                reference_excerpts=reference_excerpts,
             )
 
         editor_pass_count = 0
@@ -820,6 +837,7 @@ def run_weekly_pipeline() -> Path:
                     article=polished_article,
                     allowed_references=reference_context,
                     max_passes=FACT_GROUNDING_MAX_PASSES,
+                    reference_excerpts=reference_excerpts,
                 )
                 editor_pass_count += 1
 
@@ -878,6 +896,18 @@ def run_weekly_pipeline() -> Path:
 
         with timed_step(LOGGER, "sanitize_article", topic=topic):
             polished_article = _sanitize_body_urls(polished_article)
+
+        with timed_step(LOGGER, "validate_inline_snippets", topic=topic) as step:
+            polished_article, inline_snippet_issues = validate_inline_snippets(polished_article)
+            step["inline_snippet_issues"] = len(inline_snippet_issues)
+            if inline_snippet_issues:
+                log_event(
+                    LOGGER,
+                    "inline_snippet_issues_detected",
+                    level=logging.WARNING,
+                    topic=topic,
+                    issues=inline_snippet_issues,
+                )
 
         with timed_step(LOGGER, "generate_code", topic=topic) as step:
             code_result = generate_code_with_metadata(topic, article_body=polished_article)
@@ -967,6 +997,7 @@ def run_weekly_pipeline() -> Path:
                 "review_issues": review_result.get("issues", []),
                 "review_strengths": review_result.get("strengths", []),
                 "review_repair_triggered": review_repair_triggered,
+                "inline_snippet_issues": inline_snippet_issues,
             }
             _append_quality_history(quality_record)
             log_event(
