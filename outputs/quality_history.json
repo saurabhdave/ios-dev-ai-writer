@@ -1533,5 +1533,31 @@
       "Emphasis on profiling, OSSignposter, and staged rollouts for safe deployment"
     ],
     "review_repair_triggered": false
+  },
+  {
+    "date": "2026-06-12",
+    "slug": "macos-27-menu-redesign-impact-for-mac-app-teams",
+    "topic": "macOS 27 Menu Redesign Impact for Mac App Teams",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Intro platform note says \"iOS 18+\" though article is about macOS 27"
+    ],
+    "review_strengths": [
+      "Strong, specific opening that explains real runtime failures from menu changes",
+      "Concrete API mentions: `NSMenuItem`, `NSUserActivity`, `NSAccessibility`, `OSSignposter`, `os_log`",
+      "Practical, runnable checklist with CI/beta/canary rollout guidance",
+      "Good coverage of tradeoffs, failure modes, and observability signals",
+      "Includes concrete test and instrumentation recommendations (XCTest, Instruments, OSSignposter)"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]

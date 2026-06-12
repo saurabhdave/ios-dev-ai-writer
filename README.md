@@ -25,13 +25,13 @@ _Auto-generated from `outputs/quality_history.json` and `memory/family_picks.jso
 
 | Metric | Value |
 |---|---|
-| Total runs | 55 (2026-03-13 → 2026-06-11) |
-| Codegen success (last 10) | 80% — 3 direct, 5 repaired, 2 omitted |
+| Total runs | 56 (2026-03-13 → 2026-06-12) |
+| Codegen success (last 10) | 90% — 4 direct, 5 repaired, 1 omitted |
 | Avg review score (last 10) | 8.3 / 10 |
 | Cross-platform topics (last 8) | 4 of 8 mention non-iOS Apple platforms |
 | Zero-coverage families (last 8) | 2 of 8 — `swiftui_features, migration` |
 
-**Recent topic-family rotation (newest first):** accessibility_design → tooling_debugging → architecture → concurrency → accessibility_design → frameworks_apis → performance → concurrency
+**Recent topic-family rotation (newest first):** wwdc_event → accessibility_design → tooling_debugging → architecture → concurrency → accessibility_design → frameworks_apis → performance
 
 <!-- PIPELINE_HEALTH_END -->
 

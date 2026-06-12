@@ -31,6 +31,7 @@
     "concurrency",
     "architecture",
     "tooling_debugging",
-    "accessibility_design"
+    "accessibility_design",
+    "wwdc_event"
   ]
 }
