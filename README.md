@@ -12,7 +12,7 @@
 
 ## What It Does
 
-Twice a week, a GitHub Actions job scans iOS/Swift trend sources, picks a topic, and runs it through a multi-stage LLM pipeline that produces a full Medium-style article — complete with a Swift code example, a LinkedIn post, and a developer newsletter issue. Everything is committed and published automatically.
+Twice a week (daily during the WWDC window), a GitHub Actions job scans iOS/Swift trend sources, picks a topic, and runs it through a multi-stage LLM pipeline that produces a full Medium-style article — complete with a Swift code example, a LinkedIn post, and a developer newsletter issue. Everything is committed and published automatically.
 
 **Published output lives at [saurabhdave/ios-ai-articles](https://github.com/saurabhdave/ios-ai-articles).**
 
@@ -115,6 +115,8 @@ flowchart TD
 | **Editor pass** | Polish for clarity, tone, and Medium readability |
 | **Voice pass** | Strips AI writing patterns — "Choose X/Z" constructs, hedge phrases, passive recommendations, vague claims |
 | **Factual grounding** | Conservative rewrite pass to reduce hallucinated claims |
+| **Reference-content grounding** | Fetches trusted reference pages and injects text excerpts into the article + grounding prompts, so timely topics are grounded in real source content instead of titles alone |
+| **Inline snippet validation** | Fenced `swift` blocks in the article body get the deterministic `@Bindable` fix plus a syntax-only parse check; issues are logged and recorded in quality history |
 | **Layout repair loop** | Iteratively scores article against a 15-point Medium rubric — including a required inline `swift` snippet in the body — and repairs until score ≥ threshold |
 | **Deterministic repair** | Post-process fixes malformed backticks, strips `Operational note:` template artifacts, and inserts a standard iOS/Swift baseline note after the intro |
 | **Self-review** | LLM scores each article on overall quality, technical depth, and actionability |
@@ -127,6 +129,7 @@ flowchart TD
 | **Embedding dedup** | `text-embedding-3-small` cosine similarity catches near-duplicate topics with low lexical overlap |
 | **Theme cluster guard** | Hard limit on same-cluster articles (Swift concurrency, UIKit migration, SwiftUI profiling) per rolling window |
 | **Apple-platform only** | Topics filtered to iOS/Swift/SwiftUI/Xcode — AI-first subjects excluded via a shared filter (`utils/content_filters.py`) used by scanner, pipeline, and topic agent |
+| **WWDC mode** | Inside the yearly `WWDC_START_DATE`..`WWDC_END_DATE` window the pipeline runs daily, suspends the family rotation, and covers a different announcement angle each day (keynote, SwiftUI, Swift/concurrency, tooling, platforms, Apple Intelligence) |
 
 ### Code Generation
 | Feature | Detail |
@@ -175,6 +178,7 @@ ios-dev-ai-writer/
 ├── utils/
 │   ├── article_repair.py       # deterministic post-processing for article cleanup
 │   ├── content_filters.py      # shared AI-exclusion patterns + Apple Intelligence allowlist
+│   ├── reference_content.py    # fetches reference pages → prompt-ready text excerpts
 │   ├── observability.py        # structured JSON logging
 │   └── openai_logging.py       # OpenAI client + token tracking
 ├── tests/                      # unittest suite: OpenAI config, trend scanner/discovery,
@@ -278,6 +282,9 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `MEDIUM_LAYOUT_REINFORCEMENT_ENABLED` | `true` | Iterative layout repair loop |
 | `MEDIUM_LAYOUT_MAX_REPAIR_PASSES` | `2` | Max layout repair iterations |
 | `MEDIUM_LAYOUT_MIN_SCORE` | `8` | Minimum passing layout score (out of 15) |
+| `REFERENCE_CONTENT_ENABLED` | `true` | Fetch reference pages and inject text excerpts into article + grounding prompts |
+| `REFERENCE_CONTENT_MAX_PAGES` | `3` | Max reference pages whose excerpts are injected per run |
+| `REFERENCE_CONTENT_MAX_CHARS` | `1500` | Max excerpt characters per page |
 | `SELF_REVIEW_ENABLED` | `true` | LLM self-review scoring pass |
 | `REVIEW_REPAIR_ENABLED` | `true` | Re-run editor pass if review score is low |
 | `REVIEW_REPAIR_MIN_SCORE` | `7` | Score threshold that triggers repair |
@@ -295,6 +302,8 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `CUSTOM_TRENDS_FILE` | `scanners/custom_trends.json` | Path to custom trends JSON |
 | `TOPIC_INTERESTS` | *(19 topics — see config.py)* | Comma-separated list of preferred topic areas fed to the topic agent |
 | `TOPIC_SIMILARITY_THRESHOLD` | `0.72` | Cosine similarity threshold above which a candidate topic is rejected as a semantic near-duplicate |
+| `WWDC_START_DATE` | *(unset — set yearly in `weekly.yml`)* | First day of the WWDC window (`YYYY-MM-DD`); enables WWDC mode together with `WWDC_END_DATE` |
+| `WWDC_END_DATE` | *(unset — set yearly in `weekly.yml`)* | Last day of the WWDC window (`YYYY-MM-DD`, inclusive) |
 
 ### Code Generation
 
@@ -362,7 +371,7 @@ Outputs are gitignored locally and auto-published to [saurabhdave/ios-ai-article
 
 ## GitHub Actions
 
-**Schedule:** Monday and Thursday at 10:00 UTC (`0 10 * * 1,4`).
+**Schedule:** Monday and Thursday at 10:00 UTC (`0 10 * * 1,4`). A second daily cron (`0 10 * * 0,2,3,5,6`) covers the remaining days but is admitted by the `wwdc-gate` job only inside the `WWDC_START_DATE`..`WWDC_END_DATE` window set in the workflow env — the rest of the year those runs exit within seconds. Mon/Thu and manual runs are never gated.
 
 **Secrets required:**
 
