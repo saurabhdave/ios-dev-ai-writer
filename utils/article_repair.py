@@ -171,23 +171,82 @@ def audit_missing_version_callouts(text: str) -> List[str]:
 
 
 # ---------------------------------------------------------------------------
+# Version baseline note
+# ---------------------------------------------------------------------------
+
+# Detects an existing baseline statement so the note is never double-inserted
+# and an article that states its own baseline is left untouched.
+_BASELINE_STATEMENT_RE = re.compile(
+    r"targets?\s+iOS\s+\d+|minimum\s+deployment\s+target",
+    re.IGNORECASE,
+)
+
+_FIRST_H2_RE = re.compile(r"^##\s+", re.MULTILINE)
+
+#: Assumed platform baseline; matches the article/editor prompt rules.
+IOS_BASELINE: str = "18"
+
+
+def build_version_baseline_note(swift_version: str, ios_baseline: str = IOS_BASELINE) -> str:
+    """Render the standard one-line baseline note (Swift trimmed to major.minor)."""
+    major_minor = ".".join(swift_version.split(".")[:2]) or swift_version
+    return (
+        f"*All code in this article targets iOS {ios_baseline}+ and "
+        f"Swift {major_minor} unless noted otherwise.*"
+    )
+
+
+def ensure_version_baseline_note(
+    text: str,
+    swift_version: str,
+    ios_baseline: str = IOS_BASELINE,
+) -> Tuple[str, bool]:
+    """Insert the standard baseline note before the first ``##`` heading.
+
+    The reviewer penalizes articles with no stated deployment target, while
+    the writer/editor prompts forbid per-API version callouts for baseline
+    APIs — this note resolves that conflict deterministically. No-op when the
+    article already states a baseline.
+
+    Returns ``(text, inserted)``.
+    """
+    if _BASELINE_STATEMENT_RE.search(text):
+        return text, False
+
+    note = build_version_baseline_note(swift_version, ios_baseline)
+    match = _FIRST_H2_RE.search(text)
+    if match:
+        head = text[: match.start()].rstrip()
+        return f"{head}\n\n{note}\n\n{text[match.start():]}", True
+    return f"{text.rstrip()}\n\n{note}\n", True
+
+
+# ---------------------------------------------------------------------------
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def repair_article(text: str) -> Tuple[str, Dict]:
+def repair_article(text: str, swift_version: str | None = None) -> Tuple[str, Dict]:
     """Run all deterministic repairs on article body text.
+
+    When *swift_version* is provided, the standard version baseline note is
+    inserted after the hook intro unless the article already states one.
 
     Returns:
         (repaired_text, report_dict) where report_dict contains:
           'backtick_fixes'         — list of substitution descriptions (empty if none)
           'operational_note_fixes' — count of 'Operational note:' labels removed
           'version_warnings'       — list of missing version callout warnings
+          'version_note_inserted'  — True when the baseline note was added
     """
     text, backtick_fixes = repair_malformed_backticks(text)
     text, operational_note_fixes = strip_operational_note_labels(text)
+    version_note_inserted = False
+    if swift_version:
+        text, version_note_inserted = ensure_version_baseline_note(text, swift_version)
     version_warnings = audit_missing_version_callouts(text)
     return text, {
         "backtick_fixes": backtick_fixes,
         "operational_note_fixes": operational_note_fixes,
         "version_warnings": version_warnings,
+        "version_note_inserted": version_note_inserted,
     }

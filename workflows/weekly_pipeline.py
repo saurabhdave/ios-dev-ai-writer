@@ -15,7 +15,7 @@ from uuid import uuid4
 
 from agents.article_agent import generate_article
 from agents.code_agent import generate_code_with_metadata
-from utils.article_repair import repair_article as _repair_article
+from utils.article_repair import ensure_version_baseline_note, repair_article as _repair_article
 
 from agents.review_agent import review_article
 from agents.editor_agent import (
@@ -847,10 +847,13 @@ def run_weekly_pipeline() -> Path:
                 )
 
         with timed_step(LOGGER, "deterministic_repair", topic=topic) as step:
-            polished_article, repair_report = _repair_article(polished_article)
+            polished_article, repair_report = _repair_article(
+                polished_article, swift_version=SWIFT_LANGUAGE_VERSION
+            )
             step["backtick_fixes"] = len(repair_report["backtick_fixes"])
             step["operational_note_fixes"] = repair_report.get("operational_note_fixes", 0)
             step["version_warnings"] = len(repair_report["version_warnings"])
+            step["version_note_inserted"] = repair_report.get("version_note_inserted", False)
             if repair_report["backtick_fixes"]:
                 log_event(
                     LOGGER,
@@ -930,6 +933,10 @@ def run_weekly_pipeline() -> Path:
                         article=polished_article,
                         allowed_references=reference_context,
                         review_issues=review_issues,
+                    )
+                    # The repair LLM may drop the baseline note — re-ensure it.
+                    polished_article, _ = ensure_version_baseline_note(
+                        polished_article, SWIFT_LANGUAGE_VERSION
                     )
                     editor_pass_count += 1
                     log_event(

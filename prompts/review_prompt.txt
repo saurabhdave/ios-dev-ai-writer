@@ -45,7 +45,11 @@ overall_quality (1–10)
 technical_depth (1–10)
   Evaluate: accuracy, specificity, and production relevance.
   Ask: Are Apple API references correct and named precisely in backtick format?
-       Are Swift version constraints stated where relevant?
+       Are Swift version constraints stated where relevant? The standard
+       baseline note after the intro ("targets iOS 18+ and Swift 6.x")
+       satisfies this for baseline APIs — do NOT flag missing deployment-target
+       or Swift-version guidance when that note is present. Only flag APIs
+       that require something newer than the stated baseline without a callout.
        Does the article go beyond surface-level advice into tradeoffs and
        failure modes?
        Are pitfalls covered with concrete, defensible detail?
@@ -76,7 +80,8 @@ issues — list of specific, concrete problems found.
       • No markdown checklist or checklist uses - instead of - [ ]
       • Apple API names in prose without backtick formatting
       • Unsupported numeric claims (percentages, benchmarks) without citation
-      • Version claims without stated deployment target
+      • Version claims beyond the iOS 18+/Swift 6 baseline without a callout
+        (the standard baseline note covers everything at or below the baseline)
       • ObservableObject/Published used outside a legacy Before block
       • No dedicated tradeoffs section
       • No validation/observability section
