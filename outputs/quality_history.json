@@ -1711,5 +1711,33 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-06-12",
+    "slug": "swiftui-changes-from-wwdc-2026-worth-adopting-now",
+    "topic": "SwiftUI Changes From WWDC 2026 Worth Adopting Now",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 9,
+    "review_actionability": 8,
+    "review_issues": [
+      "Opening hook is terse and generic; lacks a concrete example of user-visible failure",
+      "No concrete Router type or value-type example shown where referenced in Navigation section",
+      "No XCTest example demonstrating task cancellation assertions despite recommending them",
+      "Article references feature-flag gating but lacks brief rollout pattern or metric thresholds"
+    ],
+    "review_strengths": [
+      "Clear guidance on when to prefer Layout vs GeometryReader",
+      "Good emphasis on device-backed profiling with Instruments Time Profiler and Allocations",
+      "Concrete concurrency example using withThrowingTaskGroup",
+      "Practical checklist with actionable, specific items for teams"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
