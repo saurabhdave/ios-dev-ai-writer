@@ -71,5 +71,42 @@ class BaselineNoteTests(unittest.TestCase):
         self.assertNotIn("targets iOS 18+", repaired)
 
 
+class PlatformAwareBaselineTests(unittest.TestCase):
+    def test_macos_article_gets_macos_baseline(self):
+        article = (
+            "macOS menu handling changed.\n\n## 1. Menus\n\n"
+            "NSMenu wiring on macOS needs stable command identity. "
+            "Test on macOS before shipping.\n"
+        )
+        result, inserted = ensure_version_baseline_note(article, "6.2.4")
+        self.assertTrue(inserted)
+        self.assertIn("targets macOS 15+", result)
+        self.assertNotIn("targets iOS", result)
+
+    def test_visionos_article_gets_visionos_baseline(self):
+        article = (
+            "Spatial apps.\n\n## 1. Volumes\n\n"
+            "visionOS windows and visionOS volumes differ. visionOS input matters.\n"
+        )
+        result, _ = ensure_version_baseline_note(article, "6.2.4")
+        self.assertIn("targets visionOS 2+", result)
+
+    def test_no_platform_mentions_default_to_ios(self):
+        result, _ = ensure_version_baseline_note(_ARTICLE, "6.2.4")
+        self.assertIn("targets iOS 18+", result)
+
+    def test_ios_wins_ties_with_other_platforms(self):
+        article = "Sharing code between iOS and macOS.\n\n## 1. Targets\n\nDetails.\n"
+        result, _ = ensure_version_baseline_note(article, "6.2.4")
+        self.assertIn("targets iOS 18+", result)
+
+    def test_existing_macos_baseline_note_is_idempotent(self):
+        article = "macOS tips.\n\n## 1. A\n\nmacOS macOS macOS.\n"
+        once, _ = ensure_version_baseline_note(article, "6.2.4")
+        twice, inserted_again = ensure_version_baseline_note(once, "6.2.4")
+        self.assertFalse(inserted_again)
+        self.assertEqual(once, twice)
+
+
 if __name__ == "__main__":
     unittest.main()

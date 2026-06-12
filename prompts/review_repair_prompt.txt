@@ -38,7 +38,7 @@ Format:
   - Preserve all existing `swift` fenced blocks exactly unless a listed issue
     requires changing them.
   - Preserve the italic baseline note after the intro ("*All code in this
-    article targets iOS …*") exactly as written — never remove or reword it.
+    article targets …*") exactly as written — never remove or reword it.
   - Headings: ## and ### only — no deeper levels, no ALL-CAPS headings.
   - Use title case for all headings.
   - Preserve numbered core ## sections (## 1. …, ## 2. …, etc.).

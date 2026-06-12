@@ -177,21 +177,50 @@ def audit_missing_version_callouts(text: str) -> List[str]:
 # Detects an existing baseline statement so the note is never double-inserted
 # and an article that states its own baseline is left untouched.
 _BASELINE_STATEMENT_RE = re.compile(
-    r"targets?\s+iOS\s+\d+|minimum\s+deployment\s+target",
+    r"targets?\s+(?:iOS|iPadOS|macOS|watchOS|visionOS|tvOS)\s+\d+"
+    r"|minimum\s+deployment\s+target",
     re.IGNORECASE,
 )
 
 _FIRST_H2_RE = re.compile(r"^##\s+", re.MULTILINE)
 
-#: Assumed platform baseline; matches the article/editor prompt rules.
-IOS_BASELINE: str = "18"
+# Era-equivalent platform baselines (the iOS 18 SDK generation). The note
+# names the article's dominant platform so a macOS piece doesn't claim an
+# iOS deployment target — that mismatch was flagged by self-review.
+_PLATFORM_BASELINES: List[Tuple[str, str]] = [
+    ("ios", "iOS 18"),
+    ("ipados", "iPadOS 18"),
+    ("macos", "macOS 15"),
+    ("watchos", "watchOS 11"),
+    ("visionos", "visionOS 2"),
+    ("tvos", "tvOS 18"),
+]
+
+_DEFAULT_PLATFORM_BASELINE: str = "iOS 18"
 
 
-def build_version_baseline_note(swift_version: str, ios_baseline: str = IOS_BASELINE) -> str:
+def _dominant_platform_baseline(text: str) -> str:
+    """Return the baseline label for the platform the article is about."""
+    lowered = text.lower()
+    best_label = _DEFAULT_PLATFORM_BASELINE
+    best_count = 0
+    for keyword, label in _PLATFORM_BASELINES:
+        count = len(re.findall(rf"\b{keyword}\b", lowered))
+        # Strictly greater: ties keep the earlier (iOS-first) entry.
+        if count > best_count:
+            best_count = count
+            best_label = label
+    return best_label
+
+
+def build_version_baseline_note(
+    swift_version: str,
+    platform_baseline: str = _DEFAULT_PLATFORM_BASELINE,
+) -> str:
     """Render the standard one-line baseline note (Swift trimmed to major.minor)."""
     major_minor = ".".join(swift_version.split(".")[:2]) or swift_version
     return (
-        f"*All code in this article targets iOS {ios_baseline}+ and "
+        f"*All code in this article targets {platform_baseline}+ and "
         f"Swift {major_minor} unless noted otherwise.*"
     )
 
@@ -199,21 +228,24 @@ def build_version_baseline_note(swift_version: str, ios_baseline: str = IOS_BASE
 def ensure_version_baseline_note(
     text: str,
     swift_version: str,
-    ios_baseline: str = IOS_BASELINE,
+    platform_baseline: str | None = None,
 ) -> Tuple[str, bool]:
     """Insert the standard baseline note before the first ``##`` heading.
 
     The reviewer penalizes articles with no stated deployment target, while
     the writer/editor prompts forbid per-API version callouts for baseline
-    APIs — this note resolves that conflict deterministically. No-op when the
-    article already states a baseline.
+    APIs — this note resolves that conflict deterministically. The platform
+    is detected from the article body unless given explicitly. No-op when
+    the article already states a baseline.
 
     Returns ``(text, inserted)``.
     """
     if _BASELINE_STATEMENT_RE.search(text):
         return text, False
 
-    note = build_version_baseline_note(swift_version, ios_baseline)
+    if platform_baseline is None:
+        platform_baseline = _dominant_platform_baseline(text)
+    note = build_version_baseline_note(swift_version, platform_baseline)
     match = _FIRST_H2_RE.search(text)
     if match:
         head = text[: match.start()].rstrip()

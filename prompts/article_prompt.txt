@@ -141,9 +141,10 @@ Version Statements:
   callouts for APIs that have been available since iOS 18 or earlier — those are
   the assumed baseline. Only note APIs that require iOS 18.1+ or later.
   Do not assert version facts that are not verifiable from the allowed references.
-  A standard baseline note ("*All code in this article targets iOS 18+ and
-  Swift 6.x unless noted otherwise.*") is inserted automatically after the
-  intro — do not write your own baseline or version disclaimer.
+  A standard baseline note ("*All code in this article targets <platform
+  baseline>+ and Swift 6.x unless noted otherwise.*", platform-matched to the
+  article) is inserted automatically after the intro — do not write your own
+  baseline or version disclaimer.
 
 Deprecated APIs:
   NEVER mention or recommend deprecated APIs in prose or code context. If a topic
