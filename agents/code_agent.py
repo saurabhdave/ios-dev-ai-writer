@@ -50,6 +50,9 @@ SWIFT_BOOK_URL: Final[str] = (
 IOS_SIMULATOR_TARGET: Final[str] = "arm64-apple-ios18.0-simulator"
 
 MAX_REPAIR_ATTEMPTS: Final[int] = 2
+# Inline blocks often surface errors one at a time (swiftc suppresses cascades),
+# so allow a few iterative repair passes per block.
+MAX_INLINE_REPAIR_ATTEMPTS: Final[int] = 3
 ARTICLE_EXCERPT_MAX_CHARS: Final[int] = 1_200
 
 # Maximum characters of diagnostics forwarded to the model in a repair prompt.
@@ -60,9 +63,11 @@ ADVISORY_DIAG_MAX_CHARS: Final[int] = 420
 STYLE_DIAG_MAX_CHARS: Final[int] = 360
 UNKNOWN_SYMBOL_MAX_LINES: Final[int] = 12
 
-# Max output tokens for generation vs. repair calls.
-CODEGEN_MAX_TOKENS: Final[int] = 1_200
-REPAIR_MAX_TOKENS: Final[int] = 1_400
+# Max output tokens for generation vs. repair calls. Sized with headroom for
+# GPT-5 reasoning tokens, which count against max_output_tokens — too small a
+# budget truncates a full snippet/rewrite and yields invalid (unparsable) Swift.
+CODEGEN_MAX_TOKENS: Final[int] = 3_000
+REPAIR_MAX_TOKENS: Final[int] = 4_000
 
 REPAIR_TEMPERATURE: Final[float] = 0.35
 
@@ -670,19 +675,32 @@ def validate_inline_snippets(
             if repair:
                 if client is None:
                     client = create_openai_client()
-                repaired = _repair_inline_block(
-                    client, topic=topic, code=fixed, diag=result.summary()
-                )
-                rfixed, _ = strip_bindable_from_observable(repaired) if repaired else ("", None)
-                if rfixed and _inline_repair_is_acceptable(fixed, rfixed):
-                    rparse_ok, _ = _swift_parse_validate(rfixed)
+                # Iterate: a block often has multiple errors where swiftc only
+                # reports the first (later ones are suppressed cascades), so a
+                # single pass fixes one and the re-check surfaces the next. Each
+                # candidate's size is still bounded against the ORIGINAL block.
+                candidate, diag = fixed, result.summary()
+                for _ in range(MAX_INLINE_REPAIR_ATTEMPTS):
+                    repaired = _repair_inline_block(
+                        client, topic=topic, code=candidate, diag=diag
+                    )
+                    if not repaired:
+                        break
+                    rfixed, _ = strip_bindable_from_observable(repaired)
+                    if not _inline_repair_is_acceptable(fixed, rfixed):
+                        break
+                    rparse_ok, rparse_diag = _swift_parse_validate(rfixed)
+                    if not rparse_ok:
+                        candidate, diag = rfixed, rparse_diag
+                        continue
                     rresult = typecheck_snippet(rfixed)
-                    if rparse_ok and (not rresult.available or rresult.ok):
+                    if not rresult.available or rresult.ok:
                         log_event(
                             LOGGER, "inline_snippet_repaired", level=logging.INFO,
                             topic=topic, block=first_line[:60],
                         )
                         return match.group(0).replace(match.group(1), rfixed)
+                    candidate, diag = rfixed, rresult.summary()  # feed next error
             detail = (
                 result.hard_errors[0].split("error:")[-1].strip()
                 if result.hard_errors else "type-check failed"
