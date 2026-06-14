@@ -28,14 +28,19 @@ from config import (
     CODEGEN_FAILURE_MODE,
     CODEGEN_STRIP_UNREPAIRABLE_INLINE,
     CODEGEN_VALIDATION_MODE,
+    LEARNINGS_INJECTION_ENABLED,
+    LEARNINGS_MIN_COUNT,
+    LEARNINGS_WINDOW,
     OPENAI_MODEL,
     OPENAI_TEMPERATURE,
+    OUTPUT_QUALITY_HISTORY_PATH,
     SWIFT_COMPILER_LANGUAGE_MODE,
     SWIFT_LANGUAGE_VERSION,
     openai_generation_kwargs,
 )
 from agents.swift_validation import typecheck_snippet
 from utils.article_repair import strip_bindable_from_observable
+from utils.learnings import build_code_digest
 from utils.observability import get_logger, log_event
 from utils.openai_logging import create_openai_client, response_output_text, responses_create_logged
 
@@ -751,6 +756,15 @@ def generate_code_with_metadata(topic: str, article_body: str = "") -> CodeGener
     client = create_openai_client()
     template = _load_prompt_template()
     prompt = _build_prompt(template, topic, _make_article_context(article_body))
+    # Incremental learning: steer away from compiler errors that recurred recently.
+    if LEARNINGS_INJECTION_ENABLED:
+        digest = build_code_digest(
+            OUTPUT_QUALITY_HISTORY_PATH,
+            window=LEARNINGS_WINDOW, min_count=LEARNINGS_MIN_COUNT,
+        )
+        if digest:
+            prompt = f"{prompt}\n\n{digest}"
+            log_event(LOGGER, "code_learnings_injected", level=logging.INFO, topic=topic)
     validation_mode = _resolve_validation_mode()
 
     # --- Initial generation ---

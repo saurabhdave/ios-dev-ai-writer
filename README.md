@@ -121,6 +121,7 @@ flowchart TD
 | **Deterministic repair** | Post-process fixes malformed backticks, strips `Operational note:` template artifacts, and inserts a standard iOS/Swift baseline note after the intro |
 | **Self-review** | LLM scores each article on overall quality, technical depth, and actionability |
 | **Review-triggered repair** | Re-runs editor pass when review score falls below threshold |
+| **Incremental learning** | Mines `quality_history.json` for review critiques and type-check errors that recur (≥ `LEARNINGS_MIN_COUNT` in the last `LEARNINGS_WINDOW` runs) and prepends a bounded "avoid these" digest to the article and code prompts — so the pipeline steers away from its own past mistakes. Safe no-op until patterns recur (`LEARNINGS_INJECTION_ENABLED`) |
 
 ### Topic Discovery
 | Feature | Detail |
@@ -315,6 +316,9 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `SWIFT_COMPILER_LANGUAGE_MODE` | `6` | Maps to `swiftc -swift-version` |
 | `CODEGEN_VALIDATION_MODE` | `compile` | `compile` (stub-tolerant multi-SDK typecheck; macOS-only, no-ops elsewhere) \| `snippet` (syntax parse) \| `none` |
 | `CODEGEN_STRIP_UNREPAIRABLE_INLINE` | `true` | Strip inline `swift` blocks that still fail type-check after repair (keeps prose); `false` keeps them (logged) |
+| `LEARNINGS_INJECTION_ENABLED` | `true` | Inject the recurring-failures digest (mined from `quality_history.json`) into the article/code prompts |
+| `LEARNINGS_WINDOW` | `25` | How many recent runs to mine for recurring patterns |
+| `LEARNINGS_MIN_COUNT` | `2` | Minimum recurrences before a pattern is surfaced (1-offs ignored) |
 | `CODEGEN_FAILURE_MODE` | `omit` | `omit` (publish without code) \| `error` (fail pipeline) |
 
 ### Output

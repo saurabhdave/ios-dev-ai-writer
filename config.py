@@ -354,6 +354,16 @@ OUTPUT_QUALITY_HISTORY_PATH = Path(
     os.getenv("OUTPUT_QUALITY_HISTORY_PATH", "outputs/quality_history.json")
 )
 
+# Incremental learning: mine quality_history.json for recurring review critiques
+# and type-check failures, and inject a bounded "avoid these" digest into the
+# article/code prompts. A no-op until patterns actually recur (>= MIN_COUNT in the
+# last WINDOW runs), so it is safe on a fresh history.
+LEARNINGS_INJECTION_ENABLED = os.getenv("LEARNINGS_INJECTION_ENABLED", "true").lower() in {
+    "1", "true", "yes", "on"
+}
+LEARNINGS_WINDOW = int(os.getenv("LEARNINGS_WINDOW", "25"))
+LEARNINGS_MIN_COUNT = int(os.getenv("LEARNINGS_MIN_COUNT", "2"))
+
 # Review-triggered repair: re-run the editor pass when review scores are below threshold.
 REVIEW_REPAIR_ENABLED = os.getenv("REVIEW_REPAIR_ENABLED", "true").lower() in {
     "1",

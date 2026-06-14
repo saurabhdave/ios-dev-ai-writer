@@ -22,7 +22,17 @@ from pathlib import Path
 from typing import Final
 
 from agents.topic_agent import load_author_context
-from config import CUSTOM_TRENDS_FILE, OPENAI_MODEL, OPENAI_TEMPERATURE, openai_generation_kwargs
+from config import (
+    CUSTOM_TRENDS_FILE,
+    LEARNINGS_INJECTION_ENABLED,
+    LEARNINGS_MIN_COUNT,
+    LEARNINGS_WINDOW,
+    OPENAI_MODEL,
+    OPENAI_TEMPERATURE,
+    OUTPUT_QUALITY_HISTORY_PATH,
+    openai_generation_kwargs,
+)
+from utils.learnings import build_editorial_digest
 from utils.observability import get_logger, log_event
 from utils.openai_logging import create_openai_client, response_output_text, responses_create_logged
 
@@ -390,6 +400,16 @@ def generate_article(
         .replace("{allowed_references}", allowed_references.strip() or "- None")
         .replace("{reference_excerpts}", reference_excerpts.strip() or "- None available this run.")
     )
+
+    # Incremental learning: preempt review critiques that recurred recently.
+    if LEARNINGS_INJECTION_ENABLED:
+        digest = build_editorial_digest(
+            OUTPUT_QUALITY_HISTORY_PATH,
+            window=LEARNINGS_WINDOW, min_count=LEARNINGS_MIN_COUNT,
+        )
+        if digest:
+            base_prompt = f"{base_prompt}\n\n{digest}"
+            log_event(LOGGER, "editorial_learnings_injected", level=logging.INFO, topic=topic)
 
     # --- Reference quality check (warn only, never block) ---
     ref_warnings = validate_references(allowed_references)
