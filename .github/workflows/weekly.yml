@@ -75,7 +75,11 @@ jobs:
           echo "Gate decision: proceed=$proceed (event=${{ github.event_name }}, schedule='${{ github.event.schedule }}')"
 
   generate-article:
-    runs-on: ubuntu-latest
+    # macOS so swiftc + the iOS/macOS/watchOS SDKs are available: the code agent's
+    # stub-tolerant type-check (CODEGEN_VALIDATION_MODE=compile) only catches API
+    # misuse when it can compile against an Apple SDK. On ubuntu swiftc is absent
+    # and every Swift validator silently no-ops.
+    runs-on: macos-latest
     needs: wwdc-gate
     if: needs.wwdc-gate.outputs.proceed == 'true'
 
@@ -96,7 +100,7 @@ jobs:
       - name: Generate weekly article
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: gpt-5-mini
+          OPENAI_MODEL: gpt-5
           OPENAI_TEMPERATURE: "0.7"
           # Authenticates the cross-repo dedup fetch (_load_published_titles) —
           # unauthenticated GitHub API calls share a 60/hr per-IP limit that

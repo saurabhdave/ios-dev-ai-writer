@@ -121,7 +121,7 @@ def _normalize_reasoning_effort(value: str | None, *, model: str | None = None) 
 
 # OpenAI credentials and model settings.
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5")
 OPENAI_TEMPERATURE = float(os.getenv("OPENAI_TEMPERATURE", "0.7"))
 _OPENAI_REASONING_EFFORT_ENV = os.getenv("OPENAI_REASONING_EFFORT")
 OPENAI_REASONING_EFFORT = _normalize_reasoning_effort(
@@ -329,10 +329,11 @@ SWIFT_COMPILER_LANGUAGE_MODE = _normalize_swift_language_mode(
 CODEGEN_FAILURE_MODE = os.getenv("CODEGEN_FAILURE_MODE", "omit").strip().lower()
 
 # Code snippet validation mode:
-# - snippet: validate syntax/placeholder quality only (best for article snippets)
-# - compile: strict Swift typecheck against available iOS SDK
+# - snippet: validate syntax/placeholder quality only (parse, no type resolution)
+# - compile: stub-tolerant, multi-SDK Swift typecheck (iOS/macOS/watchOS) — catches
+#            API misuse, not just syntax. Default; a no-op off a macOS toolchain.
 # - none: skip validation completely
-CODEGEN_VALIDATION_MODE = os.getenv("CODEGEN_VALIDATION_MODE", "snippet").strip().lower()
+CODEGEN_VALIDATION_MODE = os.getenv("CODEGEN_VALIDATION_MODE", "compile").strip().lower()
 
 # Post-generation self-review and quality history.
 SELF_REVIEW_ENABLED = os.getenv("SELF_REVIEW_ENABLED", "true").lower() in {
