@@ -335,6 +335,14 @@ CODEGEN_FAILURE_MODE = os.getenv("CODEGEN_FAILURE_MODE", "omit").strip().lower()
 # - none: skip validation completely
 CODEGEN_VALIDATION_MODE = os.getenv("CODEGEN_VALIDATION_MODE", "compile").strip().lower()
 
+# When an inline body snippet still fails to type-check after the repair loop,
+# strip the offending fenced block rather than publish code that does not compile
+# (the prose around it is kept). Guarantees no broken inline Swift ships; set to
+# "false" to keep failing blocks (logged as issues) instead.
+CODEGEN_STRIP_UNREPAIRABLE_INLINE = os.getenv(
+    "CODEGEN_STRIP_UNREPAIRABLE_INLINE", "true"
+).strip().lower() in {"1", "true", "yes", "on"}
+
 # Post-generation self-review and quality history.
 SELF_REVIEW_ENABLED = os.getenv("SELF_REVIEW_ENABLED", "true").lower() in {
     "1",

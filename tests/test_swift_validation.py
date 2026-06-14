@@ -82,6 +82,33 @@ class InlineSnippetTypecheckTests(unittest.TestCase):
         _, issues = code_agent.validate_inline_snippets(article)
         self.assertEqual(issues, [])
 
+    def test_unrepairable_block_is_stripped_when_repairing(self) -> None:
+        # A real semantic error (wrong OSSignposter label); force repair to fail
+        # so the strip guarantee (Option B) is exercised deterministically.
+        article = (
+            "Intro.\n\n```swift\nimport os\n"
+            "func go(_ sp: OSSignposter, _ id: OSSignpostID) {\n"
+            "    sp.endInterval(\"Op\", id: id)\n}\n```\n"
+        )
+        with mock.patch.object(code_agent, "_repair_inline_block", return_value=""):
+            fixed, issues = code_agent.validate_inline_snippets(
+                article, repair=True, topic="t"
+            )
+        self.assertNotIn("```swift", fixed)   # broken block removed
+        self.assertNotIn("endInterval", fixed)
+        self.assertEqual(len(issues), 1)      # still recorded for observability
+
+    def test_unrepairable_block_kept_when_not_repairing(self) -> None:
+        # Detection-only (repair=False) must not strip — preserves prior behavior.
+        article = (
+            "Intro.\n\n```swift\nimport os\n"
+            "func go(_ sp: OSSignposter, _ id: OSSignpostID) {\n"
+            "    sp.endInterval(\"Op\", id: id)\n}\n```\n"
+        )
+        fixed, issues = code_agent.validate_inline_snippets(article)
+        self.assertIn("endInterval", fixed)   # block kept
+        self.assertEqual(len(issues), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

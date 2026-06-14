@@ -26,6 +26,7 @@ from typing import Final
 
 from config import (
     CODEGEN_FAILURE_MODE,
+    CODEGEN_STRIP_UNREPAIRABLE_INLINE,
     CODEGEN_VALIDATION_MODE,
     OPENAI_MODEL,
     OPENAI_TEMPERATURE,
@@ -706,9 +707,20 @@ def validate_inline_snippets(
                 if result.hard_errors else "type-check failed"
             )
             issues.append(f"inline block ({first_line[:60]!r}): {detail[:200]}")
+            # Guarantee: when we actively tried to repair and the block still does
+            # not compile, strip it rather than publish broken Swift (Option B).
+            if repair and CODEGEN_STRIP_UNREPAIRABLE_INLINE:
+                log_event(
+                    LOGGER, "inline_snippet_stripped", level=logging.WARNING,
+                    topic=topic, block=first_line[:60], reason=detail[:120],
+                )
+                return ""
         return match.group(0).replace(match.group(1), fixed)
 
     repaired_article = _INLINE_FENCE_RE.sub(_check_and_fix, article)
+    # Collapse blank-line runs a stripped block may have left behind (markdown
+    # treats 2+ blank lines the same, so this only tidies the source).
+    repaired_article = re.sub(r"\n{3,}", "\n\n", repaired_article)
     return repaired_article, issues
 
 

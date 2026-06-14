@@ -116,7 +116,7 @@ flowchart TD
 | **Voice pass** | Strips AI writing patterns — "Choose X/Z" constructs, hedge phrases, passive recommendations, vague claims |
 | **Factual grounding** | Conservative rewrite pass to reduce hallucinated claims |
 | **Reference-content grounding** | Fetches trusted reference pages and injects text excerpts into the article + grounding prompts, so timely topics are grounded in real source content instead of titles alone |
-| **Inline snippet validation** | Fenced `swift` blocks in the article body get the deterministic `@Bindable` fix, a syntax parse check, then a stub-tolerant, multi-SDK `swiftc -typecheck` (iOS/macOS/watchOS) that catches semantic API misuse — failing blocks are repaired in place once and the rest logged. Runs only on a macOS toolchain |
+| **Inline snippet validation** | Fenced `swift` blocks in the article body get the deterministic `@Bindable` fix, a syntax parse check, then a stub-tolerant, multi-SDK `swiftc -typecheck` (iOS/macOS/watchOS) that catches semantic API misuse. Failing blocks are repaired iteratively; any that still don't compile are **stripped** (`CODEGEN_STRIP_UNREPAIRABLE_INLINE`) so no broken inline Swift is published. Runs only on a macOS toolchain |
 | **Layout repair loop** | Iteratively scores article against a 15-point Medium rubric — including a required inline `swift` snippet in the body — and repairs until score ≥ threshold |
 | **Deterministic repair** | Post-process fixes malformed backticks, strips `Operational note:` template artifacts, and inserts a standard iOS/Swift baseline note after the intro |
 | **Self-review** | LLM scores each article on overall quality, technical depth, and actionability |
@@ -314,6 +314,7 @@ All settings are driven by environment variables. Set them in `.env` or export d
 | `SWIFT_LANGUAGE_VERSION` | `6.2.4` | Target Swift release |
 | `SWIFT_COMPILER_LANGUAGE_MODE` | `6` | Maps to `swiftc -swift-version` |
 | `CODEGEN_VALIDATION_MODE` | `compile` | `compile` (stub-tolerant multi-SDK typecheck; macOS-only, no-ops elsewhere) \| `snippet` (syntax parse) \| `none` |
+| `CODEGEN_STRIP_UNREPAIRABLE_INLINE` | `true` | Strip inline `swift` blocks that still fail type-check after repair (keeps prose); `false` keeps them (logged) |
 | `CODEGEN_FAILURE_MODE` | `omit` | `omit` (publish without code) \| `error` (fail pipeline) |
 
 ### Output
