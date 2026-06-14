@@ -898,7 +898,9 @@ def run_weekly_pipeline() -> Path:
             polished_article = _sanitize_body_urls(polished_article)
 
         with timed_step(LOGGER, "validate_inline_snippets", topic=topic) as step:
-            polished_article, inline_snippet_issues = validate_inline_snippets(polished_article)
+            polished_article, inline_snippet_issues = validate_inline_snippets(
+                polished_article, repair=True, topic=topic
+            )
             step["inline_snippet_issues"] = len(inline_snippet_issues)
             if inline_snippet_issues:
                 log_event(

@@ -33,6 +33,7 @@ from config import (
     SWIFT_LANGUAGE_VERSION,
     openai_generation_kwargs,
 )
+from agents.swift_validation import typecheck_snippet
 from utils.article_repair import strip_bindable_from_observable
 from utils.observability import get_logger, log_event
 from utils.openai_logging import create_openai_client, response_output_text, responses_create_logged
@@ -284,42 +285,23 @@ def _query_ios_sdk_path(xcrun: str) -> str:
 
 
 def _swift_compile_validate(code: str) -> tuple[bool, str]:
-    """Typecheck *code* against the iOS simulator SDK when available.
+    """Typecheck *code* against the SDK matching its frameworks (iOS/macOS/watchOS).
 
-    Falls back to parse-only validation when ``xcrun`` or the SDK is absent.
-    Returns ``(True, "")`` when ``swiftc`` is not on PATH (CI environments).
+    Delegates to ``agents.swift_validation`` for stub-tolerant, multi-SDK
+    type-checking — so AppKit / HealthKit examples are checked against the macOS /
+    watchOS SDK instead of being falsely failed against iOS, and only genuine API
+    misuse (not undefined helper symbols) blocks. Falls back to parse-only when
+    the toolchain or SDK is unavailable; returns ``(True, "")`` without ``swiftc``.
     """
     if not code.strip():
         return False, "Generated code is empty."
 
-    swiftc = shutil.which("swiftc")
-    if not swiftc:
-        return True, ""
-
-    with tempfile.TemporaryDirectory() as tmp:
-        source = Path(tmp) / "GeneratedArticleCode.swift"
-        source.write_text(code, encoding="utf-8")
-        module_cache = Path(tmp) / "ModuleCache"
-
-        xcrun = shutil.which("xcrun")
-        if xcrun:
-            sdk_path = _query_ios_sdk_path(xcrun)
-            if sdk_path:
-                rc, stderr = _run_swiftc(
-                    _build_typecheck_command(swiftc, source, sdk_path, module_cache),
-                    timeout=TYPECHECK_TIMEOUT,
-                )
-                if rc != 0 and _is_unsupported_version_error(stderr):
-                    rc, stderr = _run_swiftc(
-                        _build_typecheck_command(
-                            swiftc, source, sdk_path, module_cache, with_version=False
-                        ),
-                        timeout=TYPECHECK_TIMEOUT,
-                    )
-                return rc == 0, stderr[-RESULT_DIAG_MAX_CHARS:]
-
-        # xcrun unavailable or SDK query failed — fall back to parse-only.
+    result = typecheck_snippet(code)
+    if not result.available:
+        # No swiftc / xcrun / SDK — fall back to parse-only (also a no-op
+        # without swiftc), preserving CI-safe behavior.
         return _swift_parse_validate(code)
+    return result.ok, result.summary()
 
 
 def _swift_parse_validate(code: str) -> tuple[bool, str]:
@@ -608,22 +590,59 @@ _INLINE_FENCE_RE: Final[re.Pattern[str]] = re.compile(
 )
 
 
-def validate_inline_snippets(article: str) -> tuple[str, list[str]]:
+def _repair_inline_block(client: object, *, topic: str, code: str, diag: str) -> str:
+    """Repair a single inline block against type-check diagnostics; "" on error."""
+    try:
+        return _repair_code(
+            client,
+            topic=topic,
+            code=code,
+            compiler_diag=diag,
+            style_diag="",
+            brace_diag="",
+            validation_mode="compile",
+        )
+    except Exception as exc:  # network / API failure must never break the pipeline
+        log_event(
+            LOGGER, "inline_snippet_repair_error", level=logging.WARNING,
+            topic=topic, error=str(exc),
+        )
+        return ""
+
+
+def _inline_repair_is_acceptable(original: str, candidate: str) -> bool:
+    """Reject a repair that balloons a focused fragment into a full example."""
+    return bool(candidate.strip()) and len(candidate.splitlines()) <= max(
+        12, 3 * len(original.splitlines())
+    )
+
+
+def validate_inline_snippets(
+    article: str, *, repair: bool = False, topic: str = ""
+) -> tuple[str, list[str]]:
     """Validate the fenced Swift blocks inside an article body.
 
     Inline body snippets are written by the article/editor LLMs and were
-    previously never validated (only the standalone appended example was) —
-    review history shows real won't-compile bugs slipping through. Each block
-    gets the deterministic ``@Bindable``-in-``@Observable`` fix applied in
-    place, then a syntax-only parse check (no-op when swiftc is unavailable).
+    previously only *parsed* (syntax-only) — which cannot catch semantic API
+    misuse (wrong argument labels, nonexistent members, ``@MainActor actor``,
+    invented types). Each block now gets, in order:
 
-    Returns ``(article, issues)`` where *article* may contain deterministic
-    fixes and *issues* describes blocks that failed to parse. Diagnostic:
-    callers log issues but never block the pipeline on them.
+    1. the deterministic ``@Bindable``-in-``@Observable`` fix, applied in place;
+    2. a gate-banned-API check (mirrors the content repo's editorial gate);
+    3. a syntax parse check — a parse failure is reported and skips step 4;
+    4. a stub-tolerant, multi-SDK **type-check** (``agents.swift_validation``),
+       a no-op when no macOS toolchain is present.
+
+    When ``repair=True`` and a block fails type-checking, the block is repaired
+    once via the model and replaced in place only if the repair type-checks and
+    does not balloon the fragment. Returns ``(article, issues)``; remaining
+    issues are advisory (callers log, never hard-block).
     """
     issues: list[str] = []
+    client: object | None = None
 
     def _check_and_fix(match: re.Match) -> str:
+        nonlocal client
         code = match.group(1)
         fixed, _ = strip_bindable_from_observable(code)
         first_line = next(
@@ -636,14 +655,43 @@ def validate_inline_snippets(article: str) -> tuple[str, list[str]]:
             issues.append(
                 f"inline block ({first_line[:60]!r}): gate-banned API(s) {', '.join(banned)}"
             )
+
+        # 3. Syntax first — a parse failure is the breakage; skip the semantic
+        #    type-check (it would only echo the same problem).
         ok, diagnostics = _swift_parse_validate(fixed)
         if not ok:
             detail = diagnostics.strip().splitlines()[-1] if diagnostics.strip() else "parse failed"
             issues.append(f"inline block ({first_line[:60]!r}): {detail[:200]}")
+            return match.group(0).replace(match.group(1), fixed)
+
+        # 4. Semantic type-check (stub-tolerant, multi-SDK; no-op off macOS).
+        result = typecheck_snippet(fixed)
+        if result.available and not result.ok:
+            if repair:
+                if client is None:
+                    client = create_openai_client()
+                repaired = _repair_inline_block(
+                    client, topic=topic, code=fixed, diag=result.summary()
+                )
+                rfixed, _ = strip_bindable_from_observable(repaired) if repaired else ("", None)
+                if rfixed and _inline_repair_is_acceptable(fixed, rfixed):
+                    rparse_ok, _ = _swift_parse_validate(rfixed)
+                    rresult = typecheck_snippet(rfixed)
+                    if rparse_ok and (not rresult.available or rresult.ok):
+                        log_event(
+                            LOGGER, "inline_snippet_repaired", level=logging.INFO,
+                            topic=topic, block=first_line[:60],
+                        )
+                        return match.group(0).replace(match.group(1), rfixed)
+            detail = (
+                result.hard_errors[0].split("error:")[-1].strip()
+                if result.hard_errors else "type-check failed"
+            )
+            issues.append(f"inline block ({first_line[:60]!r}): {detail[:200]}")
         return match.group(0).replace(match.group(1), fixed)
 
-    repaired = _INLINE_FENCE_RE.sub(_check_and_fix, article)
-    return repaired, issues
+    repaired_article = _INLINE_FENCE_RE.sub(_check_and_fix, article)
+    return repaired_article, issues
 
 
 def generate_code_with_metadata(topic: str, article_body: str = "") -> CodeGenerationResult:
