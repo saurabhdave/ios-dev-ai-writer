@@ -1739,5 +1739,39 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-06-15",
+    "slug": "navigationstack-patterns-for-visionos",
+    "topic": "NavigationStack Patterns for visionOS",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Missing @Bindable for $router.path binding in WindowRoot code",
+      "Suggests storing NavigationPath directly in @SceneStorage; requires Data encoding",
+      "ImmersionCoordinator ignores openImmersiveSpace result and cancellation handling"
+    ],
+    "review_strengths": [
+      "Strong, specific hook and clear Why This Matters section",
+      "Concise decision criteria for Stack vs Split with pitfalls",
+      "Router and ImmersionCoordinator patterns are concrete and testable",
+      "Actionable restoration and deep link guidance with validations",
+      "Excellent observability section with OSSignposter and Instruments flow",
+      "Practical checklist maps directly to production tasks"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('// ❌ Nested stacks can reset selection on window activation'): cannot infer type of closure parameter 'item' without a type annotation",
+      "inline block ('// ✅ One structure per window; detail hosts routing'): generic parameter 'Data' could not be inferred",
+      "inline block ('struct RootView: View {'): cannot infer contextual base in reference to member 'item'",
+      "inline block ('struct SceneRoot: View {'): value of type 'NavigationPath' has no member 'compactMap'"
+    ]
   }
 ]
