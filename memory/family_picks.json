@@ -33,6 +33,7 @@
     "tooling_debugging",
     "accessibility_design",
     "wwdc_event",
-    "architecture"
+    "architecture",
+    "frameworks_apis"
   ]
 }

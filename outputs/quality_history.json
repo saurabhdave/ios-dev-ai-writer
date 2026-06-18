@@ -1773,5 +1773,34 @@
       "inline block ('struct RootView: View {'): cannot infer contextual base in reference to member 'item'",
       "inline block ('struct SceneRoot: View {'): value of type 'NavigationPath' has no member 'compactMap'"
     ]
+  },
+  {
+    "date": "2026-06-18",
+    "slug": "update-sign-in-with-apple-domains-without-breaking-login",
+    "topic": "Update Sign in with Apple Domains Without Breaking Login",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 9,
+    "review_actionability": 9,
+    "review_issues": [
+      "Uncited claim about private.icloud.com unification in Why This Matters",
+      "presentationAnchor fallback returns new UIWindow; not a valid anchor",
+      "ASWebAuthenticationSession sets presentationContextProvider to AppDelegate without conformance",
+      "AppleTokenLogger code block ends with brace and backticks on same line"
+    ],
+    "review_strengths": [
+      "Strong hook highlighting real outage risks",
+      "Clear guidance to keep Service ID and dual redirects",
+      "Accurate AASA and entitlement deployment advice",
+      "Concrete logging and OSSignposter instrumentation examples",
+      "Actionable checklist covering redirects, AASA, email, and metrics"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
