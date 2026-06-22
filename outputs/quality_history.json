@@ -1802,5 +1802,38 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-06-22",
+    "slug": "debugging-app-intents-responses-in-xcode",
+    "topic": "Debugging App Intents Responses in Xcode",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 9,
+    "review_actionability": 10,
+    "review_issues": [
+      "Code block ends with stray }``` in §3 snippet",
+      "Lacks guidance to identify Shortcuts host process in Xcode",
+      "Unusual baseline: 'watchOS 26+' may confuse readers"
+    ],
+    "review_strengths": [
+      "Strong, specific hook tied to App Intents drift",
+      "Clear attach-on-launch workflow with Console filtering",
+      "Concrete Logger and privacy guidance for background hosts",
+      "Displays DisplayRepresentation pattern to avoid drift",
+      "Actionable cache-first EntityQuery advice",
+      "Dialog vs Snippet vs open app decision criteria",
+      "Precise OSSignposter phase instrumentation example",
+      "Direct perform() contract testing with async XCTest",
+      "Comprehensive tradeoffs and pitfalls section",
+      "Excellent closing checklist for real-world rollout"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
