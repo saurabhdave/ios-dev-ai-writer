@@ -1835,5 +1835,37 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-06-25",
+    "slug": "ossignposter-custom-performance-markers-for-ios",
+    "topic": "OSSignposter Custom Performance Markers for iOS",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Prose references non-existent endInterval(_:id:state:) signature in multiple places",
+      "ImageDecoder example misses defer; interval may not end on throw",
+      "Rasterize child interval lacks defer; throws skip endInterval",
+      "Baseline note claims iOS 26+, potentially confusing to readers"
+    ],
+    "review_strengths": [
+      "Strong, specific hook grounded in real repro conditions",
+      "Clear taxonomy guidance: names aggregate; IDs correlate",
+      "Concise wrapper pattern to toggle instrumentation density",
+      "Parent/child signpost example across async boundaries",
+      "Actionable validation with XCTOSSignpostMetric and Instruments overlays",
+      "Practical, scoped checklist for production rollout"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('import OSLog'): incorrect argument label in call (have 'log:', expected 'logHandle:')"
+    ]
   }
 ]

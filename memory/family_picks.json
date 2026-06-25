@@ -35,6 +35,7 @@
     "wwdc_event",
     "architecture",
     "frameworks_apis",
-    "frameworks_apis"
+    "frameworks_apis",
+    "performance"
   ]
 }
