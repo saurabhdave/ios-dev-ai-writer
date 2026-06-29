@@ -1867,5 +1867,40 @@
     "inline_snippet_issues": [
       "inline block ('import OSLog'): incorrect argument label in call (have 'log:', expected 'logHandle:')"
     ]
+  },
+  {
+    "date": "2026-06-29",
+    "slug": "profiling-watchos-battery-drain-with-instruments",
+    "topic": "Profiling watchOS Battery Drain with Instruments",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 9,
+    "review_actionability": 9,
+    "review_issues": [
+      "OSSignposter code fence not properly closed in §3",
+      "NWPathMonitor started with .global() instead of DispatchQueue.global()",
+      "List uses id: \\.title; duplicate titles break identity",
+      "NWPathMonitor never cancelled in Scenario example"
+    ],
+    "review_strengths": [
+      "Strong on-device Energy Log emphasis with reproducible baselines",
+      "Clear Time Profiler workflow tied to Energy Log windows",
+      "Actionable SwiftUI invalidation guidance with @Observable and .equatable()",
+      "Practical OSSignposter intervals with defer-based endings",
+      "Concrete background task guidance distinguishing WKRefresh and extended sessions",
+      "Debounced concurrency example reducing timer wakeups",
+      "Decision Point/Operations pattern makes choices immediately usable",
+      "Thorough validation and observability checklist for production"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('import SwiftUI, Observation'):  3 |     init(title: String, isRead: Bool) { self.title = title; self.isRead = isRead } }",
+      "inline block ('import WatchKit, Foundation'):  3 |     private let session: URLSession = {"
+    ]
   }
 ]

@@ -36,6 +36,7 @@
     "architecture",
     "frameworks_apis",
     "frameworks_apis",
-    "performance"
+    "performance",
+    "concurrency"
   ]
 }
