@@ -1902,5 +1902,39 @@
       "inline block ('import SwiftUI, Observation'):  3 |     init(title: String, isRead: Bool) { self.title = title; self.isRead = isRead } }",
       "inline block ('import WatchKit, Foundation'):  3 |     private let session: URLSession = {"
     ]
+  },
+  {
+    "date": "2026-07-02",
+    "slug": "custom-swiftui-layouts-with-the-layout-protocol",
+    "topic": "Custom SwiftUI Layouts with the Layout Protocol",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 9,
+    "review_actionability": 9,
+    "review_issues": [
+      "Baseline note claims iOS 26+, likely typo",
+      "Flow example omits placeSubviews implementation details",
+      "Flow sizeThatFits sums widths but title suggests wrapping",
+      "WeightedRow uses AnyView unnecessarily in example",
+      "No example demonstrating LayoutValueKey usage"
+    ],
+    "review_strengths": [
+      "Clear guidance on when to prefer custom Layout over stacks",
+      "Accurate explanation of proposals and .unspecified usage",
+      "Strong rollout and testing strategy with feature flags",
+      "Detailed pitfalls section focused on determinism and caching",
+      "Actionable validation with Instruments, OSSignposter, MetricKit",
+      "Concise practical checklist aligned to production needs",
+      "Accessibility parity guidance covering reading order and grouping"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('struct WeightKey: LayoutValueKey { static let defaultValue: '): type 'WeightedHStack' does not conform to protocol 'Layout'"
+    ]
   }
 ]
