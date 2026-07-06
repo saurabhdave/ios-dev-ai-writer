@@ -1936,5 +1936,37 @@
     "inline_snippet_issues": [
       "inline block ('struct WeightKey: LayoutValueKey { static let defaultValue: '): type 'WeightedHStack' does not conform to protocol 'Layout'"
     ]
+  },
+  {
+    "date": "2026-07-06",
+    "slug": "mvvm-or-observable-choosing-for-production-swiftui",
+    "topic": "MVVM or Observable? Choosing for Production SwiftUI",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Baseline note claims iOS 26+ — unrealistic target",
+      "RenderCountView mutates state in body via DispatchQueue.main.async",
+      "FeedModeling protocol marked Sendable; @MainActor class Sendable status unclear",
+      "No explicit comparison with ObservableObject migration tradeoffs"
+    ],
+    "review_strengths": [
+      "Compelling device-versus-simulator hook tied to profiling",
+      "Precise explanation of @Observable invalidation and ownership risks",
+      "OSSignposter example scoped to async pagination mutation",
+      "Clear one-owner pattern with initializer-based reference passing",
+      "Operational guidance to profile on device, not Simulator",
+      "Concrete migration façade with provider gating and flag strategy",
+      "Checklist enforces ownership, scoping, profiling, and rollout gates",
+      "Actionable advice to narrow reads and precompute derived state"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]

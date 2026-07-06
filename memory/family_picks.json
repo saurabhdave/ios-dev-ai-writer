@@ -38,6 +38,7 @@
     "frameworks_apis",
     "performance",
     "concurrency",
-    "swiftui_features"
+    "swiftui_features",
+    "architecture"
   ]
 }
