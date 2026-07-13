@@ -1968,5 +1968,39 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-07-13",
+    "slug": "dark-mode-color-contrast-checks-for-swiftui",
+    "topic": "Dark Mode Color Contrast Checks for SwiftUI",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Unrealistic baseline: \"iOS 26+\" in intro",
+      "Contrast utility defined twice with differing code",
+      "Missing backticks around \".colorSchemeContrast\" mention",
+      "Background-under-Material math claim lacks explicit code linkage"
+    ],
+    "review_strengths": [
+      "Strong hook tying regressions to real compositing",
+      "Clear role-based token system with Asset Catalog guidance",
+      "Debug-only ViewModifier with Logger and assertions",
+      "Concrete contrast targets tied to Increased Contrast",
+      "Deterministic vs material imagery guidance with fallbacks",
+      "Actionable checklist capturing setup and verification",
+      "Tradeoffs and pitfalls called out explicitly",
+      "On-device validation emphasis and Accessibility Inspector callout"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('import SwiftUI'): cannot infer key path type from context; consider explicitly specifying a root type"
+    ]
   }
 ]

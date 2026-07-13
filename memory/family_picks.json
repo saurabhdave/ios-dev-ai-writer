@@ -39,6 +39,7 @@
     "performance",
     "concurrency",
     "swiftui_features",
-    "architecture"
+    "architecture",
+    "accessibility_design"
   ]
 }
