@@ -2002,5 +2002,38 @@
     "inline_snippet_issues": [
       "inline block ('import SwiftUI'): cannot infer key path type from context; consider explicitly specifying a root type"
     ]
+  },
+  {
+    "date": "2026-07-16",
+    "slug": "speed-up-xcode-builds-with-explicit-modules",
+    "topic": "Speed Up Xcode Builds with Explicit Modules",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Intro baseline claims iOS 26+, not a real version",
+      "SwiftPM example uses .iOS(.v18) conflicting with baseline",
+      "First SwiftPM code block ends with malformed ``` fence",
+      "Some build setting names lack backticks for consistency"
+    ],
+    "review_strengths": [
+      "Strong, specific opening hook about \"Compiling Swift\" stalls",
+      "Clear before/after pipeline explanation of explicit modules",
+      "Actionable per-target rollout with choose-when guidance",
+      "Concrete remediation for non-modular includes via module maps",
+      "CI cache stabilization tactics with DerivedData and toolchain pinning",
+      "Uses xcodebuild timing and OSSignposter for observability",
+      "Comprehensive checklist enabling immediate application"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('// SPM binary target consumed by multiple apps'): reference to member 'binaryTarget' cannot be resolved without a contextual type"
+    ]
   }
 ]
