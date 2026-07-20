@@ -2035,5 +2035,37 @@
     "inline_snippet_issues": [
       "inline block ('// SPM binary target consumed by multiple apps'): reference to member 'binaryTarget' cannot be resolved without a contextual type"
     ]
+  },
+  {
+    "date": "2026-07-20",
+    "slug": "hunting-appkit-retain-cycles-with-memory-graph",
+    "topic": "Hunting AppKit Retain Cycles with Memory Graph",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Baseline note claims macOS 26+, invalid version.",
+      "UIKit snapshot code in a macOS/AppKit article.",
+      "Observer uses object: view.window in viewDidLoad; window likely nil.",
+      "Cleanup shown in viewWillDisappear despite windowWillClose guidance.",
+      "Lists NSWindowController as needing weak delegate; it has none."
+    ],
+    "review_strengths": [
+      "Strong hook on retained controllers causing jank.",
+      "Clear Memory Graph vs Allocations decision criteria.",
+      "Concrete teardown via windowWillClose and coordinator pattern.",
+      "Actionable closure capture guidance with lifetime justification.",
+      "Thorough coverage of table/collection adapter closure leaks.",
+      "Practical checklist and XCTMemoryMetric test example.",
+      "Good observability advice with OSSignposter and Instruments."
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
