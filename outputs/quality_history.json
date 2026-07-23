@@ -2067,5 +2067,37 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-07-23",
+    "slug": "testflight-43-workflow-upgrades-for-ios-teams",
+    "topic": "TestFlight 4.3 Workflow Upgrades for iOS Teams",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Title references 4.3 but no 4.3-specific features covered",
+      "Baseline note claims iOS 26+, likely inaccurate",
+      "Mentions BCSymbolMaps in §1; bitcode is deprecated",
+      "§1 lacks a concrete App Store Connect API upload example"
+    ],
+    "review_strengths": [
+      "Strong hook on dSYM, build-number, entitlement pitfalls",
+      "Clear CI vs manual upload decision criteria",
+      "Concrete CFBundle versioning guard with runnable code",
+      "Cohort-based tester groups with feature-flag gating example",
+      "MetricKit and OSSignposter integrated with realistic async boundary",
+      "Actionable, auditable CI symbol validation script",
+      "Tradeoffs and observability sections with real failure modes",
+      "Practical checklist directly maps to implementation steps"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
