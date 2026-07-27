@@ -2099,5 +2099,38 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-07-27",
+    "slug": "designing-app-intents-for-apple-intelligence-on-ios",
+    "topic": "Designing App Intents for Apple Intelligence on iOS",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 9,
+    "review_actionability": 9,
+    "review_issues": [
+      "Baseline note claims iOS 26+; likely typo for iOS 18+",
+      "Code fence formatting glitch in §2 after TaskListStore closing brace",
+      "Feature-flag path throws CancellationError without user-facing guidance in §5"
+    ],
+    "review_strengths": [
+      "Strong hook about headless contracts and background invocation",
+      "Clear JTBD mapping to small, focused AppIntents with code",
+      "Typed AppEntity and async EntityQuery with bounded suggestions",
+      "Good concurrency guidance with actors and non-@MainActor perform()",
+      "Operational rollout with flags, cohorts, and stability cautions",
+      "OSSignposter instrumentation example tied to perform() boundary",
+      "Explicit tradeoffs section with concrete pitfalls",
+      "Actionable checklist covering testing, logging, and identifiers"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('import XCTest'): 'nil' requires a contextual type"
+    ]
   }
 ]
