@@ -2132,5 +2132,35 @@
     "inline_snippet_issues": [
       "inline block ('import XCTest'): 'nil' requires a contextual type"
     ]
+  },
+  {
+    "date": "2026-07-30",
+    "slug": "profiling-swiftui-rendering-hitches-in-instruments",
+    "topic": "Profiling SwiftUI Rendering Hitches in Instruments",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 9,
+    "review_actionability": 9,
+    "review_issues": [
+      "Baseline claims iOS 26+, likely a typo/unrealistic",
+      "Two code fences close on same line as a brace"
+    ],
+    "review_strengths": [
+      "Clear, specific hitch-to-stack-to-recomposition workflow",
+      "OSSignposter example with concrete interval usage",
+      "Accurate guidance on .equatable() with small immutable props",
+      "Actionable main-thread vs background scheduling with @MainActor",
+      "Concrete Core Animation layout/display inspection advice",
+      "Tradeoffs and failure modes called out explicitly",
+      "Validation plan using XCTOSSignpostMetric and MetricKit",
+      "Practical checklist maps directly to team workflows"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
