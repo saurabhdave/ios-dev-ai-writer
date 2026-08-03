@@ -45,6 +45,7 @@
     "tooling_debugging",
     "concurrency",
     "frameworks_apis",
-    "performance"
+    "performance",
+    "architecture"
   ]
 }

@@ -2162,5 +2162,40 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-08-03",
+    "slug": "composable-widgetkit-architecture-for-cross-platform-widgets",
+    "topic": "Composable WidgetKit Architecture for Cross Platform Widgets",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 9,
+    "review_actionability": 10,
+    "review_issues": [
+      "Baseline note claims non-existent \"macOS 26+\" version",
+      "StepsView code block ends with stray backticks on same line",
+      "Mentions actor-backed cache without a brief example"
+    ],
+    "review_strengths": [
+      "Strong, specific hook about stale entries and reload storms",
+      "Consistent \"Choose X when\" decision criteria throughout sections",
+      "Accurate use of AppIntentConfiguration and AppIntentTimelineProvider",
+      "Per-kind WidgetCenter throttling example reduces reload storms",
+      "Clear guidance to stabilize widget kinds and stage migrations",
+      "Useful TimelineReloadPolicy example aligning to top of hour",
+      "Practical validation using ImageRenderer for CI snapshots",
+      "Concrete observability with OSSignposter phases and metrics",
+      "Cross-platform composition via ViewThatFits and environment gates",
+      "Actionable checklist with non-trivial, production-ready items"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('import WidgetKit'): 'HealthBundle' is annotated with '@main' and must provide a main static function of type () -> Void, () throws -> Void, () async -> Void, or () async throws -> Void"
+    ]
   }
 ]
