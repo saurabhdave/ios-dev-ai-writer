@@ -2197,5 +2197,40 @@
     "inline_snippet_issues": [
       "inline block ('import WidgetKit'): 'HealthBundle' is annotated with '@main' and must provide a main static function of type () -> Void, () throws -> Void, () async -> Void, or () async throws -> Void"
     ]
+  },
+  {
+    "date": "2026-08-06",
+    "slug": "generate-app-intents-with-swift-63-macros",
+    "topic": "Generate App Intents with Swift 6.3 Macros",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Title says Swift 6.3; baseline note claims Swift 6.2",
+      "§4 promises minimal macro shape but shows no macro code",
+      "Opt-out mechanism mentioned without concrete attribute syntax",
+      "Several code fences close on the same line",
+      "API names in prose often lack backticks"
+    ],
+    "review_strengths": [
+      "Strong, specific CI failure hook and stakes",
+      "Clear boundary: generate metadata; keep perform() manual",
+      "Concrete AppIntent/AppEntity examples with queries and identity",
+      "Explicit when-to-generate vs manual criteria",
+      "Phased rollout with compile-time flag and fallback",
+      "Operational notes on conflicts and toolchain parity",
+      "Validation section covers tests, signposts, and crash monitoring",
+      "Actionable checklist aligned to real team workflows"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('import XCTest'): 'nil' requires a contextual type"
+    ]
   }
 ]
