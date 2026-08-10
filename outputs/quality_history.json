@@ -2232,5 +2232,36 @@
     "inline_snippet_issues": [
       "inline block ('import XCTest'): 'nil' requires a contextual type"
     ]
+  },
+  {
+    "date": "2026-08-10",
+    "slug": "diagnosing-ios-hangs-with-xcode-time-profiler",
+    "topic": "Diagnosing iOS Hangs with Xcode Time Profiler",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 9,
+    "review_actionability": 9,
+    "review_issues": [
+      "Deprecated MobileCoreServices import in image thumbnail example",
+      "OSSignposter code block ends with malformed backticks",
+      "Uses GCD + continuation instead of Task.detached for decoding"
+    ],
+    "review_strengths": [
+      "Strong, specific hook tied to main-thread stacks",
+      "Clear, repeatable Time Profiler workflow with waiting-threads",
+      "Precise attribution guidance expanding system frames to app code",
+      "Concrete async boundary examples with @MainActor and QoS",
+      "Deadlock and priority inversion pitfalls called out explicitly",
+      "Actionable decision points in multiple sections",
+      "Targeted OSSignposter usage tied to Instruments",
+      "Comprehensive validation and rollout gates checklist"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
