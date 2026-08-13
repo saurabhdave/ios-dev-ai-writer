@@ -2263,5 +2263,37 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-08-13",
+    "slug": "swiftui-phaseanimator-patterns-senior-engineers-rely",
+    "topic": "SwiftUI PhaseAnimator Patterns Senior Engineers Rely",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Baseline note claims iOS 26+, not a real deployment target",
+      "Card example uses non-existent shadow(radius:y:) overload",
+      "§3 signpost demo doesn’t bind PhaseAnimator to current trigger",
+      "Some withAnimation mentions in prose lack backticks"
+    ],
+    "review_strengths": [
+      "Strong, specific hook grounded in real animation failure modes",
+      "Clear guidance when to use PhaseAnimator vs .animation(value:)",
+      "Feature-flag pattern cleanly swaps only the animation driver",
+      "OSSignposter integration with actionable Instruments workflow",
+      "Thoughtful performance guardrails with scenePhase and Low Power Mode",
+      "Comprehensive tradeoffs and pitfalls section with concrete advice",
+      "Practical, non-trivial checklist for immediate adoption",
+      "AccessibilityReduceMotion handling woven into state-driven approach"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
