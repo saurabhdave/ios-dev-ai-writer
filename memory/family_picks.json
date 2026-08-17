@@ -49,6 +49,7 @@
     "architecture",
     "frameworks_apis",
     "performance",
-    "swiftui_features"
+    "swiftui_features",
+    "migration"
   ]
 }

@@ -2295,5 +2295,35 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-08-17",
+    "slug": "swift-6-concurrency-migration-for-deprecated-ios-apis",
+    "topic": "Swift 6 Concurrency Migration for Deprecated iOS APIs",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "AsyncThrowingStream bridge deallocates; delegate is weak and Bridge isn’t retained (§1 EventStream).",
+      "Cancellation may hang if legacy cancel doesn’t resume continuation (§1 fetchFromLegacy).",
+      "Network back-deploy section lacks a concrete legacy-shim code path (§4).",
+      "No explicit Swift/iOS baseline note near the intro."
+    ],
+    "review_strengths": [
+      "Clear guidance: continuations for one-shot, AsyncStream for multi-event (§1).",
+      "Realistic TaskGroup example with MainActor isolation and priorities (§2).",
+      "Accurate sendability and actor reentrancy cautions with examples (§3).",
+      "Good use of withTaskCancellationHandler to translate cancellation (§1).",
+      "OSSignposter wrapper shows practical instrumentation boundaries (§ Validation).",
+      "Concise, actionable checklist covering migration steps and pitfalls."
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
