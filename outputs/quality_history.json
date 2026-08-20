@@ -2325,5 +2325,37 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-08-20",
+    "slug": "debugging-macos-appkit-layout-bugs-with-xcode-view-debugger",
+    "topic": "Debugging macOS AppKit Layout Bugs with Xcode View Debugger",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 9,
+    "review_actionability": 9,
+    "review_issues": [
+      "Baseline note claims 'macOS 26+' — nonexistent deployment target.",
+      "SettingsGridViewController sets view.frame in viewDidAppear, contradicts Auto Layout guidance.",
+      "Section 1 lacks step-by-step View Debugger overlay instructions.",
+      "Grid sample doesn't use NSWindow.contentLayoutGuide constraints as recommended."
+    ],
+    "review_strengths": [
+      "Strong, specific hook tied to Auto Layout solver behavior.",
+      "Clear priority ladder with hugging/compression guidance and rationale.",
+      "Concrete anti-patterns called out with safer alternatives.",
+      "Thorough validation and observability section with OSSignposter and XCTest.",
+      "Actionable checklist aligned to macOS AppKit workflows.",
+      "Accurate API naming with backticks and precise symbols.",
+      "Good coverage of dynamic content and intrinsic size invalidation.",
+      "Useful distinction between View Debugger vs unit test harness."
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]

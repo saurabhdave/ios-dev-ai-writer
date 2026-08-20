@@ -50,6 +50,7 @@
     "frameworks_apis",
     "performance",
     "swiftui_features",
-    "migration"
+    "migration",
+    "tooling_debugging"
   ]
 }
