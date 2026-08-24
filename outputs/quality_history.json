@@ -2357,5 +2357,37 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-08-24",
+    "slug": "building-voiceover-friendly-custom-swiftui-controls",
+    "topic": "Building VoiceOver-Friendly Custom SwiftUI Controls",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 9,
+    "review_actionability": 9,
+    "review_issues": [
+      "Custom rotor section lacks API symbols or code",
+      "Baseline note claims iOS 26+/Swift 6.2, likely unrealistic"
+    ],
+    "review_strengths": [
+      "Strong, specific hook tied to VoiceOver pitfalls",
+      "Consistent backticked Apple symbols across sections",
+      "Clear combine-vs-split decision guidance for accessibility elements",
+      "Accurate use of accessibilityAdjustableAction with synchronized value",
+      "Actionable focus order advice using accessibilitySortPriority",
+      "Concrete announcement pattern with UIAccessibility.post",
+      "Performance guidance on state isolation per cell",
+      "Thorough tradeoffs and pitfalls section",
+      "Rich validation plan with XCUITest and Instruments",
+      "Practical, non-trivial checklist for production rollout"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]

@@ -51,6 +51,7 @@
     "performance",
     "swiftui_features",
     "migration",
-    "tooling_debugging"
+    "tooling_debugging",
+    "accessibility_design"
   ]
 }
