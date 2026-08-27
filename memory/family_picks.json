@@ -52,6 +52,7 @@
     "swiftui_features",
     "migration",
     "tooling_debugging",
-    "accessibility_design"
+    "accessibility_design",
+    "frameworks_apis"
   ]
 }

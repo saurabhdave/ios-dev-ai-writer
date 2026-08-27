@@ -2389,5 +2389,41 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-08-27",
+    "slug": "safely-migrating-swiftdata-schemas-in-production",
+    "topic": "Safely Migrating SwiftData Schemas in Production",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "MigrationGate: configurations parameter not an array in ModelContainer init",
+      "Cleanup uses BGAppRefreshTaskRequest; BGProcessingTaskRequest suits file I/O better",
+      "BGTaskScheduler.register called in scheduleCleanup; should register at app launch",
+      "No concrete MigrationPlan/MigrationStage example code shown",
+      "First code block ends with }``` missing newline"
+    ],
+    "review_strengths": [
+      "Strong, specific opening hook and pull-quote",
+      "Clear guidance to use VersionedSchema and pinned ModelConfiguration URL",
+      "Actionable gating strategy with OSSignposter instrumentation",
+      "Detailed operational notes and tradeoffs per section",
+      "Robust validation/observability guidance with XCTest and Instruments",
+      "Concrete decision criteria: when to launch-time vs defer",
+      "Practical, non-trivial rollout checklist for production teams"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('import SwiftData'): reference to member 'init' cannot be resolved without a contextual type",
+      "inline block ('import SwiftData, OSLog'):  3 | @MainActor actor MigrationGate {",
+      "inline block ('import Foundation, BackgroundTasks'):  3 | @MainActor struct StoreSafety {"
+    ]
   }
 ]
