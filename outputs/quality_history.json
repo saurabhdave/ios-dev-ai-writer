@@ -2425,5 +2425,44 @@
       "inline block ('import SwiftData, OSLog'):  3 | @MainActor actor MigrationGate {",
       "inline block ('import Foundation, BackgroundTasks'):  3 | @MainActor struct StoreSafety {"
     ]
+  },
+  {
+    "date": "2026-08-31",
+    "slug": "practical-swiftui-environment-keys-for-scalable-apps",
+    "topic": "Practical SwiftUI Environment Keys for Scalable Apps",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Baseline note claims iOS 26+, an unreal platform version.",
+      "Uses undefined helper 'with' in DateKey defaultValue code.",
+      "Preview helper uses undefined keys '.flags' and '.currency'.",
+      "Logger default contradicts earlier 'benign defaults' guidance.",
+      "Checklist references FeatureFlags façade without any definition."
+    ],
+    "review_strengths": [
+      "Strong opening linking crashes to dependency scoping.",
+      "Clear policy-vs-state guidance with explicit choose/avoid criteria.",
+      "Sound EnvironmentKey usage and benign default strategy.",
+      "Read-only façade pattern prevents wide invalidations in lists.",
+      "Actionable OSSignposter and Instruments profiling guidance.",
+      "Useful preview builder pattern matching composition root wiring.",
+      "Dedicated tradeoffs and validation sections with concrete steps.",
+      "Concise closing takeaway emphasizing single composition root."
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": [
+      "inline block ('import SwiftUI'): type 'NumberFormatter' has no member 'currency'",
+      "inline block ('import SwiftUI, OSLog, Observation'): 3 | @MainActor @Observable final class DateProvider { var now: () -> Date = { Date() } }",
+      "inline block ('import SwiftUI, Observation, OSLog'): 3 | @MainActor @Observable final class FeedModel { var titles: [String] = []; func refresh() {} }",
+      "inline block ('import SwiftUI'): result values in '? :' expression have mismatching types 'Content' and 'Text'",
+      "inline block ('import SwiftUI, OSLog'): 3 | private func previewRoot<V: View>(_ v: @autoclosure () -> V) -> some View {"
+    ]
   }
 ]
