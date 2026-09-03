@@ -2464,5 +2464,37 @@
       "inline block ('import SwiftUI'): result values in '? :' expression have mismatching types 'Content' and 'Text'",
       "inline block ('import SwiftUI, OSLog'): 3 | private func previewRoot<V: View>(_ v: @autoclosure () -> V) -> some View {"
     ]
+  },
+  {
+    "date": "2026-09-03",
+    "slug": "designing-core-haptics-for-macos-apps",
+    "topic": "Designing Core Haptics for macOS Apps",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "omitted",
+    "code_repair_attempts": 2,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Section 2 imports UIKit in a macOS-focused sample",
+      "Section 2 fallbackTap uses UIImpactFeedbackGenerator without #if guards",
+      "Section 4 caches supportsHaptics, contradicts §1 re-check guidance",
+      "Forward-looking Rosetta deprecation claims without citation",
+      "No example check for app active state despite guidance"
+    ],
+    "review_strengths": [
+      "Strong, specific hook about hardware variance",
+      "Clear capability gating with CHHapticEngine.capabilitiesForHardware()",
+      "Robust engine lifecycle with resetHandler and stoppedHandler",
+      "Reusable AHAP patterns with -mac override strategy",
+      "Concrete fallback path using NSHapticFeedbackManager",
+      "Observability via OSSignposter and structured os_log",
+      "Actionable checklist covering deployment and testing"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]

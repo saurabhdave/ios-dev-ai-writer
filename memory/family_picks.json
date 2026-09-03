@@ -54,6 +54,7 @@
     "tooling_debugging",
     "accessibility_design",
     "frameworks_apis",
-    "swiftui_features"
+    "swiftui_features",
+    "accessibility_design"
   ]
 }
