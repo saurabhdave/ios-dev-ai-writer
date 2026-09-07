@@ -2496,5 +2496,35 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-09-07",
+    "slug": "prevent-retain-cycles-in-swift-actors",
+    "topic": "Prevent Retain Cycles in Swift Actors",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 9,
+    "review_technical_depth": 8,
+    "review_actionability": 9,
+    "review_issues": [
+      "Baseline note claims iOS 26+ and Swift 6.2 — unrealistic",
+      "§1 Before snippet uses [weak self], contradicts strong-capture warning",
+      "makeNotificationStream onTermination @Sendable captures non-Sendable observer token"
+    ],
+    "review_strengths": [
+      "Strong hook contrasting data-race vs lifetime responsibility",
+      "Clear guidance on storing Task handles and cancellation ownership",
+      "Actionable AsyncStream + onTermination pattern with explicit stopper",
+      "Concrete XCTest lifetime test using weak refs and sleep drain",
+      "Thorough tradeoffs on weak captures, nonisolated, and cancellation checks",
+      "Robust observability: Instruments, OSSignposter, MetricKit coverage",
+      "Consistent 'Choose X when…' decision criteria throughout"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]

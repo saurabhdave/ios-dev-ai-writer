@@ -55,6 +55,7 @@
     "accessibility_design",
     "frameworks_apis",
     "swiftui_features",
-    "accessibility_design"
+    "accessibility_design",
+    "performance"
   ]
 }
