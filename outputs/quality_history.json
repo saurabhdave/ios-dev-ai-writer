@@ -2526,5 +2526,38 @@
     ],
     "review_repair_triggered": false,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-09-10",
+    "slug": "asyncsequence-patterns-for-real-time-swiftui-views",
+    "topic": "AsyncSequence Patterns for Real-Time SwiftUI Views",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "direct",
+    "code_repair_attempts": 0,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 6,
+    "review_actionability": 8,
+    "review_issues": [
+      "Baseline note claims iOS 26+, unrealistic version target",
+      "Uses nonexistent `.bufferingNewest(256)` in §1 LiveScores code",
+      "Prose uses `.buffering(oldest: N)`; correct is `.bufferingOldest(N)`",
+      "§4 coalescedDiffs lacks `continuation.onTermination` to cancel tasks",
+      "LocationStream doesn’t reset `manager.delegate` to nil on termination"
+    ],
+    "review_strengths": [
+      "Strong opening naming concrete real-time SwiftUI failure modes",
+      "Clear guidance to bridge at service boundaries, not in views",
+      "Good use of `URLSession.shared.bytes(from:)` with line parsing",
+      "Actionable buffering policy advice with bounded-memory emphasis",
+      "Thoughtful `task(id:)` ownership and cancellation guidance",
+      "OSSignposter wrapped around coalescing illustrates observability",
+      "Concrete tests: cancel-after-start and bounded-memory bursts",
+      "Comprehensive checklist tied to tools and CI enforcement"
+    ],
+    "review_repair_triggered": true,
+    "inline_snippet_issues": []
   }
 ]
