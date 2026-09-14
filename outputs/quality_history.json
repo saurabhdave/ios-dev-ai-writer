@@ -2559,5 +2559,37 @@
     ],
     "review_repair_triggered": true,
     "inline_snippet_issues": []
+  },
+  {
+    "date": "2026-09-14",
+    "slug": "module-tracking-tips-for-faster-swift-debugging",
+    "topic": "Module Tracking Tips for Faster Swift Debugging",
+    "layout_score": 15,
+    "layout_max_score": 15,
+    "layout_issues": [],
+    "code_path": "repaired",
+    "code_repair_attempts": 1,
+    "has_references": true,
+    "review_overall": 8,
+    "review_technical_depth": 7,
+    "review_actionability": 9,
+    "review_issues": [
+      "Baseline states iOS 26+; iOS 26 doesn’t exist",
+      "OSSignposter.endInterval call missing 'state:' label",
+      "Last snippet imports 'os' instead of 'OSLog' for Logger",
+      "Apple API names in prose lack backticks in §1 intro"
+    ],
+    "review_strengths": [
+      "Compelling hook on misattributed crashes and module ownership",
+      "Per-module Logger/OSSignposter wrapper with #fileID guidance",
+      "Symbol anchor pattern to verify dSYM symbolication",
+      "Clear CI guidance on UUID and slice validation",
+      "Actionable breakpoint scoping by Module in Xcode/LLDB",
+      "Specific tradeoffs section covering dSYM and signpost pitfalls",
+      "Robust validation section using Instruments and MetricKit",
+      "Concise, practical end-to-end checklist for adoption"
+    ],
+    "review_repair_triggered": false,
+    "inline_snippet_issues": []
   }
 ]
